@@ -64,8 +64,8 @@ const createData = catchAsyncError(async (req, res, next) => {
   let newId;
   const lastDoc = await brandModel.find().sort({ _id: -1 });
   if (lastDoc.length > 0) {
-    newIdserial = lastDoc[0].brand_id.slice(0, 1);
-    newIdNo = parseInt(lastDoc[0].brand_id.slice(1)) + 1;
+    newIdserial = lastDoc[0].brand_id.slice(0, 2);
+    newIdNo = parseInt(lastDoc[0].brand_id.slice(2)) + 1;
     newId = newIdserial.concat(newIdNo);
   } else {
     newId = "c100";
