@@ -36,7 +36,7 @@ const branchSchema = mongoose.Schema({
   },
   updated_at: { type: Date, default: Date.now },
 });
- 
+
 const branchModel = mongoose.model("branch", branchSchema);
 
 const saveData = async () => {
@@ -45,8 +45,8 @@ const saveData = async () => {
   if (totalData < 1) {
     const branchDoc = new branchModel({
       branch_id: "b100",
-      name: "Primary",
-      parent_name: "Primary",
+      name: "IFIXIT",
+      parent_name: "IFIXIT",
     });
     await branchDoc.save();
   }

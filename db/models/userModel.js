@@ -11,20 +11,33 @@ const userSchema = new mongoose.Schema({
   },
   name: {
     type: String,
-    required: [true, "Please Enter Your Name"],
+    required: [true, "Please enter name"],
     maxLength: [32, "Name cannot exceed 32 characters"],
     minLength: [4, "Name should have more than 4 characters"],
   },
+  designation: {
+    type: String,
+    required: [true, "Please enter designation"],
+    // maxLength: [32, "Name cannot exceed 32 characters"],
+    // minLength: [4, "Name should have more than 4 characters"],
+  },
+  mobile: {
+    type: String,
+    required: [true, "Please enter mobile number"],
+    unique: true,
+    validate: [validator.isEmail, "Please enter mobile number"],
+    maxLength:  [32, "Name cannot exceed 32 characters"],
+  },
   email: {
     type: String,
-    required: [true, "Please Enter Your Email"],
-    unique: true,
-    validate: [validator.isEmail, "Please Enter a valid Email"],
+    // required: [true, "Please enter email"],
+    // unique: true,
+    validate: [validator.isEmail, "Please enter a valid Email"],
   },
   password: {
     type: String,
-    required: [true, "Please Enter Your Password"],
-    minLength: [8, "Password should be greater than 8 characters"],
+    required: [true, "Please enter Password"],
+    minLength: [4, "Password should be greater than 4 characters"],
     select: false,
   },
   image: {
@@ -37,11 +50,16 @@ const userSchema = new mongoose.Schema({
       // required: true,
     },
   },
-  role_id: {
+  branch_id: {
     type: String,
-    // required: [true, "Please Select A Role"],
+    required: [true, "Please select branch"],
     // default: "",
   },
+  // role_id: {
+  //   type: String,
+  //   // required: [true, "Please Select A Role"],
+  //   // default: "",
+  // },
 
   remarks: {
     type: String,
@@ -53,7 +71,7 @@ const userSchema = new mongoose.Schema({
   created_by: {
     type: String,
     trim: true,
-    default: "mahnayon@gmail.com",
+    // default: "mahnayon@gmail.com",
   },
   created_at: { type: Date, default: Date.now },
   updated_by: {
@@ -114,8 +132,9 @@ let userData = [
     user_id: "u100",
     name: "Admin",
     email: "admin@dg.com",
+    designation:"Owner",
     password: "admin12345",
-    role_id: "R100",
+    branch_id: "R100",
     created_by: "Super Admin",
   },
   {
@@ -142,4 +161,4 @@ const saveData = async () => {
     }
   }
 };
-saveData();
+// saveData();
