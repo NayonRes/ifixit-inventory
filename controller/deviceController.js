@@ -1,4 +1,4 @@
-const brandModel = require("../db/models/brandModel");
+const deviceModel = require("../db/models/deviceModel");
 const ErrorHander = require("../utils/errorHandler");
 const catchAsyncError = require("../middleware/catchAsyncError");
 const filterModel = require("../db/models/filterModel");
@@ -9,10 +9,10 @@ const getParentDropdown = catchAsyncError(async (req, res, next) => {
     "getParentDropdown===================================================="
   );
 
-  // const data = await brandModel.find().lean();
-  const data = await brandModel.find({}, "name brand_id").lean();
+  // const data = await deviceModel.find().lean();
+  const data = await deviceModel.find({}, "name device_id").lean();
 
-  console.log("brand list----------------", data);
+  console.log("device list----------------", data);
 
   res.status(200).json({
     success: true,
@@ -36,9 +36,9 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
   if (req.query.parent_name) {
     query.parent_name = new RegExp(`^${req.query.parent_name}$`, "i");
   }
-  let totalData = await brandModel.countDocuments(query);
+  let totalData = await deviceModel.countDocuments(query);
   console.log("totalData=================================", totalData);
-  const data = await brandModel.find(query).skip(startIndex).limit(limit);
+  const data = await deviceModel.find(query).skip(startIndex).limit(limit);
   console.log("data", data);
   res.status(200).json({
     success: true,
@@ -50,7 +50,7 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
   });
 });
 const getById = catchAsyncError(async (req, res, next) => {
-  let data = await brandModel.findById(req.params.id);
+  let data = await deviceModel.findById(req.params.id);
   if (!data) {
     return res.send({ message: "No data found", status: 404 });
   }
@@ -62,22 +62,22 @@ const createData = catchAsyncError(async (req, res, next) => {
   let newIdserial;
   let newIdNo;
   let newId;
-  const lastDoc = await brandModel.find().sort({ _id: -1 });
+  const lastDoc = await deviceModel.find().sort({ _id: -1 });
   if (lastDoc.length > 0) {
-    newIdserial = lastDoc[0].brand_id.slice(0, 2);
-    newIdNo = parseInt(lastDoc[0].brand_id.slice(2)) + 1;
+    newIdserial = lastDoc[0].device_id.slice(0, 1);
+    newIdNo = parseInt(lastDoc[0].device_id.slice(1)) + 1;
     newId = newIdserial.concat(newIdNo);
   } else {
-    newId = "br100";
+    newId = "d100";
   }
   let decodedData = jwt.verify(token, process.env.JWT_SECRET);
   let newData = {
     ...req.body,
-    brand_id: newId,
+    device_id: newId,
     created_by: decodedData?.user?.email,
   };
 
-  const data = await brandModel.create(newData);
+  const data = await deviceModel.create(newData);
   res.send({ message: "success", status: 201, data: data });
 });
 
@@ -85,7 +85,7 @@ const updateData = catchAsyncError(async (req, res, next) => {
   const { token } = req.cookies;
   const { name } = req.body;
 
-  let data = await brandModel.findById(req.params.id);
+  let data = await deviceModel.findById(req.params.id);
   let oldParentName = data.name;
 
   if (!data) {
@@ -100,13 +100,13 @@ const updateData = catchAsyncError(async (req, res, next) => {
     updated_at: new Date(),
   };
 
-  data = await brandModel.findByIdAndUpdate(req.params.id, newData, {
+  data = await deviceModel.findByIdAndUpdate(req.params.id, newData, {
     new: true,
     runValidators: true,
     useFindAndModified: false,
   });
 
-  const childrenParentUpdate = await brandModel.updateMany(
+  const childrenParentUpdate = await deviceModel.updateMany(
     { parent_name: oldParentName },
     { $set: { parent_name: name } }
   );
@@ -120,7 +120,7 @@ const updateData = catchAsyncError(async (req, res, next) => {
 
 const deleteData = catchAsyncError(async (req, res, next) => {
   console.log("deleteData function is working");
-  let data = await brandModel.findById(req.params.id);
+  let data = await deviceModel.findById(req.params.id);
   console.log("data", data);
   if (!data) {
     console.log("if");
@@ -137,7 +137,7 @@ const deleteData = catchAsyncError(async (req, res, next) => {
 
 async function getAllLeafNodes(data) {
   console.log("getAllLeafNodes", data);
-  let parents = await brandModel.find({
+  let parents = await deviceModel.find({
     name: { $ne: "Primary" },
     parent_name: new RegExp(`^${data.name}$`, "i"),
   });
@@ -156,9 +156,9 @@ async function getAllLeafNodes(data) {
   return [...childNodes.flat()];
 }
 
-const getLeafBrandList = catchAsyncError(async (req, res, next) => {
-  console.log("getLeafBrandList");
-  const leafNodes2 = await brandModel.aggregate([
+const getLeafDeviceList = catchAsyncError(async (req, res, next) => {
+  console.log("getLeafDeviceList");
+  const leafNodes2 = await deviceModel.aggregate([
     // { $match: { parent_name: "Mobile" } },
     {
       $lookup: {
@@ -174,7 +174,7 @@ const getLeafBrandList = catchAsyncError(async (req, res, next) => {
       },
     },
     { $match: { isLeaf: true } },
-    { $project: { _id: 1, name: 1, parent_name: 1, brand_id: 1 } },
+    { $project: { _id: 1, name: 1, parent_name: 1, device_id: 1 } },
   ]);
 
   // res.json(leafNodes2);
@@ -185,7 +185,7 @@ const getLeafBrandList = catchAsyncError(async (req, res, next) => {
     data: leafNodes2,
   });
 });
-const getBrandWiseFilterList = catchAsyncError(async (req, res, next) => {
+const getDeviceWiseFilterList = catchAsyncError(async (req, res, next) => {
   console.log("req.body 3213231", req.body);
 
   const leafNodes = await getAllLeafNodes(req.body);
@@ -194,7 +194,7 @@ const getBrandWiseFilterList = catchAsyncError(async (req, res, next) => {
 
   const stringIds = [];
   leafNodes.map((res) => {
-    stringIds.push(res.brand_id.toString());
+    stringIds.push(res.device_id.toString());
   });
 
   console.log("stringIds", stringIds);
@@ -203,7 +203,7 @@ const getBrandWiseFilterList = catchAsyncError(async (req, res, next) => {
   const data = await filterModel
     .find(
       {
-        brand_id: {
+        device_id: {
           $in: stringIds,
         },
       },
@@ -235,11 +235,11 @@ const getBrandWiseFilterList = catchAsyncError(async (req, res, next) => {
 });
 module.exports = {
   getParentDropdown,
-  getLeafBrandList,
+  getLeafDeviceList,
   getDataWithPagination,
   getById,
   createData,
   updateData,
   deleteData,
-  getBrandWiseFilterList,
+  getDeviceWiseFilterList,
 };
