@@ -1,20 +1,15 @@
 const mongoose = require("mongoose");
 
-const modelSchema = mongoose.Schema({
-  model_id: {
+const deviceSchema = mongoose.Schema({
+  device_id: {
     type: String,
-    required: [true, "Please enter model id"],
+    required: [true, "Please enter device id"],
   },
   name: {
     type: String,
-    required: [true, "Please enter model name"],
+    required: [true, "Please enter device name"],
     trim: true,
     unique: true,
-  },
-  device_id: {
-    type: String,
-    // default: 10000,
-    required: [true, "Please enter device name"],
   },
   parent_name: {
     type: String,
@@ -42,20 +37,20 @@ const modelSchema = mongoose.Schema({
   updated_at: { type: Date, default: Date.now },
 });
 
-const modelModel = mongoose.model("model", modelSchema);
+const deviceModel = mongoose.model("device", deviceSchema);
 
 const saveData = async () => {
-  let totalData = await modelModel.countDocuments();
+  let totalData = await deviceModel.countDocuments();
   console.log("totalData 123456", totalData);
   if (totalData < 1) {
-    const modelDoc = new modelModel({
-      model_id: "m100",
+    const deviceDoc = new deviceModel({
+      device_id: "d100",
       name: "Primary",
       parent_name: "Primary",
     });
-    await modelDoc.save();
+    await deviceDoc.save();
   }
 };
 // saveData();
 
-module.exports = modelModel;
+module.exports = deviceModel;

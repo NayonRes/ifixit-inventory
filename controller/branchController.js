@@ -68,7 +68,7 @@ const createData = catchAsyncError(async (req, res, next) => {
     newIdNo = parseInt(lastDoc[0].branch_id.slice(1)) + 1;
     newId = newIdserial.concat(newIdNo);
   } else {
-    newId = "c100";
+    newId = "b100";
   }
   let decodedData = jwt.verify(token, process.env.JWT_SECRET);
   let newData = {
