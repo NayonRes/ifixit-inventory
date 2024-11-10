@@ -159,13 +159,13 @@ const loginUser = catchAsyncError(async (req, res, next) => {
   if (!isPasswordMatched) {
     return next(new ErrorHander("Invalid email or password", 401));
   }
-  let roleAndPermission = {};
-  if (user.role_id) {
-    roleAndPermission = await roleModel.findOne({ role_id: user.role_id });
-  }
+  // let roleAndPermission = {};
+  // if (user.role_id) {
+  //   roleAndPermission = await roleModel.findOne({ role_id: user.role_id });
+  // }
 
   // console.log("roleAndPermission=========================", roleAndPermission);
-  sendToken(user, roleAndPermission, 200, res);
+  sendToken(user, 200, res);
 });
 
 const logout = catchAsyncError(async (req, res, next) => {
