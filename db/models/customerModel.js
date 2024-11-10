@@ -24,16 +24,19 @@ const customerSchema = mongoose.Schema({
     validate: [validator.isEmail, "Please Enter a valid Email"],
     trim: true,
     unique: true,
+    default: null
   },
   customer_type: {
-    type: String
-    
+    type: String,
+    default: null
   },
   rating: {
-    type: String
+    type: String,
+    default: null
   },
   membership_id: {
     type: String,
+    default: null
   },
   remarks: {
     type: String,
