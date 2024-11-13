@@ -67,6 +67,6 @@ const saveData = async () => {
     await supDoc.save();
   }
 };
-saveData();
+// saveData();
 
 module.exports = supplierModel;

@@ -38,7 +38,7 @@ const sparePartSchema = mongoose.Schema({
     type: Number,
     // required: [true, "Please enter the product name"],
 
-    default: null,
+    default: 0,
   },
 
   warranty: {
@@ -84,8 +84,12 @@ const sparePartSchema = mongoose.Schema({
   updated_at: { type: Date, default: Date.now },
 });
 
-
-sparePartSchema.index({ category_id: 1, brand_id: 1, device_id: 1, model_id: 1 });
+sparePartSchema.index({
+  category_id: 1,
+  brand_id: 1,
+  device_id: 1,
+  model_id: 1,
+});
 sparePartSchema.index({ name: 1 });
 sparePartSchema.index({ price: 1 });
 sparePartSchema.index({ created_at: -1 });

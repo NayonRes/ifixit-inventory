@@ -75,6 +75,6 @@ const saveData = async () => {
     await custDoc.save();
   }
 };
-saveData();
+// saveData();
 
 module.exports = customerModel;
