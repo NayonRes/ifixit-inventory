@@ -1,5 +1,6 @@
 var express = require("express");
 const {
+  getDeviceWiseModelDropdown,
   getParentDropdown,
   getLeafModelList,
   getDataWithPagination,
@@ -15,11 +16,12 @@ const modelModel = require("../db/models/modelModel");
 var router = express.Router();
 
 //Must be maintain the serial of declaring router.route according to less middleware use
-router
-  .route("/create")
-  .post(createData);
+router.route("/create").post(createData);
 router.route("/dropdownlist").get(isAuthenticatedUser, getParentDropdown);
 router.route("/leaf-dropdown").get(isAuthenticatedUser, getLeafModelList);
+router
+  .route("/device-model")
+  .get(isAuthenticatedUser, getDeviceWiseModelDropdown);
 router
   .route("/model-filter-list")
   .post(isAuthenticatedUser, getModelWiseFilterList);

@@ -36,7 +36,7 @@ const deviceSchema = mongoose.Schema({
   },
   updated_at: { type: Date, default: Date.now },
 });
-
+deviceSchema.index({ name: 1 });
 const deviceModel = mongoose.model("device", deviceSchema);
 
 const saveData = async () => {

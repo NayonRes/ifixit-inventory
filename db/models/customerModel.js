@@ -24,16 +24,19 @@ const customerSchema = mongoose.Schema({
     validate: [validator.isEmail, "Please Enter a valid Email"],
     trim: true,
     unique: true,
+    default: null,
   },
   customer_type: {
-    type: String
-    
+    type: String,
+    default: null,
   },
   rating: {
-    type: String
+    type: String,
+    default: null,
   },
   membership_id: {
     type: String,
+    default: null,
   },
   remarks: {
     type: String,
@@ -55,7 +58,8 @@ const customerSchema = mongoose.Schema({
   },
   updated_at: { type: Date, default: Date.now },
 });
- 
+customerSchema.index({ name: 1 });
+customerSchema.index({ mobile: 1 });
 const customerModel = mongoose.model("customer", customerSchema);
 
 const saveData = async () => {

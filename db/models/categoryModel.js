@@ -36,6 +36,8 @@ const categorySchema = mongoose.Schema({
   },
   updated_at: { type: Date, default: Date.now },
 });
+
+categorySchema.index({ name: 1 });
  
 const categoryModel = mongoose.model("category", categorySchema);
 

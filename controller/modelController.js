@@ -4,6 +4,30 @@ const catchAsyncError = require("../middleware/catchAsyncError");
 const filterModel = require("../db/models/filterModel");
 const jwt = require("jsonwebtoken");
 
+const getDeviceWiseModelDropdown = catchAsyncError(async (req, res, next) => {
+  console.log(
+    "getParentDropdown====================================================",
+    req.query
+  );
+
+  var query = {};
+  if (req.query.deviceId) {
+    query.device_id = new RegExp(`^${req.query.deviceId}$`, "i");
+  }
+  console.log("query", query);
+
+  // const data = await modelModel.find(query, "name model_id").lean();
+  const data = await modelModel.find(query, { name: 1, model_id: 1 }).lean();
+
+  console.log("device wise model list----------------", data);
+
+  res.status(200).json({
+    success: true,
+    message: "successful",
+    data: data,
+  });
+});
+
 const getParentDropdown = catchAsyncError(async (req, res, next) => {
   console.log(
     "getParentDropdown===================================================="
@@ -234,6 +258,7 @@ const getModelWiseFilterList = catchAsyncError(async (req, res, next) => {
   });
 });
 module.exports = {
+  getDeviceWiseModelDropdown,
   getParentDropdown,
   getLeafModelList,
   getDataWithPagination,

@@ -24,9 +24,11 @@ const supplierSchema = mongoose.Schema({
     validate: [validator.isEmail, "Please Enter a valid Email"],
     trim: true,
     unique: true,
+    default: null,
   },
   address: {
-    type: String
+    type: String,
+    default: null,
   },
   remarks: {
     type: String,
@@ -48,7 +50,8 @@ const supplierSchema = mongoose.Schema({
   },
   updated_at: { type: Date, default: Date.now },
 });
- 
+supplierSchema.index({ name: 1 });
+supplierSchema.index({ mobile: 1 });
 const supplierModel = mongoose.model("supplier", supplierSchema);
 
 const saveData = async () => {

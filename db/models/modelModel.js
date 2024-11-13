@@ -41,7 +41,7 @@ const modelSchema = mongoose.Schema({
   },
   updated_at: { type: Date, default: Date.now },
 });
-
+modelSchema.index({ name: 1 });
 const modelModel = mongoose.model("model", modelSchema);
 
 const saveData = async () => {

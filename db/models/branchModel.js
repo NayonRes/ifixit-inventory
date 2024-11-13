@@ -36,7 +36,7 @@ const branchSchema = mongoose.Schema({
   },
   updated_at: { type: Date, default: Date.now },
 });
-
+branchSchema.index({ name: 1 });
 const branchModel = mongoose.model("branch", branchSchema);
 
 const saveData = async () => {

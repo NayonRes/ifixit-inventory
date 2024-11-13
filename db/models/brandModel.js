@@ -36,7 +36,7 @@ const brandSchema = mongoose.Schema({
   },
   updated_at: { type: Date, default: Date.now },
 });
- 
+brandSchema.index({ name: 1 });
 const brandModel = mongoose.model("brand", brandSchema);
 
 const saveData = async () => {
