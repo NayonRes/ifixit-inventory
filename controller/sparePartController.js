@@ -118,6 +118,7 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
         model_id: 1,
         sparePart_id: 1,
         warranty: 1,
+        price: 1,
         images: 1,
         description: 1,
         remarks: 1,
@@ -204,6 +205,8 @@ const createData = catchAsyncError(async (req, res, next) => {
 });
 
 const updateData = async (req, res, next) => {
+  console.log("asdasdfasdfasdfasdfs====================updateData");
+
   try {
     const { token } = req.cookies;
     let data = await sparePartModel.findById(req.params.id);
@@ -220,16 +223,20 @@ const updateData = async (req, res, next) => {
         await imageDelete(element.public_id, next);
       }
     }
+    console.log("11111111111111111111111111111");
+
     //uploading new images
     let imageData = [];
     let newData = req.body;
     if (req.files) {
       imageData = await imageUpload(req.files.images, "spareParts", next);
     }
+    console.log("2222222222222222222222222");
     console.log("imageData", imageData);
     if (imageData.length > 0) {
       newData = { ...req.body, images: imageData };
     }
+    console.log("33333333333333333333333333333333333333");
     let decodedData = jwt.verify(token, process.env.JWT_SECRET);
 
     newData = {

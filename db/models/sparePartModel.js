@@ -44,7 +44,7 @@ const sparePartSchema = mongoose.Schema({
   warranty: {
     type: Number,
     // required: [true, "Please enter the product price"],
-    // min: [0, "warranty can not less than 0"],
+    min: [0, "warranty can not less than 0"],
     default: null,
   },
   description: {
