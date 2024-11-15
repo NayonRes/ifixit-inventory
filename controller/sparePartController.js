@@ -223,7 +223,7 @@ const updateData = async (req, res, next) => {
         await imageDelete(element.public_id, next);
       }
     }
-    console.log("11111111111111111111111111111");
+   
 
     //uploading new images
     let imageData = [];
@@ -231,12 +231,12 @@ const updateData = async (req, res, next) => {
     if (req.files) {
       imageData = await imageUpload(req.files.images, "spareParts", next);
     }
-    console.log("2222222222222222222222222");
+ 
     console.log("imageData", imageData);
     if (imageData.length > 0) {
       newData = { ...req.body, images: imageData };
     }
-    console.log("33333333333333333333333333333333333333");
+   
     let decodedData = jwt.verify(token, process.env.JWT_SECRET);
 
     newData = {

@@ -19,18 +19,18 @@ router.route("/leaf-dropdown").get(getLeafPermissionList);
 
 router
   .route("/")
-  .get(isAuthenticatedUser, authorizeRoles("per143"), getDataWithPagination);
+  .get(isAuthenticatedUser, authorizeRoles("dashboard"), getDataWithPagination);
 router
   .route("/:id")
-  .get(isAuthenticatedUser, authorizeRoles("per143"), getById);
+  .get(isAuthenticatedUser, authorizeRoles("dashboard"), getById);
 router
   .route("/create")
-  .post(isAuthenticatedUser, authorizeRoles("per144"), createData);
+  .post(isAuthenticatedUser, authorizeRoles("dashboard"), createData);
 router
   .route("/update/:id")
-  .put(isAuthenticatedUser, authorizeRoles("per145"), updateData);
+  .put(isAuthenticatedUser, authorizeRoles("dashboard"), updateData);
 router
   .route("/delete/:id")
-  .delete(isAuthenticatedUser, authorizeRoles("per146"), deleteData);
+  .delete(isAuthenticatedUser, authorizeRoles("dashboard"), deleteData);
 
 module.exports = router;

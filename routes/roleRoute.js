@@ -14,22 +14,22 @@ var router = express.Router();
 //Must be maintain the serial of declaring router.route accordimg to less middleware use
 router
   .route("/dropdownlist")
-  .get(isAuthenticatedUser, authorizeRoles("per139"), getDropdown);
+  .get(isAuthenticatedUser, authorizeRoles("dashboard"), getDropdown);
 
 router
   .route("/")
-  .get(isAuthenticatedUser, authorizeRoles("per138"), getDataWithPagination);
+  .get(isAuthenticatedUser, authorizeRoles("dashboard"), getDataWithPagination);
 router
   .route("/:id")
-  .get(isAuthenticatedUser, authorizeRoles("per138"), getById);
+  .get(isAuthenticatedUser, authorizeRoles("dashboard"), getById);
 router
   .route("/create")
-  .post(isAuthenticatedUser, authorizeRoles("per139"), createData);
+  .post(isAuthenticatedUser, authorizeRoles("dashboard"), createData);
 router
   .route("/update/:id")
-  .put(isAuthenticatedUser, authorizeRoles("per140"), updateData);
+  .put(isAuthenticatedUser, authorizeRoles("dashboard"), updateData);
 router
   .route("/delete/:id")
-  .delete(isAuthenticatedUser, authorizeRoles("per141"), deleteData);
+  .delete(isAuthenticatedUser, authorizeRoles("dashboard"), deleteData);
 
 module.exports = router;

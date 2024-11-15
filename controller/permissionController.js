@@ -81,72 +81,22 @@ const getLeafPermissionList = catchAsyncError(async (req, res, next) => {
 // });
 
 const getDataWithPagination = catchAsyncError(async (req, res, next) => {
-  const page = parseInt(req.query.page) || 1;
-  console.log("===Filter========req.query.page", req.query.page);
-  const limit = parseInt(req.query.limit) || 10;
-  const startIndex = (page - 1) * limit;
-  const endIndex = page * limit;
-  var query = {};
-  if (req.query.name) {
-    query.name = new RegExp(`^${req.query.name}$`, "i");
-  }
-  if (req.query.status) {
-    query.status = req.query.status;
-  }
-  if (req.query.module_name) {
-    query.module_name = new RegExp(`^${req.query.module_name}$`, "i");
-  }
-  let totalData = await permissionModel.countDocuments(query);
-  console.log("totalData=================================", totalData);
+ 
+  console.log(
+    "totalData===================Permission==============111111111111"
+  );
 
-  // let data = await permissionModel.find(query).skip(startIndex).limit(limit);
+  let data = await permissionModel.find().lean();
 
-  // const data = permissionModel.aggregate([
-  //   {
-  //     $graphLookup: {
-  //       from: "permissions",
-  //       startWith: "$module_name",
-  //       connectFromField: "module_name",
-  //       connectToField: "name",
-  //       as: "reportingHierarchy",
-  //     },
-  //   },
-  // ]);
-
-  // this query for name with parent list
-  const pipeline = [
-    {
-      $match: query,
-    },
-    {
-      $graphLookup: {
-        from: "permissions",
-        startWith: "$name",
-        connectFromField: "module_name",
-        connectToField: "module_name",
-        maxDepth: 1,
-        as: "children",
-      },
-    },
-    // {
-    //   $sort: { module_name: 1 },
-    // },
-  ];
-
-  const data = await permissionModel
-    .aggregate(pipeline)
-    .skip(startIndex)
-    .limit(limit)
-    .exec();
-  console.log("data", data);
+  console.log(
+    "totalData===================Permission==============2222222222222",
+    data
+  );
 
   res.status(200).json({
     success: true,
     message: "successful",
     data: data,
-    totalData: totalData,
-    pageNo: page,
-    limit: limit,
   });
 });
 const getById = catchAsyncError(async (req, res, next) => {

@@ -1,7 +1,9 @@
 var express = require("express");
 const {
+  geDropdown,
   getById,
   createData,
+  updateData,
   getDataWithPagination,
   deleteData,
   loginUser,
@@ -19,25 +21,28 @@ router.route("/login").post(loginUser);
 router.route("/update-password").post(updatePassword);
 router.route("/update-profile/:id").put(updateProfile);
 
-// router.route("/dropdownlist").get(getParentDropdown);
+router.route("/dropdownlist").get(geDropdown);
 // router.route("/leaf-dropdown").get(getLeafCategoryList);
 
 // router.route("/category-filter-list").post(getCategoryWiseFilterList);
 
 router
   .route("/")
-  .get(isAuthenticatedUser, authorizeRoles("per133"), getDataWithPagination);
+  .get(isAuthenticatedUser, authorizeRoles("dashboard"), getDataWithPagination);
 
 router.route("/logout").get(logout);
 router
   .route("/:id")
-  .get(isAuthenticatedUser, authorizeRoles("per133"), getById);
+  .get(isAuthenticatedUser, authorizeRoles("dashboard"), getById);
 router
   .route("/create")
-  .post(isAuthenticatedUser, authorizeRoles("per134"), createData);
+  .post(isAuthenticatedUser, authorizeRoles("dashboard"), createData);
+router
+  .route("/update/:id")
+  .put(isAuthenticatedUser, authorizeRoles("dashboard"), updateData);
 // router.route("/update/:id").put(isAuthenticatedUser, authorizeRoles("per135"),updateData);
 router
   .route("/delete/:id")
-  .delete(isAuthenticatedUser, authorizeRoles("per136"), deleteData);
+  .delete(isAuthenticatedUser, authorizeRoles("dashboard"), deleteData);
 
 module.exports = router;

@@ -6,8 +6,23 @@ const imageUpload = require("../utils/imageUpload");
 const imageDelete = require("../utils/imageDelete");
 const sendToken = require("../utils/jwtToken");
 const jwt = require("jsonwebtoken");
+const bcrypt = require("bcryptjs");
 const { main } = require("../utils/TestNodemailerMail");
 
+const geDropdown = catchAsyncError(async (req, res, next) => {
+  console.log("geDropdown====================================================");
+
+  // const data = await branchModel.find().lean();
+  const data = await userModel.find({}, "name designation permission image").lean();
+
+  console.log("user list----------------", data);
+
+  res.status(200).json({
+    success: true,
+    message: "successful",
+    data: data,
+  });
+});
 const getById = catchAsyncError(async (req, res, next) => {
   console.log("getById");
   let data = await userModel.findById(req.params.id);
@@ -71,17 +86,23 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
   const startIndex = (page - 1) * limit;
   const endIndex = page * limit;
   var query = {};
-  if (req.query.orderID) {
-    query.order_id = new RegExp(`^${req.query.orderID}$`, "i");
+  // if (req.query.orderID) {
+  //   query.order_id = new RegExp(`^${req.query.orderID}$`, "i");
+  // }
+  if (req.query.name) {
+    query.name = new RegExp(`^${req.query.name}$`, "i");
   }
-  if (req.query.customerName) {
-    query.customer_name = new RegExp(`^${req.query.customerName}$`, "i");
+  if (req.query.mobile) {
+    query.mobile = new RegExp(`^${req.query.mobile}$`, "i");
   }
-  if (req.query.customerEmail) {
-    query.customer_email = new RegExp(`^${req.query.customerEmail}$`, "i");
+  if (req.query.branch_id) {
+    query.branch_id = new RegExp(`^${req.query.branch_id}$`, "i");
   }
-  if (req.query.customerPhone) {
-    query.customer_phone = new RegExp(`^${req.query.customerPhone}$`, "i");
+  if (req.query.email) {
+    query.email = new RegExp(`^${req.query.email}$`, "i");
+  }
+  if (req.query.designation) {
+    query.designation = new RegExp(`^${req.query.designation}$`, "i");
   }
   if (req.query.status) {
     query.status = req.query.status;
@@ -99,10 +120,10 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
     { $match: query },
     {
       $lookup: {
-        from: "roles", // The name of the Role model collection in your database
-        localField: "role_id", // Field in userModel that holds the role ID
-        foreignField: "role_id", // Field in roleModel that the role ID refers to
-        as: "role", // The name of the field to add the result to
+        from: "branches",
+        localField: "branch_id",
+        foreignField: "_id",
+        as: "branch_data",
       },
     },
     {
@@ -111,6 +132,9 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
         user_id: 1,
         name: 1,
         email: 1,
+        mobile: 1,
+        designation: 1,
+        branch_id: 1,
         image: 1,
         status: 1,
         created_by: 1,
@@ -118,9 +142,8 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
         updated_by: 1,
         updated_at: 1,
 
-        "role._id": 1,
-        "role.role_id": 1,
-        "role.name": 1,
+        "branch_data._id": 1,
+        "branch_data.name": 1,
       },
     },
     // { $unwind: "$role" }, // Unwind the array if you expect only one related role per user
@@ -231,6 +254,80 @@ const updatePassword = catchAsyncError(async (req, res, next) => {
 });
 
 // update User Profile
+const updateData = catchAsyncError(async (req, res, next) => {
+  console.log("req.params.id =======================", req.params.id);
+  const { token } = req.cookies;
+
+  const userData = await userModel.findById(req.params.id);
+
+  if (!userData) {
+    return next(new ErrorHander("No data found", 404));
+  }
+  let decodedData = jwt.verify(token, process.env.JWT_SECRET);
+
+  // newData = {
+  //   ...newData,
+  //   updated_by: decodedData?.user?.email,
+  //   updated_at: new Date(),
+  // };
+  const newUserData = {
+    // name: req.body.name,
+    // // email: req.body.email,
+    // role_id: req.body.role_id,
+    // status: req.body.status,
+    ...req.body,
+    updated_by: decodedData?.user?.email,
+    updated_at: new Date(),
+  };
+  console.log("newUserData", newUserData);
+  // console.log("req.body.avatar", req.body);
+
+  // if (req.body.avatar !== "" || req.body.avatar !== undefined) {
+
+  console.log("userData----------------", userData);
+
+  // const imageId = user.avatar.public_id;
+
+  // await cloudinary.v2.uploader.destroy(imageId);
+  let imageData = [];
+  if (req.files) {
+    imageData = await imageUpload(req.files.image, "users", next);
+  }
+  if (imageData.length > 0) {
+    newUserData.image = imageData[0];
+  }
+  if (userData.image.public_id) {
+    console.log("previous image delete 111111");
+
+    await imageDelete(userData.image.public_id, next);
+  }
+  console.log("imageData", imageData);
+
+  console.log("req.body.", req.body);
+
+  if (req.body.password) {
+    console.log("req.body.password", req.body.password);
+
+    newUserData.password = await bcrypt.hash(req.body.password, 10);
+  }
+
+  console.log(
+    "newUserData======================newUserData======",
+    newUserData
+  );
+
+  const user = await userModel.findByIdAndUpdate(req.params.id, newUserData, {
+    new: true,
+    runValidators: true,
+    useFindAndModify: false,
+  });
+
+  res.status(200).json({
+    success: true,
+    message: "successfull",
+    user,
+  });
+});
 const updateProfile = catchAsyncError(async (req, res, next) => {
   console.log("req.params.id =======================", req.params.id);
   const { token } = req.cookies;
@@ -251,7 +348,7 @@ const updateProfile = catchAsyncError(async (req, res, next) => {
     updated_at: new Date(),
   };
   console.log("newUserData", newUserData);
-  console.log("req.body.avatar", req.body);
+  // console.log("req.body.avatar", req.body);
 
   // if (req.body.avatar !== "" || req.body.avatar !== undefined) {
 
@@ -302,8 +399,10 @@ const updateProfile = catchAsyncError(async (req, res, next) => {
 });
 
 module.exports = {
+  geDropdown,
   getById,
   createData,
+  updateData,
   getDataWithPagination,
   deleteData,
   loginUser,

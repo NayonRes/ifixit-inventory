@@ -26,19 +26,19 @@ router
 
 router
   .route("/")
-  .get(isAuthenticatedUser, authorizeRoles("per103"), getDataWithPagination);
+  .get(isAuthenticatedUser, authorizeRoles("dashboard"), getDataWithPagination);
 router
   .route("/:id")
-  .get(isAuthenticatedUser, authorizeRoles("per103"), getById);
+  .get(isAuthenticatedUser, authorizeRoles("dashboard"), getById);
 // router
 //   .route("/create")
 //   .post(isAuthenticatedUser, authorizeRoles("per104"), createData);
 
 router
   .route("/update/:id")
-  .put(isAuthenticatedUser, authorizeRoles("per105"), updateData);
+  .put(isAuthenticatedUser, authorizeRoles("dashboard"), updateData);
 router
   .route("/delete/:id")
-  .delete(isAuthenticatedUser, authorizeRoles("per106"), deleteData);
+  .delete(isAuthenticatedUser, authorizeRoles("dashboard"), deleteData);
 
 module.exports = router;

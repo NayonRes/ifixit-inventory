@@ -22,22 +22,22 @@ router.route("/product-list-by-ids").post(getDataByProductIds);
 
 router
   .route("/")
-  .get(isAuthenticatedUser, authorizeRoles("per123"), getDataWithPagination);
+  .get(isAuthenticatedUser, authorizeRoles("dashboard"), getDataWithPagination);
 router
   .route("/:id")
-  .get(isAuthenticatedUser, authorizeRoles("per123"), getById);
+  .get(isAuthenticatedUser, authorizeRoles("dashboard"), getById);
 
 router
   .route("/create")
-  .post(isAuthenticatedUser, authorizeRoles("per124"), createData);
+  .post(isAuthenticatedUser, authorizeRoles("dashboard"), createData);
 router
   .route("/update/:id")
-  .put(isAuthenticatedUser, authorizeRoles("per125"), updateData);
+  .put(isAuthenticatedUser, authorizeRoles("dashboard"), updateData);
 router
   .route("/patch/:id")
-  .patch(isAuthenticatedUser, authorizeRoles("per125"), patchData);
+  .patch(isAuthenticatedUser, authorizeRoles("dashboard"), patchData);
 router
   .route("/delete/:id")
-  .delete(isAuthenticatedUser, authorizeRoles("per126"), deleteData);
+  .delete(isAuthenticatedUser, authorizeRoles("dashboard"), deleteData);
 
 module.exports = router;

@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const { Schema } = mongoose;
 const validator = require("validator");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
@@ -52,9 +53,9 @@ const userSchema = new mongoose.Schema({
     },
   },
   branch_id: {
-    type: String,
-    required: [true, "Please select branch"],
-    // default: "",
+    type: Schema.Types.ObjectId,
+    ref: "branchModel", // Reference to the brandModel
+    required: [true, "Please enter select branch"],
   },
   // role_id: {
   //   type: String,
@@ -128,77 +129,109 @@ userSchema.methods.getResetPasswordToken = function () {
 module.exports = mongoose.model("User", userSchema);
 const user = mongoose.model("User", userSchema);
 
-let permissions = [
-  "per100",
-  "per101",
-  "per102",
-  "per103",
-  "per104",
-  "per105",
-  "per106",
-  "per107",
-  "per108",
-  "per109",
-  "per110",
-  "per111",
-  "per112",
-  "per113",
-  "per114",
-  "per115",
-  "per116",
-  "per117",
-  "per118",
-  "per119",
-  "per120",
-  "per121",
-  "per122",
-  "per123",
-  "per124",
-  "per125",
-  "per126",
-  "per127",
-  "per128",
-  "per129",
-  "per130",
-  "per131",
-  "per132",
-  "per133",
-  "per134",
-  "per135",
-  "per136",
-  "per137",
-  "per138",
-  "per139",
-  "per140",
-  "per141",
-  "per142",
-  "per143",
-  "per144",
-  "per145",
-  "per146",
-  "per147",
-];
-let permissions2 = [
-  "per100",
-  "per101",
-  "per102",
-  "per103",
-  "per104",
-  "per105",
-  "per106",
-  "per107",
-  "per108",
-  "per109",
-  "per110",
-  "per111",
-  "per112",
-  "per113",
-  "per114",
-  "per115",
-  "per116",
-  "per117",
-];
+const permissions = [
+  "dashboard",
 
+  // Branch
+  "branch_list",
+  "add_branch",
+  "update_branch",
+
+  // Brand
+  "brand_list",
+  "add_brand",
+  "update_brand",
+
+  // Category
+  "category_list",
+  "add_category",
+  "update_category",
+
+  // Customer
+  "customer_list",
+  "add_customer",
+  "update_customer",
+
+  // Device
+  "device_list",
+  "add_device",
+  "update_device",
+
+  // Filter
+  "filter_options",
+  "apply_filters",
+
+  // Product
+  "product_list",
+  "add_product",
+  "update_product",
+
+  // Purchase
+  "purchase_list",
+  "add_purchase",
+
+  // Model
+  "model_list",
+  "add_model",
+  "update_model",
+
+  // Order
+  "order_list",
+  "place_order",
+  "cancel_order",
+
+  // Role
+  "role_list",
+  "add_role",
+  "update_role",
+
+  // Spare Parts
+  "spare_parts_list",
+  "add_spare_part",
+  "update_spare_part",
+
+  // Supplier
+  "supplier_list",
+  "add_supplier",
+  "update_supplier",
+
+  // User
+  "user_list",
+  "add_user",
+  "update_user",
+];
+const permissions2 = [
+  "dashboard",
+
+  // Branch
+  "branch_list",
+  "add_branch",
+  "update_branch",
+
+  // Brand
+  "brand_list",
+  "add_brand",
+  "update_brand",
+
+  // Category
+  "category_list",
+  "add_category",
+  "update_category",
+
+  // Customer
+  "customer_list",
+  "add_customer",
+  "update_customer",
+
+  // Device
+  "device_list",
+  "add_device",
+  "update_device",
+
+  // Filter
+  "filter_options",
+  "apply_filters",
+];
 let userData = [
   {
     user_id: "u100",
@@ -206,7 +239,7 @@ let userData = [
     email: "admin@dg.com",
     designation: "Owner",
     password: "admin12345",
-    branch_id: "thisIsIntialdata",
+    branch_id: new mongoose.Types.ObjectId(),
     mobile: "+8801793661517",
     created_by: "Super Admin",
     permission: permissions,
@@ -217,7 +250,7 @@ let userData = [
     email: "user@dg.com",
     password: "user12345",
     designation: "Employee",
-    branch_id: "thisIsIntialdata",
+    branch_id: new mongoose.Types.ObjectId(),
     created_by: "Super Admin",
     mobile: "+8801977096655",
     permission: permissions2,
