@@ -13,7 +13,9 @@ const geDropdown = catchAsyncError(async (req, res, next) => {
   console.log("geDropdown====================================================");
 
   // const data = await branchModel.find().lean();
-  const data = await userModel.find({}, "name designation permission image").lean();
+  const data = await userModel
+    .find({}, "name designation permission image")
+    .lean();
 
   console.log("user list----------------", data);
 
@@ -72,6 +74,10 @@ const createData = catchAsyncError(async (req, res, next) => {
     user_id: newId,
     created_by: decodedData?.user?.email,
   };
+
+  if (req.body.permission) {
+    newData.permission = JSON.parse(req.body.permission);
+  }
   console.log("newData --------------------------1212", newData);
   const data = await userModel.create(newData);
   res.send({ message: "success", status: 201, data: data });
@@ -309,6 +315,11 @@ const updateData = catchAsyncError(async (req, res, next) => {
     console.log("req.body.password", req.body.password);
 
     newUserData.password = await bcrypt.hash(req.body.password, 10);
+  }
+  if (req.body.permission) {
+    console.log("req.body.password", req.body.password);
+
+    newUserData.permission = JSON.parse(req.body.permission);
   }
 
   console.log(
