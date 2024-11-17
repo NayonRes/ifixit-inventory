@@ -159,6 +159,33 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
   });
 });
 
+const lightSearchWithPagination = catchAsyncError(async (req, res, next) => {
+  const page = parseInt(req.query.page) || 1;
+  console.log("===========req.query.page", req.query.page);
+  const limit = parseInt(req.query.limit) || 10;
+  const startIndex = (page - 1) * limit;
+  const endIndex = page * limit;
+
+  var query = {};
+  if (req.query.name) {
+    query.name = { $regex: req.query.name, $options: "i" }; 
+  }
+
+  let totalData = await sparePartModel.countDocuments(query);
+  console.log("totalData=================================", totalData);
+  const data = await sparePartModel.find(query).select('_id sparePart_id name price images').skip(startIndex).limit(limit);
+
+  console.log("data", data);
+  res.status(200).json({
+    success: true,
+    message: "successful",
+    data: data,
+    totalData: totalData,
+    pageNo: page,
+    limit: limit,
+  });
+});
+
 const getById = catchAsyncError(async (req, res, next) => {
   let data = await sparePartModel.findById(req.params.id);
   if (!data) {
@@ -289,6 +316,7 @@ const deleteData = catchAsyncError(async (req, res, next) => {
 });
 module.exports = {
   getDataWithPagination,
+  lightSearchWithPagination,
   getById,
   createData,
   updateData,
