@@ -9,9 +9,9 @@ const sparePartSchema = mongoose.Schema({
   },
   name: {
     type: String,
-    required: [true, "Please enter the product name"],
+    required: [true, "Please enter the name"],
     trim: true,
-    maxLength: [60, "Name can not exceed 60 character"],
+    unique: true,
   },
   brand_id: {
     type: Schema.Types.ObjectId,

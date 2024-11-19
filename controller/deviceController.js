@@ -10,7 +10,7 @@ const getParentDropdown = catchAsyncError(async (req, res, next) => {
   );
 
   // const data = await deviceModel.find().lean();
-  const data = await deviceModel.find({}, "name device_id").lean();
+  const data = await deviceModel.find({}, "name device_id parent_name").lean();
 
   console.log("device list----------------", data);
 

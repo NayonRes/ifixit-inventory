@@ -18,8 +18,12 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
   const startDate = req.query.startDate;
   const endDate = req.query.endDate;
   var query = {};
+  // if (req.query.name) {
+  //   query.name = new RegExp(`^${req.query.name}$`, "i");
+  // }
+
   if (req.query.name) {
-    query.name = new RegExp(`^${req.query.name}$`, "i");
+    query.name = { $regex: req.query.name, $options: "i" };
   }
   if (req.query.status) {
     query.status = req.query.status;
@@ -108,6 +112,14 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
       },
     },
     {
+      $lookup: {
+        from: "sparepartvariations",
+        localField: "_id",
+        foreignField: "spare_part_id",
+        as: "variation_data",
+      },
+    },
+    {
       $project: {
         _id: 1,
         name: 1,
@@ -134,6 +146,7 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
         "brand_data.name": 1,
         "device_data.name": 1,
         "model_data.name": 1,
+        variation_data: 1,
       },
     },
     {
@@ -168,12 +181,16 @@ const lightSearchWithPagination = catchAsyncError(async (req, res, next) => {
 
   var query = {};
   if (req.query.name) {
-    query.name = { $regex: req.query.name, $options: "i" }; 
+    query.name = { $regex: req.query.name, $options: "i" };
   }
 
   let totalData = await sparePartModel.countDocuments(query);
   console.log("totalData=================================", totalData);
-  const data = await sparePartModel.find(query).select('_id sparePart_id name price images').skip(startIndex).limit(limit);
+  const data = await sparePartModel
+    .find(query)
+    .select("_id sparePart_id name price images")
+    .skip(startIndex)
+    .limit(limit);
 
   console.log("data", data);
   res.status(200).json({
@@ -199,8 +216,9 @@ const getById = catchAsyncError(async (req, res, next) => {
 });
 
 const createData = catchAsyncError(async (req, res, next) => {
-  console.log("req.files", req.files);
-  console.log("req.body", req.body);
+  console.log("req.files--------", req.files);
+  console.log("req.body------------", req.body);
+
   const { token } = req.cookies;
   let imageData = [];
   if (req.files) {
@@ -250,7 +268,6 @@ const updateData = async (req, res, next) => {
         await imageDelete(element.public_id, next);
       }
     }
-   
 
     //uploading new images
     let imageData = [];
@@ -258,12 +275,12 @@ const updateData = async (req, res, next) => {
     if (req.files) {
       imageData = await imageUpload(req.files.images, "spareParts", next);
     }
- 
+
     console.log("imageData", imageData);
     if (imageData.length > 0) {
       newData = { ...req.body, images: imageData };
     }
-   
+
     let decodedData = jwt.verify(token, process.env.JWT_SECRET);
 
     newData = {

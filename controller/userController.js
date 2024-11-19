@@ -38,7 +38,7 @@ const getById = catchAsyncError(async (req, res, next) => {
   });
 });
 const createData = catchAsyncError(async (req, res, next) => {
-  // console.log("req.files", req.files);
+  console.log("req.files", req.files);
   // console.log("req.body", req.body);
   const { token } = req.cookies;
   const { email } = req.body;

@@ -15,12 +15,16 @@ const lightSearchWithPagination = catchAsyncError(async (req, res, next) => {
 
   var query = {};
   if (req.query.name) {
-    query.name = { $regex: req.query.name, $options: "i" }; 
+    query.name = { $regex: req.query.name, $options: "i" };
   }
 
   let totalData = await sparePartVariationModel.countDocuments(query);
   console.log("totalData=================================", totalData);
-  const data = await sparePartVariationModel.find(query).select('_id sparePartVariation_id name price images').skip(startIndex).limit(limit);
+  const data = await sparePartVariationModel
+    .find(query)
+    .select("_id sparePartVariation_id name price images")
+    .skip(startIndex)
+    .limit(limit);
 
   console.log("data", data);
   res.status(200).json({
@@ -52,11 +56,12 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
     query.status = req.query.status;
   }
 
-
   let totalData = await sparePartVariationModel.countDocuments(query);
   console.log("totalData=================================", totalData);
-  const data = await sparePartVariationModel.find(query).skip(startIndex).limit(limit);
-
+  const data = await sparePartVariationModel
+    .find(query)
+    .skip(startIndex)
+    .limit(limit);
 
   console.log("data", data);
   res.status(200).json({
@@ -87,7 +92,7 @@ const createData = catchAsyncError(async (req, res, next) => {
   const { token } = req.cookies;
   let imageData = [];
   if (req.files) {
-    imageData = await imageUpload(req.files.images, "sparePartVariations", next);
+    imageData = await imageUpload(req.files.image, "sparePartVariations", next);
   }
   console.log("imageData", imageData);
 
@@ -95,7 +100,6 @@ const createData = catchAsyncError(async (req, res, next) => {
   let newData = {
     ...req.body,
     images: imageData,
-    sparePartVariation_id: newId,
     created_by: decodedData?.user?.email,
   };
   console.log("newData", newData);
@@ -124,7 +128,11 @@ const updateData = async (req, res, next) => {
     let imageData = [];
     let newData = req.body;
     if (req.files) {
-      imageData = await imageUpload(req.files.images, "sparePartVariations", next);
+      imageData = await imageUpload(
+        req.files.images,
+        "sparePartVariations",
+        next
+      );
     }
     console.log("imageData", imageData);
     if (imageData.length > 0) {
