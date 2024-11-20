@@ -5,6 +5,7 @@ const imageUpload = require("../utils/imageUpload");
 const imageDelete = require("../utils/imageDelete");
 const catchAsyncError = require("../middleware/catchAsyncError");
 const jwt = require("jsonwebtoken");
+const { default: mongoose } = require("mongoose");
 
 const getDataWithPagination = catchAsyncError(async (req, res, next) => {
   const page = parseInt(req.query.page) || 1;
@@ -204,16 +205,91 @@ const lightSearchWithPagination = catchAsyncError(async (req, res, next) => {
 });
 
 const getById = catchAsyncError(async (req, res, next) => {
-  let data = await sparePartModel.findById(req.params.id);
-  if (!data) {
+  const id = req.params.id;
+
+  const data = await sparePartModel.aggregate([
+    {
+      $match: { _id: mongoose.Types.ObjectId(id) },
+    },
+    {
+      $lookup: {
+        from: "categories",
+        localField: "category_id",
+        foreignField: "_id",
+        as: "category_data",
+      },
+    },
+    {
+      $lookup: {
+        from: "brands",
+        localField: "brand_id",
+        foreignField: "_id",
+        as: "brand_data",
+      },
+    },
+    {
+      $lookup: {
+        from: "devices",
+        localField: "device_id",
+        foreignField: "_id",
+        as: "device_data",
+      },
+    },
+    {
+      $lookup: {
+        from: "models",
+        localField: "model_id",
+        foreignField: "_id",
+        as: "model_data",
+      },
+    },
+    {
+      $lookup: {
+        from: "sparepartvariations",
+        localField: "_id",
+        foreignField: "spare_part_id",
+        as: "variation_data",
+      },
+    },
+    {
+      $project: {
+        _id: 1,
+        name: 1,
+        description: 1,
+        brand_id: 1,
+        category_id: 1,
+        device_id: 1,
+        model_id: 1,
+        sparePart_id: 1,
+        warranty: 1,
+        price: 1,
+        images: 1,
+        remarks: 1,
+        status: 1,
+        created_by: 1,
+        created_at: 1,
+        updated_by: 1,
+        updated_at: 1,
+        "category_data.name": 1,
+        "brand_data.name": 1,
+        "device_data.name": 1,
+        "model_data.name": 1,
+        variation_data: 1,
+      },
+    },
+  ]);
+
+  if (!data || data.length === 0) {
     return next(new ErrorHander("No data found", 404));
   }
+
   res.status(200).json({
     success: true,
     message: "success",
-    data: data,
+    data: data[0], // Access the first (and only) document in the array
   });
 });
+
 
 const createData = catchAsyncError(async (req, res, next) => {
   console.log("req.files--------", req.files);
