@@ -5,11 +5,11 @@ const imageUpload = require("../utils/imageUpload");
 const imageDelete = require("../utils/imageDelete");
 const catchAsyncError = require("../middleware/catchAsyncError");
 const jwt = require("jsonwebtoken");
-const { default: mongoose } = require("mongoose");
+const mongoose = require("mongoose");
 
 const getDataWithPagination = catchAsyncError(async (req, res, next) => {
   const page = parseInt(req.query.page) || 1;
-  console.log("===========req.query.page", req.query.page);
+  console.log("===========req.query================", req.query);
   const limit = parseInt(req.query.limit) || 10;
   const startIndex = (page - 1) * limit;
   const endIndex = page * limit;
@@ -31,16 +31,16 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
   }
 
   if (req.query.category_id) {
-    query.category_id = new RegExp(`^${req.query.category_id}$`, "i");
+    query.category_id = new mongoose.Types.ObjectId(req.query.category_id);
   }
   if (req.query.brand_id) {
-    query.brand_id = new RegExp(`^${req.query.brand_id}$`, "i");
+    query.brand_id = new mongoose.Types.ObjectId(req.query.brand_id);
   }
   if (req.query.device_id) {
-    query.device_id = new RegExp(`^${req.query.device_id}$`, "i");
+    query.device_id = new mongoose.Types.ObjectId(req.query.device_id);
   }
   if (req.query.model_id) {
-    query.model_id = new RegExp(`^${req.query.model_id}$`, "i");
+    query.model_id = new mongoose.Types.ObjectId(req.query.model_id);
   }
   if (parseInt(minPrice) && parseInt(maxPrice)) {
     query.price = {
@@ -289,7 +289,6 @@ const getById = catchAsyncError(async (req, res, next) => {
     data: data[0], // Access the first (and only) document in the array
   });
 });
-
 
 const createData = catchAsyncError(async (req, res, next) => {
   console.log("req.files--------", req.files);

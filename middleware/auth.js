@@ -5,16 +5,16 @@ let User = require("../db/models/userModel");
 const { logout } = require("../controller/userController");
 
 exports.isAuthenticatedUser = catchAsyncErrors(async (req, res, next) => {
-  console.log("isAuthenticatedUser Middleware executed");
+  // console.log("isAuthenticatedUser Middleware executed");
 
   const { token } = req.cookies;
 
-  console.log("isAuthenticatedUser=================", token);
+  // console.log("isAuthenticatedUser=================", token);
 
   if (!token) {
     return next(new ErrorHander("Please Login to access this resource", 401));
   }
-  console.log("isAuthenticatedUser Middleware executed 1111111111111111");
+  // console.log("isAuthenticatedUser Middleware executed 1111111111111111");
   let decodedData;
   try {
     decodedData = jwt.verify(token, process.env.JWT_SECRET);
