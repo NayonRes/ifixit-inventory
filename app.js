@@ -39,6 +39,7 @@ var app = express();
 var whitelist = [
   "https://digital-shop-backend.onrender.com",
   "https://digital-shop-admin-panel.vercel.app",
+  "https://ifixit-admin-panel.vercel.app",
   "http://localhost:3000",
   "http://localhost:3001",
   "http://localhost:3002",
