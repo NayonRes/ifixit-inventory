@@ -12,8 +12,13 @@ const sendToken = (user, statusCode, res) => {
     httpOnly: true, // Cookie is accessible only by the web server
     secure: process.env.NODE_ENV === "production", // Cookie sent only over HTTPS in production
     sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // 'none' for cross-site, 'lax' for same-site
- 
   };
+
+  console.log("Running in environment:", process.env.NODE_ENV);
+
+  if (process.env.NODE_ENV === "development") {
+    console.log("Detailed logging enabled in development.");
+  }
   console.log("user===========", user);
 
   let newUser = {
