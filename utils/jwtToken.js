@@ -15,7 +15,12 @@ const sendToken = (user, statusCode, res) => {
     // domain: "https://ifixit-admin-panel.vercel.app", // Allow cookies to be shared across subdomains
   };
 
-  console.log("Running in environment:", process.env.NODE_ENV);
+  console.log(
+    "Running in environment:",
+    process.env.NODE_ENV,
+    "secure:",
+    process.env.NODE_ENV === "production"
+  );
 
   if (process.env.NODE_ENV === "development") {
     console.log("Detailed logging enabled in development.");
