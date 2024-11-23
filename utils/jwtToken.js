@@ -14,6 +14,7 @@ const sendToken = (user, statusCode, res) => {
     sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax", // 'none' for cross-site, 'lax' for same-site
     // domain: "https://ifixit-admin-panel.vercel.app", // Allow cookies to be shared across subdomains
   };
+  console.log("----------options--------------", options);
 
   console.log(
     "Running in environment:",
