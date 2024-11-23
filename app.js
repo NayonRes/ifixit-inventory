@@ -48,15 +48,14 @@ var whitelist = [
 var corsOptions = {
   // origin: "https://digital-shop-backend.onrender.com",
 
-  // origin: function (origin, callback) {
-  //   console.log("origin", origin);
-  //   if (!origin || whitelist.indexOf(origin) !== -1) {
-  //     callback(null, true);
-  //   } else {
-  //     callback(new Error("Not allowed by CORS"));
-  //   }
-  // },
-  origin: true,
+  origin: function (origin, callback) {
+    console.log("origin", origin);
+    if (!origin || whitelist.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
   credentials: true,
   optionSuccessStatus: 200,
 };

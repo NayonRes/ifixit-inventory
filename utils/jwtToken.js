@@ -11,7 +11,7 @@ const sendToken = (user, statusCode, res) => {
     ),
     httpOnly: true, // Cookie is accessible only by the web server
     secure: process.env.NODE_ENV === "production", // Cookie sent only over HTTPS in production
-    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // 'none' for cross-site, 'lax' for same-site
+    sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax", // 'none' for cross-site, 'lax' for same-site
     // domain: "https://ifixit-admin-panel.vercel.app", // Allow cookies to be shared across subdomains
   };
 
