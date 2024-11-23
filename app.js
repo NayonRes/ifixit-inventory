@@ -56,6 +56,7 @@ var corsOptions = {
   //     callback(new Error("Not allowed by CORS"));
   //   }
   // },
+  origin: true,
   credentials: true,
   optionSuccessStatus: 200,
 };
