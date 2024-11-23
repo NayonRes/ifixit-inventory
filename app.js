@@ -48,20 +48,20 @@ var whitelist = [
 var corsOptions = {
   // origin: "https://digital-shop-backend.onrender.com",
 
-  origin: function (origin, callback) {
-    console.log("origin", origin);
-    if (!origin || whitelist.indexOf(origin) !== -1) {
-      callback(null, true);
-    } else {
-      callback(new Error("Not allowed by CORS"));
-    }
-  },
+  // origin: function (origin, callback) {
+  //   console.log("origin", origin);
+  //   if (!origin || whitelist.indexOf(origin) !== -1) {
+  //     callback(null, true);
+  //   } else {
+  //     callback(new Error("Not allowed by CORS"));
+  //   }
+  // },
   credentials: true,
   optionSuccessStatus: 200,
 };
-app.use(cors());
+// app.use(cors());
 
-// app.use(cors(corsOptions));
+app.use(cors(corsOptions));
 // view engine setup
 app.set("views", path.join(__dirname, "views"));
 app.set("view engine", "jade");
