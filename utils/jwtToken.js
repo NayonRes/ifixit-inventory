@@ -10,9 +10,6 @@ const sendToken = (user, statusCode, res) => {
       Date.now() + process.env.COOKIE_EXPIRE * 24 * 60 * 60 * 1000
     ),
     httpOnly: true, // Cookie is accessible only by the web server
-    secure: process.env.NODE_ENV === "production", // Cookie sent only over HTTPS in production
-    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // 'none' for cross-site, 'lax' for same-site
-    domain: "https://ifixit-admin-panel.vercel.app", // Allow cookies to be shared across subdomains
   };
 
   console.log("Running in environment:", process.env.NODE_ENV);
