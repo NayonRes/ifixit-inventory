@@ -59,9 +59,9 @@ var corsOptions = {
   credentials: true,
   optionSuccessStatus: 200,
 };
-// app.use(cors());
+app.use(cors());
 
-app.use(cors(corsOptions));
+// app.use(cors(corsOptions));
 // view engine setup
 app.set("views", path.join(__dirname, "views"));
 app.set("view engine", "jade");
