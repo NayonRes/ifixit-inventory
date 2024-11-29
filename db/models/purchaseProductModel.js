@@ -25,6 +25,10 @@ const purchaseProductSchema = mongoose.Schema({
     type: Number,
     default:0
   },
+  is_sku_generated: {
+    type: Boolean,
+    default: false,
+},
   remarks: {
     type: String,
   },

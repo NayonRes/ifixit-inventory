@@ -5,7 +5,7 @@ const {
   createData,
   updateData,
   deleteData,
-} = require("../controller/sparePartsSkuController");
+} = require("../controller/sparePartsStockController");
 const { isAuthenticatedUser, authorizeRoles } = require("../middleware/auth");
 
 var router = express.Router();

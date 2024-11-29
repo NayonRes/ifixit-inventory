@@ -4,6 +4,8 @@ const ErrorHander = require("../utils/errorHandler");
 const mongoose = require("mongoose");
 const catchAsyncError = require("../middleware/catchAsyncError");
 const jwt = require("jsonwebtoken");
+const purchaseModel = require("../db/models/purchaseModel");
+const purchaseProductModel = require("../db/models/purchaseProductModel");
 
 
 const getDataWithPagination = catchAsyncError(async (req, res, next) => {
@@ -17,9 +19,94 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
     query.sku_number = new RegExp(`^${req.query.sku_number}$`, "i");
   }
 
+  if (req.query.spare_parts_id) {
+    query.category_id = new mongoose.Types.ObjectId(req.query.spare_parts_id);
+  }
+  if (req.query.spare_parts_variation_id) {
+    query.brand_id = new mongoose.Types.ObjectId(req.query.spare_parts_variation_id);
+  }
+  if (req.query.branch_id) {
+    query.device_id = new mongoose.Types.ObjectId(req.query.branch_id);
+  }
+  if (req.query.purchase_id) {
+    query.model_id = new mongoose.Types.ObjectId(req.query.purchase_id);
+  }
+
   let totalData = await sparePartsSkuModel.countDocuments(query);
   console.log("totalData=================================", totalData);
-  const data = await sparePartsSkuModel.find(query).skip(startIndex).limit(limit);
+  //const data = await sparePartsSkuModel.find(query).skip(startIndex).limit(limit);
+
+  const data = await sparePartsSkuModel.aggregate([
+    {
+      $match: query,
+    },
+    {
+      $lookup: {
+        from: "spareparts",
+        localField: "spare_parts_id",
+        foreignField: "_id",
+        as: "sparepart_data",
+      },
+    },
+    {
+      $lookup: {
+        from: "sparepartvariations",
+        localField: "spare_parts_variation_id",
+        foreignField: "_id",
+        as: "sparepartvariation_data",
+      },
+    },
+    {
+      $lookup: {
+        from: "branches",
+        localField: "branch_id",
+        foreignField: "_id",
+        as: "branch_data",
+      },
+    },
+    {
+      $lookup: {
+        from: "purchases",
+        localField: "purchase_id",
+        foreignField: "_id",
+        as: "purchase_data",
+      },
+    },
+    {
+      $project: {
+        _id: 1,
+        spare_parts_id: 1,
+        spare_parts_variation_id: 1,
+        branch_id: 1,
+        purchase_id: 1,
+        sku_number: 1,
+        sku_status: 1,
+        sparePart_id: 1,
+        remarks: 1,
+        status: 1,
+        created_by: 1,
+        created_at: 1,
+        updated_by: 1,
+        updated_at: 1,
+        
+        "sparepart_data.name": 1,
+        "branch_data.name": 1,
+        "sparepartvariation_data.name": 1,
+        "purchase_data.purchase_date": 1,
+        "purchase_data.supplier_id": 1,
+      },
+    },
+    {
+      $sort: { created_at: -1 },
+    },
+
+    {
+      $skip: startIndex,
+    },
+    {
+      $limit: limit,
+    },
+  ]);
   console.log("data", data);
   res.status(200).json({
     success: true,
@@ -31,7 +118,71 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
   });
 });
 const getById = catchAsyncError(async (req, res, next) => {
-  let data = await sparePartsSkuModel.findById(req.params.id);
+  
+  const id = req.params.id;
+  const data = await sparePartsSkuModel.aggregate([
+    {
+      $match: { _id: mongoose.Types.ObjectId(id) },
+    },
+    {
+      $lookup: {
+        from: "spareparts",
+        localField: "spare_parts_id",
+        foreignField: "_id",
+        as: "sparepart_data",
+      },
+    },
+    {
+      $lookup: {
+        from: "sparepartvariations",
+        localField: "spare_parts_variation_id",
+        foreignField: "_id",
+        as: "sparepartvariation_data",
+      },
+    },
+    {
+      $lookup: {
+        from: "branches",
+        localField: "branch_id",
+        foreignField: "_id",
+        as: "branch_data",
+      },
+    },
+    {
+      $lookup: {
+        from: "purchases",
+        localField: "purchase_id",
+        foreignField: "_id",
+        as: "purchase_data",
+      },
+    },
+    {
+      $project: {
+        _id: 1,
+        spare_parts_id: 1,
+        spare_parts_variation_id: 1,
+        branch_id: 1,
+        purchase_id: 1,
+        sku_number: 1,
+        sku_status: 1,
+        sparePart_id: 1,
+        remarks: 1,
+        status: 1,
+        created_by: 1,
+        created_at: 1,
+        updated_by: 1,
+        updated_at: 1,
+        
+        "sparepart_data.name": 1,
+        "branch_data.name": 1,
+        "sparepartvariation_data.name": 1,
+        "purchase_data.purchase_date": 1,
+        "purchase_data.is_sku_generated": 1,
+        "purchase_data.supplier_id": 1,
+      },
+    },
+  ]);
+
   if (!data) {
     return res.send({ message: "No data found", status: 404 });
   }
@@ -43,11 +194,18 @@ const getById = catchAsyncError(async (req, res, next) => {
 const createData = catchAsyncError(async (req, res, next) => {
   const { token } = req.cookies;
   const quantity = parseInt(req.body.quantity); 
+  const purchaseProductId = req.body.purchase_product_id;
 
+  let purchaseProduct = await purchaseProductModel.findById({_id:purchaseProductId});
+  // return res.status(200).send({ message: "purchase product found", status: 200 ,data:purchaseProduct});
+  
+  if (purchaseProduct.is_sku_generated) {
+    return res.status(400).send({ message: "SKU already generated for this purchase.", status: 400 });
+  }
   // Start a session for the transaction
   const session = await mongoose.startSession();
   session.startTransaction();
-
+  console.log("-----------session started-----------",new Date());
   try {
     // Fetch the current counter by the key "sparePartsSku"
     const counter = await counterModel.findOne({ key: "sparePartsSku" }).session(session);
@@ -74,6 +232,11 @@ const createData = catchAsyncError(async (req, res, next) => {
       { key: "sparePartsSku" },
       { $set: { counter: endSerial } },
       { upsert: true, session }
+    );
+
+    await purchaseProductModel.findOneAndUpdate(
+      { _id: purchaseProductId }, 
+      { $set: { is_sku_generated: true } }
     );
 
     await session.commitTransaction();

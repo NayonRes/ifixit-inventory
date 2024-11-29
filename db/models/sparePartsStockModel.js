@@ -18,6 +18,10 @@ const sparePartsSkuSchema = mongoose.Schema({
     type: Schema.Types.ObjectId,
     ref: "purchaseModel"
   },
+  purchase_product_id: {
+    type: Schema.Types.ObjectId,
+    ref: "purchaseProductModel"
+  },
   sku_number: {
     type: Number,
     unique: true
