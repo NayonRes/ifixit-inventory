@@ -191,57 +191,132 @@ const getById = catchAsyncError(async (req, res, next) => {
 
 
 
+// const createData = catchAsyncError(async (req, res, next) => {
+//   const { token } = req.cookies;
+//   const quantity = parseInt(req.body.quantity); 
+//   const purchaseProductId = req.body.purchase_product_id;
+
+ 
+//   // Start a session for the transaction
+//   const session = await mongoose.startSession();
+//   session.startTransaction();
+//   console.log("-----------session started-----------",new Date());
+//   try {
+//     let purchaseProduct = await purchaseProductModel.findById({_id:purchaseProductId}).session(session);
+//     // return res.status(200).send({ message: "purchase product found", status: 200 ,data:purchaseProduct});
+    
+//     if (purchaseProduct.is_sku_generated) {
+//       return res.status(400).send({ message: "SKU already generated for this purchase.", status: 400 });
+//     }
+//     // Fetch the current counter by the key "sparePartsSku"
+//     const counter = await counterModel.findOne({ key: "sparePartsSku" }).session(session);
+//     console.log("------counter------",counter);
+
+//     const lastSerial = counter ? counter.counter : 10000000; // Default to 0 if counter doesn't exist
+//     const startSerial = lastSerial + 1;
+//     const endSerial = lastSerial + quantity;
+//     let decodedData = jwt.verify(token, process.env.JWT_SECRET);
+
+//     const newSpareParts = [];
+//     for (let i = 0; i < quantity; i++) {
+//       const serialNumber = lastSerial + i+1;
+//       newSpareParts.push({
+//         ...req.body,
+//         sku_number: serialNumber,
+//         created_by: decodedData?.user?.email,
+//       });
+//     }
+
+//     console.log("----new spare parts[]---",newSpareParts);
+//     const data = await sparePartsSkuModel.insertMany(newSpareParts, { session });
+//     await counterModel.findOneAndUpdate(
+//       { key: "sparePartsSku" },
+//       { $set: { counter: endSerial } },
+//       { upsert: true, session }
+//     );
+
+//     await purchaseProductModel.findOneAndUpdate(
+//       { _id: purchaseProductId }, 
+//       { $set: { is_sku_generated: true } },
+//       { session }
+//     );
+
+//     await session.commitTransaction();
+//     console.log(`Serial numbers from SN${startSerial} to SN${endSerial} created.`);
+//     res.send({ message: "success", status: 201, data: data });
+//   } catch (error) {
+//     // Roll back the transaction in case of an error
+//     await session.abortTransaction();
+//     console.error("Error processing product update:", error);
+//     res.status(500).send("An error occurred while processing the product update.");
+//   } finally {
+//     // End the session
+//     session.endSession();
+//   }
+// });
+
 const createData = catchAsyncError(async (req, res, next) => {
   const { token } = req.cookies;
-  const quantity = parseInt(req.body.quantity); 
+  const quantity = parseInt(req.body.quantity);
   const purchaseProductId = req.body.purchase_product_id;
 
-  let purchaseProduct = await purchaseProductModel.findById({_id:purchaseProductId});
-  // return res.status(200).send({ message: "purchase product found", status: 200 ,data:purchaseProduct});
-  
+  // Validate request data
+  if (!quantity || !purchaseProductId) {
+    return res.status(400).send({ message: "Invalid input", status: 400 });
+  }
+
+  // Fetch the purchase product
+  const purchaseProduct = await purchaseProductModel.findById({ _id: purchaseProductId });
+  if (!purchaseProduct) {
+    return res.status(404).send({ message: "Purchase product not found", status: 404 });
+  }
+
   if (purchaseProduct.is_sku_generated) {
     return res.status(400).send({ message: "SKU already generated for this purchase.", status: 400 });
   }
-  // Start a session for the transaction
+
+  // Start a MongoDB session for a transaction
   const session = await mongoose.startSession();
   session.startTransaction();
-  console.log("-----------session started-----------",new Date());
+  console.log("-----------session started-----------", new Date());
+
   try {
-    // Fetch the current counter by the key "sparePartsSku"
-    const counter = await counterModel.findOne({ key: "sparePartsSku" }).session(session);
-    console.log("------counter------",counter);
-
-    const lastSerial = counter ? counter.counter : 10000000; // Default to 0 if counter doesn't exist
-    const startSerial = lastSerial + 1;
-    const endSerial = lastSerial + quantity;
-    let decodedData = jwt.verify(token, process.env.JWT_SECRET);
-
-    const newSpareParts = [];
-    for (let i = 0; i < quantity; i++) {
-      const serialNumber = lastSerial + i+1;
-      newSpareParts.push({
-        ...req.body,
-        sku_number: serialNumber,
-        created_by: decodedData?.user?.email,
-      });
-    }
-
-    console.log("----new spare parts[]---",newSpareParts);
-    const data = await sparePartsSkuModel.insertMany(newSpareParts, { session });
-    await counterModel.findOneAndUpdate(
+    // Atomic counter update with `$inc`
+    const counter = await counterModel.findOneAndUpdate(
       { key: "sparePartsSku" },
-      { $set: { counter: endSerial } },
-      { upsert: true, session }
+      { $inc: { counter: quantity } },
+      { upsert: true, returnDocument: "after", session }
     );
 
+    // Calculate serial numbers
+    const startSerial = counter.counter - quantity + 1;
+    const endSerial = counter.counter;
+
+    // Decode token to get user details
+    const decodedData = jwt.verify(token, process.env.JWT_SECRET);
+    const createdBy = decodedData?.user?.email;
+
+    // Prepare new spare parts data
+    const newSpareParts = Array.from({ length: quantity }, (_, i) => ({
+      ...req.body,
+      sku_number: startSerial + i, // Generate SKU numbers
+      created_by: createdBy,
+    }));
+
+    // Insert the new spare parts
+    const data = await sparePartsSkuModel.insertMany(newSpareParts, { session });
+
+    // Update the purchase product to mark SKU as generated
     await purchaseProductModel.findOneAndUpdate(
-      { _id: purchaseProductId }, 
-      { $set: { is_sku_generated: true } }
+      { _id: purchaseProductId },
+      { $set: { is_sku_generated: true } },
+      { session }
     );
 
+    // Commit the transaction
     await session.commitTransaction();
     console.log(`Serial numbers from SN${startSerial} to SN${endSerial} created.`);
-    res.send({ message: "success", status: 201, data: data });
+    res.status(201).send({ message: "Success", status: 201, data });
   } catch (error) {
     // Roll back the transaction in case of an error
     await session.abortTransaction();
