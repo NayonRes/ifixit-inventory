@@ -7,10 +7,25 @@ const sendToken = (user, statusCode, res) => {
   // options for cookie
   const options = {
     expires: new Date(
-      Date.now() + process.env.COOKIE_EXPIRE * 24 * 60 * 60 * 1000
+    Date.now() + process.env.COOKIE_EXPIRE * 24 * 60 * 60 * 1000
     ),
-    httpOnly: true,
+    httpOnly: true, // Cookie is accessible only by the web server
+    secure: process.env.NODE_ENV === "production" ? true : false, // Cookie sent only over HTTPS in production
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // 'none' for cross-site, 'lax' for same-site
+    // domain: "https://ifixit-admin-panel.vercel.app", // Allow cookies to be shared across subdomains
   };
+  console.log("----------options--------------", options);
+
+  console.log(
+    "Running in environment:",
+    process.env.NODE_ENV,
+    "secure:",
+    process.env.NODE_ENV === "production"
+  );
+
+  if (process.env.NODE_ENV === "development") {
+    console.log("Detailed logging enabled in development.");
+  }
   console.log("user===========", user);
 
   let newUser = {

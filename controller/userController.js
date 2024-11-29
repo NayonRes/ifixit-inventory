@@ -38,7 +38,7 @@ const getById = catchAsyncError(async (req, res, next) => {
   });
 });
 const createData = catchAsyncError(async (req, res, next) => {
-  // console.log("req.files", req.files);
+  console.log("req.files", req.files);
   // console.log("req.body", req.body);
   const { token } = req.cookies;
   const { email } = req.body;
@@ -78,14 +78,14 @@ const createData = catchAsyncError(async (req, res, next) => {
   if (req.body.permission) {
     newData.permission = JSON.parse(req.body.permission);
   }
-  console.log("newData --------------------------1212", newData);
+  // console.log("newData --------------------------1212", newData);
   const data = await userModel.create(newData);
   res.send({ message: "success", status: 201, data: data });
 });
 const getDataWithPagination = catchAsyncError(async (req, res, next) => {
   console.log("getDataWithPagination");
 
-  console.log("req.cookies ---------------------------------", req.cookies);
+  // console.log("req.cookies ---------------------------------", req.cookies);
   const page = parseInt(req.query.page) || 1;
   console.log("===========req.query.page", req.query.page);
   const limit = parseInt(req.query.limit) || 10;
@@ -99,6 +99,7 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
     query.name = new RegExp(`^${req.query.name}$`, "i");
   }
   if (req.query.mobile) {
+    const escapedMobile = req.query.mobile.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&');
     query.mobile = new RegExp(`^${req.query.mobile}$`, "i");
   }
   if (req.query.branch_id) {

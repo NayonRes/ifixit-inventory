@@ -6,7 +6,7 @@ const sparePartVariationSchema = mongoose.Schema({
     type: String,
     required: [true, "Please enter sparePartVariation name"],
     trim: true,
-    unique: true,
+    // unique: true,
   },
   spare_part_id: {
     type: Schema.Types.ObjectId,
@@ -15,9 +15,9 @@ const sparePartVariationSchema = mongoose.Schema({
   },
   price: {
     type: Number,
-    default:0
+    default: 0,
   },
-   images: [
+  images: [
     {
       public_id: {
         type: String,
@@ -49,7 +49,10 @@ const sparePartVariationSchema = mongoose.Schema({
 });
 sparePartVariationSchema.index({ name: 1 });
 
- sparePartVariationModel = mongoose.model("sparePartVariation", sparePartVariationSchema);
+sparePartVariationModel = mongoose.model(
+  "sparePartVariation",
+  sparePartVariationSchema
+);
 
 const saveData = async () => {
   let totalData = await sparePartVariationModel.countDocuments();

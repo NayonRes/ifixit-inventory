@@ -5,10 +5,11 @@ const imageUpload = require("../utils/imageUpload");
 const imageDelete = require("../utils/imageDelete");
 const catchAsyncError = require("../middleware/catchAsyncError");
 const jwt = require("jsonwebtoken");
+const mongoose = require("mongoose");
 
 const getDataWithPagination = catchAsyncError(async (req, res, next) => {
   const page = parseInt(req.query.page) || 1;
-  console.log("===========req.query.page", req.query.page);
+  console.log("===========req.query================", req.query);
   const limit = parseInt(req.query.limit) || 10;
   const startIndex = (page - 1) * limit;
   const endIndex = page * limit;
@@ -18,24 +19,28 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
   const startDate = req.query.startDate;
   const endDate = req.query.endDate;
   var query = {};
+  // if (req.query.name) {
+  //   query.name = new RegExp(`^${req.query.name}$`, "i");
+  // }
+
   if (req.query.name) {
-    query.name = new RegExp(`^${req.query.name}$`, "i");
+    query.name = { $regex: req.query.name, $options: "i" };
   }
   if (req.query.status) {
     query.status = req.query.status;
   }
 
   if (req.query.category_id) {
-    query.category_id = new RegExp(`^${req.query.category_id}$`, "i");
+    query.category_id = new mongoose.Types.ObjectId(req.query.category_id);
   }
   if (req.query.brand_id) {
-    query.brand_id = new RegExp(`^${req.query.brand_id}$`, "i");
+    query.brand_id = new mongoose.Types.ObjectId(req.query.brand_id);
   }
   if (req.query.device_id) {
-    query.device_id = new RegExp(`^${req.query.device_id}$`, "i");
+    query.device_id = new mongoose.Types.ObjectId(req.query.device_id);
   }
   if (req.query.model_id) {
-    query.model_id = new RegExp(`^${req.query.model_id}$`, "i");
+    query.model_id = new mongoose.Types.ObjectId(req.query.model_id);
   }
   if (parseInt(minPrice) && parseInt(maxPrice)) {
     query.price = {
@@ -108,6 +113,14 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
       },
     },
     {
+      $lookup: {
+        from: "sparepartvariations",
+        localField: "_id",
+        foreignField: "spare_part_id",
+        as: "variation_data",
+      },
+    },
+    {
       $project: {
         _id: 1,
         name: 1,
@@ -134,6 +147,7 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
         "brand_data.name": 1,
         "device_data.name": 1,
         "model_data.name": 1,
+        variation_data: 1,
       },
     },
     {
@@ -168,12 +182,16 @@ const lightSearchWithPagination = catchAsyncError(async (req, res, next) => {
 
   var query = {};
   if (req.query.name) {
-    query.name = { $regex: req.query.name, $options: "i" }; 
+    query.name = { $regex: req.query.name, $options: "i" };
   }
 
   let totalData = await sparePartModel.countDocuments(query);
   console.log("totalData=================================", totalData);
-  const data = await sparePartModel.find(query).select('_id sparePart_id name price images').skip(startIndex).limit(limit);
+  const data = await sparePartModel
+    .find(query)
+    .select("_id sparePart_id name price images")
+    .skip(startIndex)
+    .limit(limit);
 
   console.log("data", data);
   res.status(200).json({
@@ -187,20 +205,95 @@ const lightSearchWithPagination = catchAsyncError(async (req, res, next) => {
 });
 
 const getById = catchAsyncError(async (req, res, next) => {
-  let data = await sparePartModel.findById(req.params.id);
-  if (!data) {
+  const id = req.params.id;
+
+  const data = await sparePartModel.aggregate([
+    {
+      $match: { _id: mongoose.Types.ObjectId(id) },
+    },
+    {
+      $lookup: {
+        from: "categories",
+        localField: "category_id",
+        foreignField: "_id",
+        as: "category_data",
+      },
+    },
+    {
+      $lookup: {
+        from: "brands",
+        localField: "brand_id",
+        foreignField: "_id",
+        as: "brand_data",
+      },
+    },
+    {
+      $lookup: {
+        from: "devices",
+        localField: "device_id",
+        foreignField: "_id",
+        as: "device_data",
+      },
+    },
+    {
+      $lookup: {
+        from: "models",
+        localField: "model_id",
+        foreignField: "_id",
+        as: "model_data",
+      },
+    },
+    {
+      $lookup: {
+        from: "sparepartvariations",
+        localField: "_id",
+        foreignField: "spare_part_id",
+        as: "variation_data",
+      },
+    },
+    {
+      $project: {
+        _id: 1,
+        name: 1,
+        description: 1,
+        brand_id: 1,
+        category_id: 1,
+        device_id: 1,
+        model_id: 1,
+        sparePart_id: 1,
+        warranty: 1,
+        price: 1,
+        images: 1,
+        remarks: 1,
+        status: 1,
+        created_by: 1,
+        created_at: 1,
+        updated_by: 1,
+        updated_at: 1,
+        "category_data.name": 1,
+        "brand_data.name": 1,
+        "device_data.name": 1,
+        "model_data.name": 1,
+        variation_data: 1,
+      },
+    },
+  ]);
+
+  if (!data || data.length === 0) {
     return next(new ErrorHander("No data found", 404));
   }
+
   res.status(200).json({
     success: true,
     message: "success",
-    data: data,
+    data: data[0], // Access the first (and only) document in the array
   });
 });
 
 const createData = catchAsyncError(async (req, res, next) => {
-  console.log("req.files", req.files);
-  console.log("req.body", req.body);
+  console.log("req.files--------", req.files);
+  console.log("req.body------------", req.body);
+
   const { token } = req.cookies;
   let imageData = [];
   if (req.files) {
@@ -250,7 +343,6 @@ const updateData = async (req, res, next) => {
         await imageDelete(element.public_id, next);
       }
     }
-   
 
     //uploading new images
     let imageData = [];
@@ -258,12 +350,12 @@ const updateData = async (req, res, next) => {
     if (req.files) {
       imageData = await imageUpload(req.files.images, "spareParts", next);
     }
- 
+
     console.log("imageData", imageData);
     if (imageData.length > 0) {
       newData = { ...req.body, images: imageData };
     }
-   
+
     let decodedData = jwt.verify(token, process.env.JWT_SECRET);
 
     newData = {

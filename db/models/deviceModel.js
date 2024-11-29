@@ -51,6 +51,6 @@ const saveData = async () => {
     await deviceDoc.save();
   }
 };
-// saveData();
+saveData();
 
 module.exports = deviceModel;
