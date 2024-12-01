@@ -10,7 +10,7 @@ const getParentDropdown = catchAsyncError(async (req, res, next) => {
   );
 
   // const data = await supplierModel.find().lean();
-  const data = await supplierModel.find({}, "name supplier_id").lean();
+  const data = await supplierModel.find({}, "name").lean();
 
   console.log("supplier list----------------", data);
 
@@ -109,10 +109,10 @@ const updateData = catchAsyncError(async (req, res, next) => {
     useFindAndModified: false,
   });
 
-//   const childrenParentUpdate = await supplierModel.updateMany(
-//     { parent_name: oldParentName },
-//     { $set: { parent_name: name } }
-//   );
+  //   const childrenParentUpdate = await supplierModel.updateMany(
+  //     { parent_name: oldParentName },
+  //     { $set: { parent_name: name } }
+  //   );
   res.status(200).json({
     success: true,
     message: "Update successfully",
