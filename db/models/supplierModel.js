@@ -54,19 +54,19 @@ supplierSchema.index({ name: 1 });
 supplierSchema.index({ mobile: 1 });
 const supplierModel = mongoose.model("supplier", supplierSchema);
 
-const saveData = async () => {
-  let totalData = await supplierModel.countDocuments();
-  console.log("totalData 123456", totalData);
-  if (totalData < 1) {
-    const supDoc = new supplierModel({
-      supplier_id: "s100",
-      name: "Primary",
-      mobile: "01645499001",
-      email: "sup@gmail.com",
-    });
-    await supDoc.save();
-  }
-};
+// const saveData = async () => {
+//   let totalData = await supplierModel.countDocuments();
+//   console.log("totalData 123456", totalData);
+//   if (totalData < 1) {
+//     const supDoc = new supplierModel({
+//       supplier_id: "s100",
+//       name: "Primary",
+//       mobile: "01645499001",
+//       email: "sup@gmail.com",
+//     });
+//     await supDoc.save();
+//   }
+// };
 // saveData();
 
 module.exports = supplierModel;

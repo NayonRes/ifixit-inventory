@@ -111,9 +111,7 @@ const OrderSchema = new mongoose.Schema({
     type: String,
     default: "store",
   },
-  remarks: {
-    type: String,
-  },
+
   order_status: {
     type: String,
     enum: ["Pending", "Processing", "Shipped", "Canceled", "Completed"],

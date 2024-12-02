@@ -2,16 +2,22 @@ const mongoose = require("mongoose");
 const { Schema } = mongoose;
 
 const purchaseProductSchema = mongoose.Schema({
-  name: {
-    type: String,
-    required: [true, "Please enter purchaseProduct name"],
-    trim: true,
+  // name: {
+  //   type: String,
+  //   required: [true, "Please enter purchaseProduct name"],
+  //   trim: true,
+  // },
+  spare_part_id: {
+    type: Schema.Types.ObjectId,
+    ref: "sparePartVariationModel",
+    required: [true, "Please enter Spare part Id"],
   },
   spare_part_variation_id: {
     type: Schema.Types.ObjectId,
     ref: "sparePartVariationModel",
     required: [true, "Please enter Spare part Id"],
   },
+
   purchase_id: {
     type: Schema.Types.ObjectId,
     ref: "purchaseModel",
@@ -19,11 +25,15 @@ const purchaseProductSchema = mongoose.Schema({
   },
   quantity: {
     type: Number,
-    default:0
+    default: 0,
   },
   unit_price: {
     type: Number,
-    default:0
+    default: 0,
+  },
+  is_sku_generated: {
+    type: Boolean,
+    default: false,
   },
   remarks: {
     type: String,
@@ -46,7 +56,10 @@ const purchaseProductSchema = mongoose.Schema({
   updated_at: { type: Date, default: Date.now },
 });
 purchaseProductSchema.index({ name: 1 });
-const purchaseProductModel = mongoose.model("purchaseProduct", purchaseProductSchema);
+const purchaseProductModel = mongoose.model(
+  "purchaseProduct",
+  purchaseProductSchema
+);
 
 const saveData = async () => {
   let totalData = await purchaseProductModel.countDocuments();
