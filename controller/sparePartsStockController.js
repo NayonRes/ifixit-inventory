@@ -5,7 +5,9 @@ const mongoose = require("mongoose");
 const catchAsyncError = require("../middleware/catchAsyncError");
 const jwt = require("jsonwebtoken");
 const purchaseModel = require("../db/models/purchaseModel");
+const stockCounterModel = require("../db/models/stockCounterModel");
 const purchaseProductModel = require("../db/models/purchaseProductModel");
+const stockCounterController = require("../controller/stockCounterController");
 
 
 const getDataWithPagination = catchAsyncError(async (req, res, next) => {
@@ -88,7 +90,7 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
         created_at: 1,
         updated_by: 1,
         updated_at: 1,
-        
+
         "sparepart_data.name": 1,
         "branch_data.name": 1,
         "sparepartvariation_data.name": 1,
@@ -118,7 +120,7 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
   });
 });
 const getById = catchAsyncError(async (req, res, next) => {
-  
+
   const id = req.params.id;
   const data = await sparePartsSkuModel.aggregate([
     {
@@ -172,7 +174,7 @@ const getById = catchAsyncError(async (req, res, next) => {
         created_at: 1,
         updated_by: 1,
         updated_at: 1,
-        
+
         "sparepart_data.name": 1,
         "branch_data.name": 1,
         "sparepartvariation_data.name": 1,
@@ -196,7 +198,7 @@ const getById = catchAsyncError(async (req, res, next) => {
 //   const quantity = parseInt(req.body.quantity); 
 //   const purchaseProductId = req.body.purchase_product_id;
 
- 
+
 //   // Start a session for the transaction
 //   const session = await mongoose.startSession();
 //   session.startTransaction();
@@ -204,7 +206,7 @@ const getById = catchAsyncError(async (req, res, next) => {
 //   try {
 //     let purchaseProduct = await purchaseProductModel.findById({_id:purchaseProductId}).session(session);
 //     // return res.status(200).send({ message: "purchase product found", status: 200 ,data:purchaseProduct});
-    
+
 //     if (purchaseProduct.is_sku_generated) {
 //       return res.status(400).send({ message: "SKU already generated for this purchase.", status: 400 });
 //     }
@@ -257,9 +259,12 @@ const getById = catchAsyncError(async (req, res, next) => {
 
 const createData = catchAsyncError(async (req, res, next) => {
   const { token } = req.cookies;
-  const quantity = parseInt(req.body.quantity);
+  let quantity = 0;
+  quantity = parseInt(req.body.quantity);
   const purchaseProductId = req.body.purchase_product_id;
 
+  //stockCounterController.incrementStock('6748929c8252b33bfe40e491','674896368252b33bfe40e5d7',20);
+  stockCounterController.decrementStock('6748929c8252b33bfe40e491','674896368252b33bfe40e5d7',10);
   // Validate request data
   if (!quantity || !purchaseProductId) {
     return res.status(400).send({ message: "Invalid input", status: 400 });
@@ -274,10 +279,11 @@ const createData = catchAsyncError(async (req, res, next) => {
   if (purchaseProduct.is_sku_generated) {
     return res.status(400).send({ message: "SKU already generated for this purchase.", status: 400 });
   }
-
+  
   // Start a MongoDB session for a transaction
   const session = await mongoose.startSession();
   session.startTransaction();
+  
   console.log("-----------session started-----------", new Date());
 
   try {
@@ -312,6 +318,34 @@ const createData = catchAsyncError(async (req, res, next) => {
       { $set: { is_sku_generated: true } },
       { session }
     );
+
+    //stock counter
+
+    const { branch_id, spare_parts_variation_id, spare_parts_id } = req.body;
+    const filter = {
+      branch_id,
+      spare_parts_variation_id,
+      spare_parts_id,
+    };
+
+    const existingDocument = await stockCounterModel.findOne(filter).session(session);
+
+    if (existingDocument) {
+      await stockCounterModel.updateOne(
+        filter,
+        { $inc: { total_stock: quantity } },
+        { session }
+      );
+    }
+    else {
+      const newDocument = {
+        branch_id,
+        spare_parts_variation_id,
+        spare_parts_id,
+        total_stock: quantity,
+      };
+      await stockCounterModel.create([newDocument], { session });
+    }
 
     // Commit the transaction
     await session.commitTransaction();
@@ -386,3 +420,4 @@ module.exports = {
   updateData,
   deleteData,
 };
+
