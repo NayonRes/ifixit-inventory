@@ -38,6 +38,10 @@ const purchaseProductSchema = mongoose.Schema({
   remarks: {
     type: String,
   },
+  purchase_product_status: {
+    type: String,
+    required: [true, "Please enter purchase status"],
+  },
   status: {
     type: Boolean,
     default: true,

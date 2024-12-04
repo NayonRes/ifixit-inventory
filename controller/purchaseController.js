@@ -163,7 +163,7 @@ const getById = catchAsyncError(async (req, res, next) => {
   // let data = await purchaseModel.findById(req.params.id);
 
   const id = req.params.id;
-  const data = await purchaseModel.aggregate([
+  const data2 = await purchaseModel.aggregate([
     {
       $match: { _id: mongoose.Types.ObjectId(id) },
     },
@@ -227,9 +227,110 @@ const getById = catchAsyncError(async (req, res, next) => {
     },
   ]);
 
+  const data = await purchaseModel.aggregate([
+    {
+      $match: { _id: mongoose.Types.ObjectId(id) },
+    },
+    {
+      $lookup: {
+        from: "suppliers",
+        localField: "supplier_id",
+        foreignField: "_id",
+        as: "supplier_data",
+      },
+    },
+    {
+      $lookup: {
+        from: "branches",
+        localField: "branch_id",
+        foreignField: "_id",
+        as: "branch_data",
+      },
+    },
+    {
+      $lookup: {
+        from: "users",
+        localField: "user_id",
+        foreignField: "_id",
+        as: "user_data",
+      },
+    },
+    {
+      $lookup: {
+        from: "purchaseproducts",
+        localField: "_id",
+        foreignField: "purchase_id",
+        as: "purchase_products_data",
+      },
+    },
+    // Lookup for spare_part_variations
+    {
+      $unwind: {
+        path: "$purchase_products_data",
+        preserveNullAndEmptyArrays: true,
+      },
+    },
+    {
+      $lookup: {
+        from: "sparepartvariations",
+        localField: "purchase_products_data.spare_part_variation_id",
+        foreignField: "_id",
+        as: "purchase_products_data.spare_part_variation_details",
+      },
+    },
+    {
+      $group: {
+        _id: "$_id",
+        purchase_id: { $first: "$purchase_id" },
+        purchase_date: { $first: "$purchase_date" },
+        supplier_id: { $first: "$supplier_id" },
+        user_id: { $first: "$user_id" },
+        branch_id: { $first: "$branch_id" },
+        purchase_status: { $first: "$purchase_status" },
+        payment_status: { $first: "$payment_status" },
+        shipping_charge: { $first: "$shipping_charge" },
+        remarks: { $first: "$remarks" },
+        status: { $first: "$status" },
+        created_by: { $first: "$created_by" },
+        created_at: { $first: "$created_at" },
+        updated_by: { $first: "$updated_by" },
+        updated_at: { $first: "$updated_at" },
+        supplier_data: { $first: "$supplier_data" },
+        branch_data: { $first: "$branch_data" },
+        user_data: { $first: "$user_data" },
+        purchase_products_data: { $push: "$purchase_products_data" },
+      },
+    },
+    {
+      $project: {
+        _id: 1,
+        purchase_id: 1,
+        purchase_date: 1,
+        supplier_id: 1,
+        user_id: 1,
+        branch_id: 1,
+        purchase_status: 1,
+        payment_status: 1,
+        shipping_charge: 1,
+        remarks: 1,
+        status: 1,
+        created_by: 1,
+        created_at: 1,
+        updated_by: 1,
+        updated_at: 1,
+        "supplier_data.name": 1,
+        "supplier_data.mobile": 1,
+        "branch_data.name": 1,
+        "user_data.name": 1,
+        purchase_products_data: 1,
+      },
+    },
+  ]);
+
   if (!data) {
     return res.send({ message: "No data found", status: 404 });
   }
+
   res.send({ message: "success", status: 200, data: data });
 });
 
@@ -270,10 +371,11 @@ const createData = catchAsyncError(async (req, res, next) => {
 
       let newElement = {
         purchase_id: data?._id,
-        spare_part_id: element._id,
+        spare_part_id: element.spare_part_id,
         spare_part_variation_id: element.spare_part_variation_id,
         quantity: element.quantity,
-        unit_price: element.price,
+        unit_price: element.unit_price,
+        purchase_product_status: element.purchase_product_status,
       };
       newSelectedProducts.push(newElement);
     }
