@@ -19,8 +19,8 @@ router
   .get(isAuthenticatedUser, authorizeRoles("dashboard"), getById);
   
 router
-  .route("/insertLimit")
-  .post(isAuthenticatedUser, authorizeRoles("dashboard"), insertLimit);
+  .route("/createData")
+  .post(isAuthenticatedUser, authorizeRoles("dashboard"), createData);
 
 // router
 //   .route("/update/:id")

@@ -176,7 +176,7 @@ const getById = catchAsyncError(async (req, res, next) => {
 });
 
 
-const insertLimit = catchAsyncError(async (req, res, next) => {
+const createData = catchAsyncError(async (req, res, next) => {
     const { token } = req.cookies;
     const stock_limit = parseInt(req.body.stock_limit);
     const branch_id = req.body.branch_id;
@@ -264,8 +264,7 @@ async function decrementStock(branch_id, spare_parts_variation_id, stock) {
 module.exports = {
     getDataWithPagination,
     getById,
-    insertLimit,
-    // createData,
+    createData,
     // updateData,
     deleteData,
     incrementStock,
