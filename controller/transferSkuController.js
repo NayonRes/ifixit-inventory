@@ -171,7 +171,7 @@ const updateData = async (req, res, next) => {
     console.log("asdasdfasdfasdfasdfs====================updateData");
     let data = await transferSkuModel.findById(req.params.id);
     const { transfer_skus, transfer_from, transfer_to, transfer_status } = req.body;
-    
+
     if (!transfer_skus || !Array.isArray(transfer_skus) || transfer_skus.length === 0) {
         return res.status(400).json({ message: "select at least onesku" });
     }
@@ -220,38 +220,35 @@ const updateData = async (req, res, next) => {
         console.log("mathc recored", matchedRecords);
         // Step 2: Process each record to update stock counters
         for (const record of matchedRecords) {
-            const spare_parts_variation_id  =  record.spare_parts_variation_id.toString();
-            console.log(" record",record.spare_parts_variation_id);
-            console.log(" sku",record.sku_number);
-            console.log(" branch and spv",spare_parts_variation_id);
-            console.log(" branch and spv",transfer_from);
-            // Find and update fromStockCounter
-
-            const objectId = new mongoose.Types.ObjectId(transfer_to); // Convert string to ObjectId
-            const fromStockCounter1 = await sparePartsStockModel.find({ branch_id: objectId });
-
-            
-            console.log("from stock counter 1",fromStockCounter1);
-
-            const fromStockCounter = await sparePartsStockModel.findOne({
-                spare_parts_variation_id: (spare_parts_variation_id),
-                branch_id: transfer_from,
+            const spare_parts_variation_id = record.spare_parts_variation_id.toString();
+ 
+            record.branch_id = transfer_to;
+            data = await sparePartsStockModel.findByIdAndUpdate(record._id, record, {
+                new: true,
+                runValidators: true,
+                useFindAndModified: false,
                 session
+              });
+
+            const fromStockCounter = await stockCounterAndLimitModel.findOne({
+                branch_id: transfer_from,
+                spare_parts_variation_id
             });
 
-            console.log("from stock counter",fromStockCounter);
+            console.log("from stock counter", fromStockCounter);
 
             await stockCounterAndLimitController.decrementStock(fromStockCounter.branch_id, fromStockCounter.spare_parts_variation_id, 1, session);
 
 
-            // Find or Create toStockCounter
-            let toStockCounter = await sparePartsStockModel.findOne(
-                { spare_parts_variation_id, branchId: transfer_to },
-                null,
-                { session }
-            );
-            console.log("to stock counter",toStockCounter);
-            if (toStockCounter) {
+            // Find or Create toStock
+
+            const toStockCounter = await stockCounterAndLimitModel.findOne({
+                branch_id: transfer_to,
+                spare_parts_variation_id
+            });
+
+            console.log("to stock counter", toStockCounter);
+            if (toStockCounter != null) {
                 await stockCounterAndLimitController.incrementStock(transfer_to, spare_parts_variation_id, 1, session);
             }
             else {
@@ -265,13 +262,13 @@ const updateData = async (req, res, next) => {
             }
         }
 
-        // Step 3: Commit transaction
+       
         await session.commitTransaction();
         session.endSession();
 
         return res.status(200).json({ message: "sku transferred successfully." });
     } catch (error) {
-        // Rollback transaction in case of error
+        
         await session.abortTransaction();
         session.endSession();
 
@@ -279,41 +276,6 @@ const updateData = async (req, res, next) => {
         return res.status(500).json({ message: "An error occurred.", error });
     }
 
-
-    // try {
-    //     const { token } = req.cookies;
-    //     let data = await transferSkuModel.findById(req.params.id);
-
-    //     if (!data) {
-    //         console.log("if");
-    //         return next(new ErrorHander("No data found", 404));
-    //     }
-
-    //     let decodedData = jwt.verify(token, process.env.JWT_SECRET);
-    //     newData = {
-    //         ...newData,
-    //         updated_by: decodedData?.user?.email,
-    //         updated_at: new Date(),
-    //     };
-    //     console.log("newData", newData);
-    //     let updateData = await transferSkuModel.findByIdAndUpdate(
-    //         req.params.id,
-    //         newData,
-    //         {
-    //             new: true,
-    //             runValidators: true,
-    //             useFindAndModified: false,
-    //         }
-    //     );
-    //     res.status(200).json({
-    //         success: true,
-    //         message: "Update successfully",
-    //         data: updateData,
-    //     });
-    // } catch (error) {
-    //     console.log("error", error);
-    //     res.send({ message: "error", status: 400, error: error });
-    // }
 };
 
 const deleteData = catchAsyncError(async (req, res, next) => {
