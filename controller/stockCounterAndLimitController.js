@@ -1,4 +1,4 @@
-const stockCounterModel = require("../db/models/stockCounterModel");
+const stockCounterAndLimitModel = require("../db/models/stockCounterAndLimitModel");
 const ErrorHander = require("../utils/errorHandler");
 const mongoose = require("mongoose");
 const catchAsyncError = require("../middleware/catchAsyncError");
@@ -24,11 +24,11 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
         query.device_id = new mongoose.Types.ObjectId(req.query.branch_id);
     }
 
-    let totalData = await stockCounterModel.countDocuments(query);
+    let totalData = await stockCounterAndLimitModel.countDocuments(query);
     console.log("totalData=================================", totalData);
-    //const data = await stockCounterModel.find(query).skip(startIndex).limit(limit);
+    //const data = await stockCounterAndLimitModel.find(query).skip(startIndex).limit(limit);
 
-    const data = await stockCounterModel.aggregate([
+    const data = await stockCounterAndLimitModel.aggregate([
         {
             $match: query,
         },
@@ -105,7 +105,7 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
 const getById = catchAsyncError(async (req, res, next) => {
 
     const id = req.params.id;
-    const data = await stockCounterModel.aggregate([
+    const data = await stockCounterAndLimitModel.aggregate([
         {
             $match: { _id: mongoose.Types.ObjectId(id) },
         },
@@ -181,7 +181,7 @@ const createData = catchAsyncError(async (req, res, next) => {
     const stock_limit = parseInt(req.body.stock_limit);
     const branch_id = req.body.branch_id;
     const spare_parts_variation_id = req.body.spare_parts_variation_id;
-    const existingStock = await stockCounterModel.findOne({
+    const existingStock = await stockCounterAndLimitModel.findOne({
         branch_id,
         spare_parts_variation_id
     });
@@ -193,14 +193,14 @@ const createData = catchAsyncError(async (req, res, next) => {
     let decodedData = jwt.verify(token, process.env.JWT_SECRET);
     existingStock.stock_limit = stock_limit;
     existingStock.created_by = decodedData?.user?.email;
-    const data = await stockCounterModel.updateOne(existingStock);
+    const data = await stockCounterAndLimitModel.updateOne(existingStock);
     res.send({ message: "success", status: 201, data: data });
 });
 
 
 const deleteData = catchAsyncError(async (req, res, next) => {
     console.log("deleteData function is working");
-    let data = await stockCounterModel.findById(req.params.id);
+    let data = await stockCounterAndLimitModel.findById(req.params.id);
     console.log("data", data);
     if (!data) {
         console.log("if");
@@ -217,17 +217,17 @@ const deleteData = catchAsyncError(async (req, res, next) => {
 
 
 async function incrementStock(branch_id, spare_parts_variation_id, stock) {
-    const stockCounter = parseInt(stock);
+    const stockCounterAndLimit = parseInt(stock);
     try {
-        const existingStock = await stockCounterModel.findOne({
+        const existingStock = await stockCounterAndLimitModel.findOne({
             branch_id,
             spare_parts_variation_id
         });
 
         if (existingStock) {
-            await stockCounterModel.findByIdAndUpdate(
+            await stockCounterAndLimitModel.findByIdAndUpdate(
                 { _id: mongoose.Types.ObjectId(existingStock._id) },
-                { $inc: { total_stock: stockCounter } },
+                { $inc: { total_stock: stockCounterAndLimit } },
                 { upsert: false, new: true }
             );
             console.log(`Total stock for ${branch_id}, ${spare_parts_variation_id}, ${existingStock._id} has been incremented.`);
@@ -241,13 +241,13 @@ async function incrementStock(branch_id, spare_parts_variation_id, stock) {
 
 async function decrementStock(branch_id, spare_parts_variation_id, stock) {
     try {
-        const existingStock = await stockCounterModel.findOne({
+        const existingStock = await stockCounterAndLimitModel.findOne({
             branch_id,
             spare_parts_variation_id
         });
 
         if (existingStock) {
-            await stockCounterModel.updateOne(
+            await stockCounterAndLimitModel.updateOne(
                 { _id: existingStock._id },
                 { $inc: { total_stock: -stock } }
             );

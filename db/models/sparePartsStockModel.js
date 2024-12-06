@@ -31,7 +31,7 @@ const sparePartsSkuSchema = mongoose.Schema({
     type: Number,
     unique: true,
   },
-  sku_status: {
+  stock_status: {
     type: String,
   },
   remarks: {

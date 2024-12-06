@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 const { Schema } = mongoose;
 
-const stockCounterSchema = mongoose.Schema({
+const stockCounterAndLimitSchema = mongoose.Schema({
   spare_parts_id: {
     type: Schema.Types.ObjectId,
     ref: "sparePartsModel",
@@ -43,10 +43,10 @@ const stockCounterSchema = mongoose.Schema({
   },
   updated_at: { type: Date, default: Date.now },
 });
-stockCounterSchema.index({ name: 1 });
-const stockCounterModel = mongoose.model(
-  "stock_counter",
-  stockCounterSchema
+stockCounterAndLimitSchema.index({ name: 1 });
+const stockCounterAndLimitModel = mongoose.model(
+  "stock_counter_and_limit",
+  stockCounterAndLimitSchema
 );
 
-module.exports = stockCounterModel;
+module.exports = stockCounterAndLimitModel;

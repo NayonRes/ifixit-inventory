@@ -1,6 +1,7 @@
 var express = require("express");
 const {
   getDataWithPagination,
+  getAllStock,
   getById,
   createData,
   updateData,
@@ -13,6 +14,9 @@ var router = express.Router();
 router
   .route("/")
   .get(isAuthenticatedUser, authorizeRoles("dashboard"), getDataWithPagination);
+router
+  .route("/allData")
+  .get(isAuthenticatedUser, authorizeRoles("dashboard"), getAllStock);
 router
   .route("/:id")
   .get(isAuthenticatedUser, authorizeRoles("dashboard"), getById);

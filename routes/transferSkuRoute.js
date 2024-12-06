@@ -3,9 +3,9 @@ const {
   getDataWithPagination,
   getById,
   createData,
-  //updateData,
+  updateData,
   deleteData,
-} = require("../controller/stockCounterAndLimitController");
+} = require("../controller/transferSkuController");
 const { isAuthenticatedUser, authorizeRoles } = require("../middleware/auth");
 
 var router = express.Router();
@@ -21,9 +21,9 @@ router
   .route("/create")
   .post(isAuthenticatedUser, authorizeRoles("dashboard"), createData);
 
-// router
-//   .route("/update/:id")
-//   .put(isAuthenticatedUser, authorizeRoles("dashboard"), updateData);
+router
+  .route("/update/:id")
+  .put(isAuthenticatedUser, authorizeRoles("dashboard"), updateData);
 
 router
   .route("/delete/:id")

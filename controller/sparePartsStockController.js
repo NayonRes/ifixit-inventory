@@ -5,10 +5,110 @@ const mongoose = require("mongoose");
 const catchAsyncError = require("../middleware/catchAsyncError");
 const jwt = require("jsonwebtoken");
 const purchaseModel = require("../db/models/purchaseModel");
-const stockCounterModel = require("../db/models/stockCounterModel");
+const stockCounterAndLimitModel = require("../db/models/stockCounterAndLimitModel");
 const purchaseProductModel = require("../db/models/purchaseProductModel");
-const stockCounterController = require("../controller/stockCounterController");
+const stockCounterAndLimitController = require("../controller/stockCounterAndLimitController");
 
+
+const getAllStock = catchAsyncError(async (req, res, next) => {
+
+  var query = {};
+  if (req.query.sku_number) {
+    query.sku_number = new RegExp(`^${req.query.sku_number}$`, "i");
+  }
+  if (req.query.stock_status) {
+      query.stock_status = new RegExp(`^${req.query.stock_status}$`, "i");
+    }
+  if (req.query.spare_parts_id) {
+    query.category_id = new mongoose.Types.ObjectId(req.query.spare_parts_id);
+  }
+  if (req.query.spare_parts_variation_id) {
+    query.brand_id = new mongoose.Types.ObjectId(req.query.spare_parts_variation_id);
+  }
+  if (req.query.branch_id) {
+    query.device_id = new mongoose.Types.ObjectId(req.query.branch_id);
+  }
+  if (req.query.purchase_id) {
+    query.model_id = new mongoose.Types.ObjectId(req.query.purchase_id);
+  }
+
+  let totalData = await sparePartsSkuModel.countDocuments(query);
+  console.log("totalData=================================", totalData);
+  //const data = await sparePartsSkuModel.find(query).skip(startIndex).limit(limit);
+
+  const data = await sparePartsSkuModel.aggregate([
+    {
+      $match: query,
+    },
+    {
+      $lookup: {
+        from: "spareparts",
+        localField: "spare_parts_id",
+        foreignField: "_id",
+        as: "sparepart_data",
+      },
+    },
+    {
+      $lookup: {
+        from: "sparepartvariations",
+        localField: "spare_parts_variation_id",
+        foreignField: "_id",
+        as: "sparepartvariation_data",
+      },
+    },
+    {
+      $lookup: {
+        from: "branches",
+        localField: "branch_id",
+        foreignField: "_id",
+        as: "branch_data",
+      },
+    },
+    {
+      $lookup: {
+        from: "purchases",
+        localField: "purchase_id",
+        foreignField: "_id",
+        as: "purchase_data",
+      },
+    },
+    {
+      $project: {
+        _id: 1,
+        spare_parts_id: 1,
+        spare_parts_variation_id: 1,
+        branch_id: 1,
+        purchase_id: 1,
+        sku_number: 1,
+        stock_status: 1,
+        sparePart_id: 1,
+        remarks: 1,
+        status: 1,
+        created_by: 1,
+        created_at: 1,
+        updated_by: 1,
+        updated_at: 1,
+
+        "sparepart_data.name": 1,
+        "branch_data.name": 1,
+        "sparepartvariation_data.name": 1,
+        "purchase_data.purchase_date": 1,
+        "purchase_data.supplier_id": 1,
+      },
+    },
+    {
+      $sort: { created_at: -1 },
+    },
+
+  ]);
+  console.log("data", data);
+  res.status(200).json({
+    success: true,
+    message: "successful",
+    data: data,
+    totalData: totalData,
+  });
+});
 
 const getDataWithPagination = catchAsyncError(async (req, res, next) => {
   const page = parseInt(req.query.page) || 1;
@@ -82,7 +182,7 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
         branch_id: 1,
         purchase_id: 1,
         sku_number: 1,
-        sku_status: 1,
+        stock_status: 1,
         sparePart_id: 1,
         remarks: 1,
         status: 1,
@@ -166,7 +266,7 @@ const getById = catchAsyncError(async (req, res, next) => {
         branch_id: 1,
         purchase_id: 1,
         sku_number: 1,
-        sku_status: 1,
+        stock_status: 1,
         sparePart_id: 1,
         remarks: 1,
         status: 1,
@@ -263,8 +363,8 @@ const createData = catchAsyncError(async (req, res, next) => {
   quantity = parseInt(req.body.quantity);
   const purchaseProductId = req.body.purchase_product_id;
 
-  //stockCounterController.incrementStock('6748929c8252b33bfe40e491','674896368252b33bfe40e5d7',20);
-  stockCounterController.decrementStock('6748929c8252b33bfe40e491','674896368252b33bfe40e5d7',10);
+  //stockCounterAndLimitController.incrementStock('6748929c8252b33bfe40e491','674896368252b33bfe40e5d7',20);
+  stockCounterAndLimitController.decrementStock('6748929c8252b33bfe40e491','674896368252b33bfe40e5d7',10);
   // Validate request data
   if (!quantity || !purchaseProductId) {
     return res.status(400).send({ message: "Invalid input", status: 400 });
@@ -328,10 +428,10 @@ const createData = catchAsyncError(async (req, res, next) => {
       spare_parts_id,
     };
 
-    const existingDocument = await stockCounterModel.findOne(filter).session(session);
+    const existingDocument = await stockCounterAndLimitModel.findOne(filter).session(session);
 
     if (existingDocument) {
-      await stockCounterModel.updateOne(
+      await stockCounterAndLimitModel.updateOne(
         filter,
         { $inc: { total_stock: quantity } },
         { session }
@@ -344,7 +444,7 @@ const createData = catchAsyncError(async (req, res, next) => {
         spare_parts_id,
         total_stock: quantity,
       };
-      await stockCounterModel.create([newDocument], { session });
+      await stockCounterAndLimitModel.create([newDocument], { session });
     }
 
     // Commit the transaction
@@ -415,6 +515,7 @@ const deleteData = catchAsyncError(async (req, res, next) => {
 
 module.exports = {
   getDataWithPagination,
+  getAllStock,
   getById,
   createData,
   updateData,
