@@ -33,6 +33,7 @@ const sparePartsSkuSchema = mongoose.Schema({
   },
   sku_status: {
     type: String,
+    default: "Available",
   },
   remarks: {
     type: String,

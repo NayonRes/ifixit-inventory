@@ -19,6 +19,10 @@ const branchSchema = mongoose.Schema({
   remarks: {
     type: String,
   },
+  isMainBranch: {
+    type: Boolean,
+    default: false,
+  },
   status: {
     type: Boolean,
     default: true,
@@ -47,6 +51,7 @@ const saveData = async () => {
       branch_id: "b100",
       name: "IFIXIT",
       parent_name: "IFIXIT",
+      isMainBranch: true,
     });
     await branchDoc.save();
   }
