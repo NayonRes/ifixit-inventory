@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 const { Schema } = mongoose;
 
-const sparePartsSkuSchema = mongoose.Schema({
+const stockCounterAndLimitSchema = mongoose.Schema({
   spare_parts_id: {
     type: Schema.Types.ObjectId,
     ref: "sparePartsModel",
@@ -17,23 +17,13 @@ const sparePartsSkuSchema = mongoose.Schema({
     ref: "branchModel",
     required: [true, "Please select branch"],
   },
-  purchase_id: {
-    type: Schema.Types.ObjectId,
-    ref: "purchaseModel",
-    required: [true, "Please select purchase"],
-  },
-  purchase_product_id: {
-    type: Schema.Types.ObjectId,
-    ref: "purchaseProductModel",
-    required: [true, "Please select purchase product"],
-  },
-  sku_number: {
+  total_stock: {
     type: Number,
-    unique: true,
+    default: 0,
   },
-  stock_status: {
-    type: String,
-    default: "Available",
+  stock_limit: {
+    type: Number,
+    default: 0,
   },
   remarks: {
     type: String,
@@ -55,10 +45,10 @@ const sparePartsSkuSchema = mongoose.Schema({
   },
   updated_at: { type: Date, default: Date.now },
 });
-sparePartsSkuSchema.index({ name: 1 });
-const sparePartsSkuModel = mongoose.model(
-  "spare_Parts_stock",
-  sparePartsSkuSchema
+stockCounterAndLimitSchema.index({ name: 1 });
+const stockCounterAndLimitModel = mongoose.model(
+  "stock_counter_and_limit",
+  stockCounterAndLimitSchema
 );
 
-module.exports = sparePartsSkuModel;
+module.exports = stockCounterAndLimitModel;

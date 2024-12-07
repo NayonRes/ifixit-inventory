@@ -116,7 +116,7 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
       $lookup: {
         from: "sparepartvariations",
         localField: "_id",
-        foreignField: "spare_part_id",
+        foreignField: "spare_parts_id",
         as: "variation_data",
       },
     },
@@ -247,7 +247,7 @@ const getById = catchAsyncError(async (req, res, next) => {
       $lookup: {
         from: "sparepartvariations",
         localField: "_id",
-        foreignField: "spare_part_id",
+        foreignField: "spare_parts_id",
         as: "variation_data",
       },
     },

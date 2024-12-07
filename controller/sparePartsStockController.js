@@ -5,8 +5,109 @@ const mongoose = require("mongoose");
 const catchAsyncError = require("../middleware/catchAsyncError");
 const jwt = require("jsonwebtoken");
 const purchaseModel = require("../db/models/purchaseModel");
+const stockCounterAndLimitModel = require("../db/models/stockCounterAndLimitModel");
 const purchaseProductModel = require("../db/models/purchaseProductModel");
+const stockCounterAndLimitController = require("../controller/stockCounterAndLimitController");
 
+const getAllStock = catchAsyncError(async (req, res, next) => {
+  var query = {};
+  if (req.query.sku_number) {
+    query.sku_number = new RegExp(`^${req.query.sku_number}$`, "i");
+  }
+  if (req.query.stock_status) {
+    query.stock_status = new RegExp(`^${req.query.stock_status}$`, "i");
+  }
+  if (req.query.spare_parts_id) {
+    query.category_id = new mongoose.Types.ObjectId(req.query.spare_parts_id);
+  }
+  if (req.query.spare_parts_variation_id) {
+    query.brand_id = new mongoose.Types.ObjectId(
+      req.query.spare_parts_variation_id
+    );
+  }
+  if (req.query.branch_id) {
+    query.device_id = new mongoose.Types.ObjectId(req.query.branch_id);
+  }
+  if (req.query.purchase_id) {
+    query.model_id = new mongoose.Types.ObjectId(req.query.purchase_id);
+  }
+
+  let totalData = await sparePartsSkuModel.countDocuments(query);
+  console.log("totalData=================================", totalData);
+  const data = await sparePartsSkuModel.find(query);
+
+  // const data = await sparePartsSkuModel.aggregate([
+  //   {
+  //     $match: query,
+  //   },
+  //   {
+  //     $lookup: {
+  //       from: "spareparts",
+  //       localField: "spare_parts_id",
+  //       foreignField: "_id",
+  //       as: "sparepart_data",
+  //     },
+  //   },
+  //   {
+  //     $lookup: {
+  //       from: "sparepartvariations",
+  //       localField: "spare_parts_variation_id",
+  //       foreignField: "_id",
+  //       as: "sparepartvariation_data",
+  //     },
+  //   },
+  //   {
+  //     $lookup: {
+  //       from: "branches",
+  //       localField: "branch_id",
+  //       foreignField: "_id",
+  //       as: "branch_data",
+  //     },
+  //   },
+  //   {
+  //     $lookup: {
+  //       from: "purchases",
+  //       localField: "purchase_id",
+  //       foreignField: "_id",
+  //       as: "purchase_data",
+  //     },
+  //   },
+  //   {
+  //     $project: {
+  //       _id: 1,
+  //       spare_parts_id: 1,
+  //       spare_parts_variation_id: 1,
+  //       branch_id: 1,
+  //       purchase_id: 1,
+  //       sku_number: 1,
+  //       stock_status: 1,
+  //       sparePart_id: 1,
+  //       remarks: 1,
+  //       status: 1,
+  //       created_by: 1,
+  //       created_at: 1,
+  //       updated_by: 1,
+  //       updated_at: 1,
+
+  //       "sparepart_data.name": 1,
+  //       "branch_data.name": 1,
+  //       "sparepartvariation_data.name": 1,
+  //       "purchase_data.purchase_date": 1,
+  //       "purchase_data.supplier_id": 1,
+  //     },
+  //   },
+  //   {
+  //     $sort: { created_at: -1 },
+  //   },
+  // ]);
+  console.log("data", data);
+  res.status(200).json({
+    success: true,
+    message: "successful",
+    data: data,
+    totalData: totalData,
+  });
+});
 
 const getDataWithPagination = catchAsyncError(async (req, res, next) => {
   const page = parseInt(req.query.page) || 1;
@@ -23,7 +124,9 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
     query.category_id = new mongoose.Types.ObjectId(req.query.spare_parts_id);
   }
   if (req.query.spare_parts_variation_id) {
-    query.brand_id = new mongoose.Types.ObjectId(req.query.spare_parts_variation_id);
+    query.brand_id = new mongoose.Types.ObjectId(
+      req.query.spare_parts_variation_id
+    );
   }
   if (req.query.branch_id) {
     query.device_id = new mongoose.Types.ObjectId(req.query.branch_id);
@@ -80,7 +183,7 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
         branch_id: 1,
         purchase_id: 1,
         sku_number: 1,
-        sku_status: 1,
+        stock_status: 1,
         sparePart_id: 1,
         remarks: 1,
         status: 1,
@@ -88,7 +191,7 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
         created_at: 1,
         updated_by: 1,
         updated_at: 1,
-        
+
         "sparepart_data.name": 1,
         "branch_data.name": 1,
         "sparepartvariation_data.name": 1,
@@ -118,7 +221,6 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
   });
 });
 const getById = catchAsyncError(async (req, res, next) => {
-  
   const id = req.params.id;
   const data = await sparePartsSkuModel.aggregate([
     {
@@ -164,7 +266,7 @@ const getById = catchAsyncError(async (req, res, next) => {
         branch_id: 1,
         purchase_id: 1,
         sku_number: 1,
-        sku_status: 1,
+        stock_status: 1,
         sparePart_id: 1,
         remarks: 1,
         status: 1,
@@ -172,7 +274,7 @@ const getById = catchAsyncError(async (req, res, next) => {
         created_at: 1,
         updated_by: 1,
         updated_at: 1,
-        
+
         "sparepart_data.name": 1,
         "branch_data.name": 1,
         "sparepartvariation_data.name": 1,
@@ -189,14 +291,11 @@ const getById = catchAsyncError(async (req, res, next) => {
   res.send({ message: "success", status: 200, data: data });
 });
 
-
-
 // const createData = catchAsyncError(async (req, res, next) => {
 //   const { token } = req.cookies;
-//   const quantity = parseInt(req.body.quantity); 
+//   const quantity = parseInt(req.body.quantity);
 //   const purchaseProductId = req.body.purchase_product_id;
 
- 
 //   // Start a session for the transaction
 //   const session = await mongoose.startSession();
 //   session.startTransaction();
@@ -204,7 +303,7 @@ const getById = catchAsyncError(async (req, res, next) => {
 //   try {
 //     let purchaseProduct = await purchaseProductModel.findById({_id:purchaseProductId}).session(session);
 //     // return res.status(200).send({ message: "purchase product found", status: 200 ,data:purchaseProduct});
-    
+
 //     if (purchaseProduct.is_sku_generated) {
 //       return res.status(400).send({ message: "SKU already generated for this purchase.", status: 400 });
 //     }
@@ -236,7 +335,7 @@ const getById = catchAsyncError(async (req, res, next) => {
 //     );
 
 //     await purchaseProductModel.findOneAndUpdate(
-//       { _id: purchaseProductId }, 
+//       { _id: purchaseProductId },
 //       { $set: { is_sku_generated: true } },
 //       { session }
 //     );
@@ -257,27 +356,40 @@ const getById = catchAsyncError(async (req, res, next) => {
 
 const createData = catchAsyncError(async (req, res, next) => {
   const { token } = req.cookies;
-  const quantity = parseInt(req.body.quantity);
+  let quantity = 0;
+  quantity = parseInt(req.body.quantity);
   const purchaseProductId = req.body.purchase_product_id;
 
+  console.log("--------------------req.body---------", req.body);
+
+  //stockCounterAndLimitController.incrementStock('6748929c8252b33bfe40e491','674896368252b33bfe40e5d7',20);
+  // stockCounterAndLimitController.decrementStock('6748929c8252b33bfe40e491','674896368252b33bfe40e5d7',10);
   // Validate request data
   if (!quantity || !purchaseProductId) {
     return res.status(400).send({ message: "Invalid input", status: 400 });
   }
 
   // Fetch the purchase product
-  const purchaseProduct = await purchaseProductModel.findById({ _id: purchaseProductId });
+  const purchaseProduct = await purchaseProductModel.findById({
+    _id: purchaseProductId,
+  });
   if (!purchaseProduct) {
-    return res.status(404).send({ message: "Purchase product not found", status: 404 });
+    return res
+      .status(404)
+      .send({ message: "Purchase product not found", status: 404 });
   }
 
   if (purchaseProduct.is_sku_generated) {
-    return res.status(400).send({ message: "SKU already generated for this purchase.", status: 400 });
+    return res.status(400).send({
+      message: "SKU already generated for this purchase.",
+      status: 400,
+    });
   }
 
   // Start a MongoDB session for a transaction
   const session = await mongoose.startSession();
   session.startTransaction();
+
   console.log("-----------session started-----------", new Date());
 
   try {
@@ -296,15 +408,20 @@ const createData = catchAsyncError(async (req, res, next) => {
     const decodedData = jwt.verify(token, process.env.JWT_SECRET);
     const createdBy = decodedData?.user?.email;
 
+    console.log("decodedData", decodedData);
+
     // Prepare new spare parts data
     const newSpareParts = Array.from({ length: quantity }, (_, i) => ({
       ...req.body,
       sku_number: startSerial + i, // Generate SKU numbers
       created_by: createdBy,
     }));
+    console.log("newSpareParts", newSpareParts);
 
     // Insert the new spare parts
-    const data = await sparePartsSkuModel.insertMany(newSpareParts, { session });
+    const data = await sparePartsSkuModel.insertMany(newSpareParts, {
+      session,
+    });
 
     // Update the purchase product to mark SKU as generated
     await purchaseProductModel.findOneAndUpdate(
@@ -313,15 +430,48 @@ const createData = catchAsyncError(async (req, res, next) => {
       { session }
     );
 
+    //stock counter
+
+    const { branch_id, spare_parts_variation_id, spare_parts_id } = req.body;
+    const filter = {
+      branch_id,
+      spare_parts_variation_id,
+      spare_parts_id,
+    };
+
+    const existingDocument = await stockCounterAndLimitModel
+      .findOne(filter)
+      .session(session);
+
+    if (existingDocument) {
+      await stockCounterAndLimitModel.updateOne(
+        filter,
+        { $inc: { total_stock: quantity } },
+        { session }
+      );
+    } else {
+      const newDocument = {
+        branch_id,
+        spare_parts_variation_id,
+        spare_parts_id,
+        total_stock: quantity,
+      };
+      await stockCounterAndLimitModel.create([newDocument], { session });
+    }
+
     // Commit the transaction
     await session.commitTransaction();
-    console.log(`Serial numbers from SN${startSerial} to SN${endSerial} created.`);
+    console.log(
+      `Serial numbers from SN${startSerial} to SN${endSerial} created.`
+    );
     res.status(201).send({ message: "Success", status: 201, data });
   } catch (error) {
     // Roll back the transaction in case of an error
     await session.abortTransaction();
     console.error("Error processing product update:", error);
-    res.status(500).send("An error occurred while processing the product update.");
+    res
+      .status(500)
+      .send("An error occurred while processing the product update.");
   } finally {
     // End the session
     session.endSession();
@@ -378,9 +528,9 @@ const deleteData = catchAsyncError(async (req, res, next) => {
   });
 });
 
-
 module.exports = {
   getDataWithPagination,
+  getAllStock,
   getById,
   createData,
   updateData,

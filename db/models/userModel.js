@@ -27,7 +27,8 @@ const userSchema = new mongoose.Schema({
     required: [true, "Please enter mobile number"],
     unique: true,
     // validate: [validator.isEmail, "Please enter mobile number"],
-    maxLength: [14, "Name cannot exceed 14 characters"],
+    minLength: [11, "Mobile can not less than 11 characters"],
+    maxLength: [11, "Mobile can not exceed 11 characters"],
   },
   email: {
     type: String,
@@ -240,7 +241,7 @@ let userData = [
     designation: "Owner",
     password: "admin12345",
     branch_id: new mongoose.Types.ObjectId(),
-    mobile: "+8801793661517",
+    mobile: "01793661517",
     created_by: "Super Admin",
     permission: permissions,
   },
@@ -252,7 +253,7 @@ let userData = [
     designation: "Employee",
     branch_id: new mongoose.Types.ObjectId(),
     created_by: "Super Admin",
-    mobile: "+8801977096655",
+    mobile: "01977096655",
     permission: permissions2,
   },
 ];

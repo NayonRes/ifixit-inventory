@@ -8,7 +8,7 @@ const sparePartVariationSchema = mongoose.Schema({
     trim: true,
     // unique: true,
   },
-  spare_part_id: {
+  spare_parts_id: {
     type: Schema.Types.ObjectId,
     ref: "sparePartModel",
     required: [true, "Please enter Spare part Id"],

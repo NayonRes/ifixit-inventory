@@ -273,7 +273,7 @@ const getById = catchAsyncError(async (req, res, next) => {
     {
       $lookup: {
         from: "sparepartvariations",
-        localField: "purchase_products_data.spare_part_variation_id",
+        localField: "purchase_products_data.spare_parts_variation_id",
         foreignField: "_id",
         as: "purchase_products_data.spare_part_variation_details",
       },
@@ -371,8 +371,8 @@ const createData = catchAsyncError(async (req, res, next) => {
 
       let newElement = {
         purchase_id: data?._id,
-        spare_part_id: element.spare_part_id,
-        spare_part_variation_id: element.spare_part_variation_id,
+        spare_parts_id: element.spare_parts_id,
+        spare_parts_variation_id: element.spare_parts_variation_id,
         quantity: element.quantity,
         unit_price: element.unit_price,
         purchase_product_status: element.purchase_product_status,

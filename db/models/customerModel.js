@@ -15,7 +15,8 @@ const customerSchema = mongoose.Schema({
   mobile: {
     type: String,
     required: [true, "Please enter mobile no"],
-    maxLength: [14, "Mobile cannot exceed 14 characters"],
+    minLength: [11, "Mobile can not less than 11 characters"],
+    maxLength: [11, "Mobile can not exceed 11 characters"],
     trim: true,
     unique: true,
   },
