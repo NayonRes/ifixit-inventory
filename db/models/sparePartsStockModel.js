@@ -55,7 +55,7 @@ const sparePartsSkuSchema = mongoose.Schema({
   },
   updated_at: { type: Date, default: Date.now },
 });
-sparePartsSkuSchema.index({ name: 1 });
+sparePartsSkuSchema.index({ sku_number: 1 });
 const sparePartsSkuModel = mongoose.model(
   "spare_Parts_stock",
   sparePartsSkuSchema

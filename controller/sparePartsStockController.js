@@ -355,6 +355,11 @@ const getById = catchAsyncError(async (req, res, next) => {
 // });
 
 const createData = catchAsyncError(async (req, res, next) => {
+  // Start a MongoDB session for a transaction
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
+  console.log("-----------session started-----------", new Date());
   const { token } = req.cookies;
   let quantity = 0;
   quantity = parseInt(req.body.quantity);
@@ -369,28 +374,34 @@ const createData = catchAsyncError(async (req, res, next) => {
     return res.status(400).send({ message: "Invalid input", status: 400 });
   }
 
-  // Fetch the purchase product
-  const purchaseProduct = await purchaseProductModel.findById({
-    _id: purchaseProductId,
-  });
-  if (!purchaseProduct) {
-    return res
-      .status(404)
-      .send({ message: "Purchase product not found", status: 404 });
-  }
+  // // Fetch the purchase product
+  // const purchaseProduct = await purchaseProductModel.findById({
+  //   _id: purchaseProductId,
+  // });
+  // if (!purchaseProduct) {
+  //   return res
+  //     .status(404)
+  //     .send({ message: "Purchase product not found", status: 404 });
+  // }
 
-  if (purchaseProduct.is_sku_generated) {
+  // if (purchaseProduct.is_sku_generated) {
+  //   return res.status(400).send({
+  //     message: "SKU already generated for this purchase product.",
+  //     status: 400,
+  //   });
+  // }
+
+  const updatedProduct = await purchaseProductModel.findOneAndUpdate(
+    { _id: purchaseProductId, is_sku_generated: false }, // Ensure no SKU is generated
+    { $set: { is_sku_generated: true } },
+    { session, new: true }
+  );
+  if (!updatedProduct) {
     return res.status(400).send({
-      message: "SKU already generated for this purchase.",
+      message: "SKU already generated for this purchase product.",
       status: 400,
     });
   }
-
-  // Start a MongoDB session for a transaction
-  const session = await mongoose.startSession();
-  session.startTransaction();
-
-  console.log("-----------session started-----------", new Date());
 
   try {
     // Atomic counter update with `$inc`
@@ -424,11 +435,11 @@ const createData = catchAsyncError(async (req, res, next) => {
     });
 
     // Update the purchase product to mark SKU as generated
-    await purchaseProductModel.findOneAndUpdate(
-      { _id: purchaseProductId },
-      { $set: { is_sku_generated: true } },
-      { session }
-    );
+    // await purchaseProductModel.findOneAndUpdate(
+    //   { _id: purchaseProductId },
+    //   { $set: { is_sku_generated: true } },
+    //   { session }
+    // );
 
     //stock counter
 
