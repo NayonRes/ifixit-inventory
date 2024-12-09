@@ -18,18 +18,25 @@ const getAllStock = catchAsyncError(async (req, res, next) => {
     query.stock_status = new RegExp(`^${req.query.stock_status}$`, "i");
   }
   if (req.query.spare_parts_id) {
-    query.category_id = new mongoose.Types.ObjectId(req.query.spare_parts_id);
+    query.spare_parts_id = new mongoose.Types.ObjectId(
+      req.query.spare_parts_id
+    );
   }
   if (req.query.spare_parts_variation_id) {
-    query.brand_id = new mongoose.Types.ObjectId(
+    query.spare_parts_variation_id = new mongoose.Types.ObjectId(
       req.query.spare_parts_variation_id
     );
   }
   if (req.query.branch_id) {
-    query.device_id = new mongoose.Types.ObjectId(req.query.branch_id);
+    query.branch_id = new mongoose.Types.ObjectId(req.query.branch_id);
   }
   if (req.query.purchase_id) {
-    query.model_id = new mongoose.Types.ObjectId(req.query.purchase_id);
+    query.purchase_id = new mongoose.Types.ObjectId(req.query.purchase_id);
+  }
+  if (req.query.purchase_product_id) {
+    query.purchase_product_id = new mongoose.Types.ObjectId(
+      req.query.purchase_product_id
+    );
   }
 
   let totalData = await sparePartsSkuModel.countDocuments(query);
