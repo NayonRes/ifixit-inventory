@@ -362,7 +362,25 @@ const getById = catchAsyncError(async (req, res, next) => {
 // });
 
 const createData = catchAsyncError(async (req, res, next) => {
+  // Fetch the purchase product
+  const myPurchaseProduct = await purchaseProductModel.findById({
+    _id: req.body.purchase_product_id,
+  });
+  if (!myPurchaseProduct) {
+    return res
+      .status(404)
+      .send({ message: "Purchase product not found", status: 404 });
+  }
+
+  if (myPurchaseProduct.purchase_product_status !== "Recived") {
+    return res.status(400).send({
+      message: "purchase product status must be Recived.",
+      status: 400,
+    });
+  }
+
   // Start a MongoDB session for a transaction
+
   const session = await mongoose.startSession();
   session.startTransaction();
 
@@ -380,23 +398,6 @@ const createData = catchAsyncError(async (req, res, next) => {
   if (!quantity || !purchaseProductId) {
     return res.status(400).send({ message: "Invalid input", status: 400 });
   }
-
-  // // Fetch the purchase product
-  // const purchaseProduct = await purchaseProductModel.findById({
-  //   _id: purchaseProductId,
-  // });
-  // if (!purchaseProduct) {
-  //   return res
-  //     .status(404)
-  //     .send({ message: "Purchase product not found", status: 404 });
-  // }
-
-  // if (purchaseProduct.is_sku_generated) {
-  //   return res.status(400).send({
-  //     message: "SKU already generated for this purchase product.",
-  //     status: 400,
-  //   });
-  // }
 
   const updatedProduct = await purchaseProductModel.findOneAndUpdate(
     { _id: purchaseProductId, is_sku_generated: false }, // Ensure no SKU is generated
