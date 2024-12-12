@@ -63,6 +63,7 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
                 spare_parts_variation_id: 1,
                 branch_id: 1,
                 stock_limit: 1,
+                total_stock:1,
                 remarks: 1,
                 status: 1,
                 created_by: 1,
@@ -149,6 +150,7 @@ const getById = catchAsyncError(async (req, res, next) => {
                 branch_id: 1,
                 sparePart_id: 1,
                 stock_limit: 1,
+                total_stock:1,
                 remarks: 1,
                 status: 1,
                 created_by: 1,
@@ -175,10 +177,57 @@ const getById = catchAsyncError(async (req, res, next) => {
     res.send({ message: "success", status: 200, data: data });
 });
 
-
 const createData = catchAsyncError(async (req, res, next) => {
     const { token } = req.cookies;
     const stock_limit = parseInt(req.body.stock_limit);
+    const branch_id = req.body.branch_id;
+    const spare_parts_variation_id = req.body.spare_parts_variation_id;
+    const total_stock = req.body.total_stock;
+    const spare_parts_id = req.body.spare_parts_id;
+
+    
+    let decodedData = jwt.verify(token, process.env.JWT_SECRET);
+    const existingStock = await stockCounterAndLimitModel.findOne({
+        branch_id,
+        spare_parts_variation_id
+    });
+
+    if (!existingStock) {
+        const newDocument = {
+            branch_id: branch_id,
+            spare_parts_variation_id: spare_parts_variation_id,
+            spare_parts_id: spare_parts_id,
+            total_stock: total_stock,
+            stock_limit: stock_limit,
+            created_by: decodedData?.user?.email
+        };
+
+        await stockCounterAndLimitModel.create([newDocument]);
+        res.send({ message: "success", status: 201, data: data });
+    }
+    else{
+        const data = await stockCounterAndLimitModel.findByIdAndUpdate(existingStock._id,
+            {
+                $set: {
+                    stock_limit: existingStock.stock_limit,
+                    created_by: decodedData?.user?.email
+                },
+                $inc: {
+                    total_stock: total_stock
+                }
+            },
+            { new: true }
+        );
+        res.send({ message: "success", status: 201, data: data });
+    }
+
+});
+
+
+const updateData = catchAsyncError(async (req, res, next) => {
+    const { token } = req.cookies;
+    const stock_limit = parseInt(req.body.stock_limit);
+    const total_stock = parseInt(req.body.total_stock);
     const branch_id = req.body.branch_id;
     const spare_parts_variation_id = req.body.spare_parts_variation_id;
     const existingStock = await stockCounterAndLimitModel.findOne({
@@ -191,9 +240,18 @@ const createData = catchAsyncError(async (req, res, next) => {
     }
 
     let decodedData = jwt.verify(token, process.env.JWT_SECRET);
-    existingStock.stock_limit = stock_limit;
-    existingStock.created_by = decodedData?.user?.email;
-    const data = await stockCounterAndLimitModel.updateOne(existingStock);
+    const data = await stockCounterAndLimitModel.findByIdAndUpdate(existingStock._id,
+        {
+            $set: {
+                stock_limit: stock_limit,
+                created_by: decodedData?.user?.email
+            },
+            $inc: {
+                total_stock: total_stock
+            }
+        },
+        { new: true }
+    );
     res.send({ message: "success", status: 201, data: data });
 });
 
@@ -265,7 +323,7 @@ module.exports = {
     getDataWithPagination,
     getById,
     createData,
-    // updateData,
+    updateData,
     deleteData,
     incrementStock,
     decrementStock

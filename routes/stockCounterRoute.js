@@ -3,7 +3,7 @@ const {
   getDataWithPagination,
   getById,
   createData,
-  //updateData,
+  updateData,
   deleteData,
 } = require("../controller/stockCounterAndLimitController");
 const { isAuthenticatedUser, authorizeRoles } = require("../middleware/auth");
@@ -21,9 +21,9 @@ router
   .route("/create")
   .post(isAuthenticatedUser, authorizeRoles("dashboard"), createData);
 
-// router
-//   .route("/update/:id")
-//   .put(isAuthenticatedUser, authorizeRoles("dashboard"), updateData);
+router
+  .route("/update/:id")
+  .put(isAuthenticatedUser, authorizeRoles("dashboard"), updateData);
 
 router
   .route("/delete/:id")

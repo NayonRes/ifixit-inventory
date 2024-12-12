@@ -170,40 +170,43 @@ const createData = catchAsyncError(async (req, res, next) => {
 const updateData = async (req, res, next) => {
   console.log("asdasdfasdfasdfasdfs====================updateData");
   let data = await transferStockModel.findById(req.params.id);
+  console.log("get By Id",data);
+  const { token } = req.cookies;
   const { transfer_stockss, transfer_from, transfer_to, transfer_status } =
     req.body;
+
+  if (!data) {
+    console.log("if");
+    return next(new ErrorHander("No data found", 404));
+  }
+  let decodedData = jwt.verify(token, process.env.JWT_SECRET);
 
   if (
     !transfer_stockss ||
     !Array.isArray(transfer_stockss) ||
     transfer_stockss.length === 0
   ) {
-    return res.status(400).json({ message: "select at least onesku" });
+    return res.status(400).json({ message: "select at least one sku" });
   }
   if (!transfer_from || !transfer_to) {
     return res.status(400).json({ message: "Both branch IDs are required." });
   }
+  const newData = {
+    ...req.body,
+    updated_by: decodedData?.user?.email,
+    updated_at: new Date(),
+  };
 
   if (transfer_status != "received") {
-    const updatedData = await transferSkuCounter.updateMany(
-      { sku: { $in: transfer_stockss } },
-      {
-        $set: {
-          transfer_to: transfer_to,
-          transfer_status: transfer_status,
-        },
-      },
-      {
-        new: true,
-        runValidators: true,
-        useFindAndModify: false, // Ensure no deprecation warnings
-      }
-    );
-    return res.status(200).json({
-      success: true,
-      message: "Update successfully",
-      data: updatedData,
+
+    data = await transferStockModel.findByIdAndUpdate(req.params.id, newData, {
+      new: true,
+      runValidators: true,
+      useFindAndModified: false,
     });
+    return res.status(200).json({ message: "transferred stock updated successfully." });
+
+
   }
 
   const session = await mongoose.startSession();
@@ -276,10 +279,17 @@ const updateData = async (req, res, next) => {
       }
     }
 
+    data = await transferStockModel.findByIdAndUpdate(req.params.id, newData, {
+      new: true,
+      runValidators: true,
+      useFindAndModified: false,
+      session
+    });
+
     await session.commitTransaction();
     session.endSession();
 
-    return res.status(200).json({ message: "sku transferred successfully." });
+    return res.status(200).json({ message: "sku transferred and stock updated successfully." });
   } catch (error) {
     await session.abortTransaction();
     session.endSession();
