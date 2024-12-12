@@ -210,7 +210,8 @@ const createData = catchAsyncError(async (req, res, next) => {
             {
                 $set: {
                     stock_limit: existingStock.stock_limit,
-                    created_by: decodedData?.user?.email
+                    updated_by: decodedData?.user?.email,
+                    updated_at:new Date()
                 },
                 $inc: {
                     total_stock: total_stock
@@ -244,7 +245,8 @@ const updateData = catchAsyncError(async (req, res, next) => {
         {
             $set: {
                 stock_limit: stock_limit,
-                created_by: decodedData?.user?.email
+                updated_by: decodedData?.user?.email,
+                updated_at: new Date()
             },
             $inc: {
                 total_stock: total_stock
