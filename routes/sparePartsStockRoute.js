@@ -5,6 +5,7 @@ const {
   getById,
   createData,
   updateData,
+  purchaseReturn,
   deleteData,
 } = require("../controller/sparePartsStockController");
 const { isAuthenticatedUser, authorizeRoles } = require("../middleware/auth");
@@ -27,6 +28,9 @@ router
 router
   .route("/update/:id")
   .put(isAuthenticatedUser, authorizeRoles("dashboard"), updateData);
+router
+  .route("/purchase-return")
+  .post(isAuthenticatedUser, authorizeRoles("dashboard"), purchaseReturn);
 router
   .route("/delete/:id")
   .delete(isAuthenticatedUser, authorizeRoles("dashboard"), deleteData);

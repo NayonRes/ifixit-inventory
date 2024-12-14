@@ -336,7 +336,7 @@ const getById = catchAsyncError(async (req, res, next) => {
   res.send({ message: "success", status: 200, data: data });
 });
 
- 
+
 
 const createData = catchAsyncError(async (req, res, next) => {
   // Fetch the purchase product
@@ -349,9 +349,9 @@ const createData = catchAsyncError(async (req, res, next) => {
       .send({ message: "Purchase product not found", status: 404 });
   }
 
-  if (myPurchaseProduct.purchase_product_status !== "Recived") {
+  if (myPurchaseProduct.purchase_product_status !== "Received") {
     return res.status(400).send({
-      message: "purchase product status must be Recived.",
+      message: "purchase product status must be Received.",
       status: 400,
     });
   }
@@ -507,6 +507,77 @@ const updateData = catchAsyncError(async (req, res, next) => {
   });
 });
 
+const purchaseReturn = catchAsyncError(async (req, res, next) => {
+  const { token } = req.cookies;
+  const { sku_numbers } = req.body;
+  let decodedData = jwt.verify(token, process.env.JWT_SECRET);
+
+  if (!sku_numbers || sku_numbers.length === 0) {
+    return res.status(400).json({ message: "select at least one sku" });
+  }
+
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
+  try {
+    const matchedRecords = await sparePartsSkuModel.find({
+      sku_number: { $in: sku_numbers },
+      session
+    });
+
+    console.log("match skus", matchedRecords);
+
+    if (matchedRecords.length === 0) {
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(404).json({ message: "No records found with one of skus." });
+    }
+    
+    for (const record of matchedRecords) {
+      const spare_parts_variation_id = record.spare_parts_variation_id.toString();
+      const branch_id = record.branch_id.toString();
+      if (record.stock_status == 'Received') {
+        continue;
+      }
+      record.stock_status = 'Received';
+      record.updated_by= decodedData?.user?.email,
+      record.updated_at= new Date(),
+      data = await sparePartsSkuModel.findByIdAndUpdate(record._id, record, {
+        new: true,
+        runValidators: true,
+        useFindAndModified: false,
+        session,
+      });
+
+      await stockCounterAndLimitController.decrementStock(
+        branch_id,
+        spare_parts_variation_id,
+        1,
+        session
+      );
+      await session.commitTransaction();
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "sku returned and stock updated successfully"
+    });
+
+  }
+  catch (error) {
+    await session.abortTransaction();
+    session.endSession();
+
+    console.error("Error on return sku:", error);
+    return res.status(500).json({ message: "An error occurred.", error });
+  }
+  finally {
+    session.endSession();
+  }
+
+});
+
+
 const deleteData = catchAsyncError(async (req, res, next) => {
   console.log("deleteData function is working");
   let data = await sparePartsSkuModel.findById(req.params.id);
@@ -530,5 +601,6 @@ module.exports = {
   getById,
   createData,
   updateData,
+  purchaseReturn,
   deleteData,
 };
