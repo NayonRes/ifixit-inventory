@@ -3,6 +3,7 @@ const {
   getDataWithPagination,
   getById,
   createData,
+  createLimit,
   updateData,
   deleteData,
 } = require("../controller/stockCounterAndLimitController");
@@ -16,10 +17,13 @@ router
 router
   .route("/:id")
   .get(isAuthenticatedUser, authorizeRoles("dashboard"), getById);
-  
+
 router
   .route("/create")
   .post(isAuthenticatedUser, authorizeRoles("dashboard"), createData);
+router
+  .route("/create-limit")
+  .post(isAuthenticatedUser, authorizeRoles("dashboard"), createLimit);
 
 router
   .route("/update/:id")

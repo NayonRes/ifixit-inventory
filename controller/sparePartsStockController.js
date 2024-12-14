@@ -139,7 +139,16 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
     query.device_id = new mongoose.Types.ObjectId(req.query.branch_id);
   }
   if (req.query.purchase_id) {
-    query.model_id = new mongoose.Types.ObjectId(req.query.purchase_id);
+    query.purchase_id = new mongoose.Types.ObjectId(req.query.purchase_id);
+  }
+
+  if (req.query.sku_number && !isNaN(req.query.sku_number)) {
+    query.sku_number = Number(req.query.sku_number);
+  } else if (req.query.sku_number) {
+    return res.status(400).json({
+      success: false,
+      message: "Invalid sku number provided",
+    });
   }
 
   let totalData = await sparePartsSkuModel.countDocuments(query);
@@ -163,7 +172,7 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
         from: "sparepartvariations",
         localField: "spare_parts_variation_id",
         foreignField: "_id",
-        as: "sparepartvariation_data",
+        as: "spare_parts_variation_data",
       },
     },
     {
@@ -180,6 +189,34 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
         localField: "purchase_id",
         foreignField: "_id",
         as: "purchase_data",
+      },
+    },
+
+    {
+      $lookup: {
+        from: "purchaseproducts",
+        let: {
+          purchase_id: "$purchase_id",
+          spare_parts_variation_id: "$spare_parts_variation_id",
+        },
+        pipeline: [
+          {
+            $match: {
+              $expr: {
+                $and: [
+                  { $eq: ["$purchase_id", "$$purchase_id"] },
+                  {
+                    $eq: [
+                      "$spare_parts_variation_id",
+                      "$$spare_parts_variation_id",
+                    ],
+                  },
+                ],
+              },
+            },
+          },
+        ],
+        as: "purchase_products_data",
       },
     },
     {
@@ -201,9 +238,10 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
 
         "sparepart_data.name": 1,
         "branch_data.name": 1,
-        "sparepartvariation_data.name": 1,
+        "spare_parts_variation_data.name": 1,
         "purchase_data.purchase_date": 1,
         "purchase_data.supplier_id": 1,
+        purchase_products_data: 1,
       },
     },
     {
@@ -298,68 +336,7 @@ const getById = catchAsyncError(async (req, res, next) => {
   res.send({ message: "success", status: 200, data: data });
 });
 
-// const createData = catchAsyncError(async (req, res, next) => {
-//   const { token } = req.cookies;
-//   const quantity = parseInt(req.body.quantity);
-//   const purchaseProductId = req.body.purchase_product_id;
-
-//   // Start a session for the transaction
-//   const session = await mongoose.startSession();
-//   session.startTransaction();
-//   console.log("-----------session started-----------",new Date());
-//   try {
-//     let purchaseProduct = await purchaseProductModel.findById({_id:purchaseProductId}).session(session);
-//     // return res.status(200).send({ message: "purchase product found", status: 200 ,data:purchaseProduct});
-
-//     if (purchaseProduct.is_sku_generated) {
-//       return res.status(400).send({ message: "SKU already generated for this purchase.", status: 400 });
-//     }
-//     // Fetch the current counter by the key "sparePartsSku"
-//     const counter = await counterModel.findOne({ key: "sparePartsSku" }).session(session);
-//     console.log("------counter------",counter);
-
-//     const lastSerial = counter ? counter.counter : 10000000; // Default to 0 if counter doesn't exist
-//     const startSerial = lastSerial + 1;
-//     const endSerial = lastSerial + quantity;
-//     let decodedData = jwt.verify(token, process.env.JWT_SECRET);
-
-//     const newSpareParts = [];
-//     for (let i = 0; i < quantity; i++) {
-//       const serialNumber = lastSerial + i+1;
-//       newSpareParts.push({
-//         ...req.body,
-//         sku_number: serialNumber,
-//         created_by: decodedData?.user?.email,
-//       });
-//     }
-
-//     console.log("----new spare parts[]---",newSpareParts);
-//     const data = await sparePartsSkuModel.insertMany(newSpareParts, { session });
-//     await counterModel.findOneAndUpdate(
-//       { key: "sparePartsSku" },
-//       { $set: { counter: endSerial } },
-//       { upsert: true, session }
-//     );
-
-//     await purchaseProductModel.findOneAndUpdate(
-//       { _id: purchaseProductId },
-//       { $set: { is_sku_generated: true } },
-//       { session }
-//     );
-
-//     await session.commitTransaction();
-//     console.log(`Serial numbers from SN${startSerial} to SN${endSerial} created.`);
-//     res.send({ message: "success", status: 201, data: data });
-//   } catch (error) {
-//     // Roll back the transaction in case of an error
-//     await session.abortTransaction();
-//     console.error("Error processing product update:", error);
-//     res.status(500).send("An error occurred while processing the product update.");
-//   } finally {
-//     // End the session
-//     session.endSession();
-//   }
-// });
+ 
 
 const createData = catchAsyncError(async (req, res, next) => {
   // Fetch the purchase product

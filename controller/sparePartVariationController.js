@@ -37,6 +37,7 @@ const lightSearchWithPagination = catchAsyncError(async (req, res, next) => {
   });
 });
 
+
 const getDataWithPagination = catchAsyncError(async (req, res, next) => {
   const page = parseInt(req.query.page) || 1;
   console.log("===========req.query.page", req.query.page);

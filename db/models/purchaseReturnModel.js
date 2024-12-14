@@ -17,16 +17,32 @@ const purchaseReturnSchema = mongoose.Schema({
     ref: "branchModel",
     required: [true, "Please select branch"],
   },
+  purchase_id: {
+    type: Schema.Types.ObjectId,
+    ref: "purchaseModel",
+    required: [true, "Please select purchase"],
+  },
   purchase_product_id: {
     type: Schema.Types.ObjectId,
     ref: "purchaseProductModel",
     required: [true, "Please select purchase product"],
   },
-  supplier_id: {
-    type: Schema.Types.ObjectId,
-    ref: "supplierModel",
+  // supplier_id: {
+  //   type: Schema.Types.ObjectId,
+  //   ref: "supplierModel",
+  //   required: [true, "Please select purchase product"],
+  // },
+
+  sku_number: {
+    type: Number,
+    default: null,
+    required: [true, "Please enter the SKU number"],
   },
-  sku_number: [Number],
+  invoice_number: {
+    type: String,
+    default: null,
+  },
+ 
   remarks: {
     type: String,
   },
