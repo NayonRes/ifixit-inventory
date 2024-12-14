@@ -197,7 +197,7 @@ const updateData = async (req, res, next) => {
     updated_at: new Date(),
   };
 
-  if (transfer_status != "received") {
+  if (transfer_status != "Received") {
 
     data = await transferStockModel.findByIdAndUpdate(req.params.id, newData, {
       new: true,
@@ -216,22 +216,19 @@ const updateData = async (req, res, next) => {
     // Step 1: Find matching records in sparePartsStockModel
     const matchedRecords = await sparePartsStockModel.find({
       sku_number: { $in: transfer_stockss },
-    });
-
-    console.log("match skus", matchedRecords);
+    }).session(session);
 
     if (matchedRecords.length === 0) {
       await session.abortTransaction();
       session.endSession();
       return res.status(404).json({ message: "No matching records found." });
     }
-    console.log("mathc recored", matchedRecords);
     // Step 2: Process each record to update stock counters
     for (const record of matchedRecords) {
       const spare_parts_variation_id =
         record.spare_parts_variation_id.toString();
+        record.branch_id = transfer_to;
 
-      record.branch_id = transfer_to;
       data = await sparePartsStockModel.findByIdAndUpdate(record._id, record, {
         new: true,
         runValidators: true,
@@ -241,8 +238,8 @@ const updateData = async (req, res, next) => {
 
       const fromStockCounter = await stockCounterAndLimitModel.findOne({
         branch_id: transfer_from,
-        spare_parts_variation_id,
-      });
+        spare_parts_variation_id:spare_parts_variation_id,
+      }).session(session);
 
       console.log("from stock counter", fromStockCounter);
 
@@ -258,7 +255,7 @@ const updateData = async (req, res, next) => {
       const toStockCounter = await stockCounterAndLimitModel.findOne({
         branch_id: transfer_to,
         spare_parts_variation_id,
-      });
+      }).session(session);
 
       console.log("to stock counter", toStockCounter);
       if (toStockCounter != null) {
