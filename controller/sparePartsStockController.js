@@ -521,9 +521,8 @@ const purchaseReturn = catchAsyncError(async (req, res, next) => {
 
   try {
     const matchedRecords = await sparePartsSkuModel.find({
-      sku_number: { $in: sku_numbers },
-      session
-    });
+      sku_number: { $in: sku_numbers }
+    }).session(session);
 
     console.log("match skus", matchedRecords);
 
@@ -532,22 +531,22 @@ const purchaseReturn = catchAsyncError(async (req, res, next) => {
       session.endSession();
       return res.status(404).json({ message: "No records found with one of skus." });
     }
-    
+
     for (const record of matchedRecords) {
       const spare_parts_variation_id = record.spare_parts_variation_id.toString();
       const branch_id = record.branch_id.toString();
-      if (record.stock_status == 'Received') {
+      if (record.stock_status == 'Returned') {
         continue;
       }
-      record.stock_status = 'Received';
-      record.updated_by= decodedData?.user?.email,
-      record.updated_at= new Date(),
-      data = await sparePartsSkuModel.findByIdAndUpdate(record._id, record, {
-        new: true,
-        runValidators: true,
-        useFindAndModified: false,
-        session,
-      });
+      record.stock_status = 'Returned';
+      record.updated_by = decodedData?.user?.email,
+        record.updated_at = new Date(),
+        data = await sparePartsSkuModel.findByIdAndUpdate(record._id, record, {
+          new: true,
+          runValidators: true,
+          useFindAndModified: false,
+          session,
+        });
 
       await stockCounterAndLimitController.decrementStock(
         branch_id,
@@ -555,9 +554,9 @@ const purchaseReturn = catchAsyncError(async (req, res, next) => {
         1,
         session
       );
-      await session.commitTransaction();
     }
 
+    await session.commitTransaction();
     res.status(200).json({
       success: true,
       message: "sku returned and stock updated successfully"
