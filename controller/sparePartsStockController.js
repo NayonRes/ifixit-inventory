@@ -516,6 +516,7 @@ const purchaseReturn = catchAsyncError(async (req, res, next) => {
     return res.status(400).json({ message: "select at least one sku" });
   }
 
+  let alreadyReturned=[];
   const session = await mongoose.startSession();
   session.startTransaction();
 
@@ -536,6 +537,7 @@ const purchaseReturn = catchAsyncError(async (req, res, next) => {
       const spare_parts_variation_id = record.spare_parts_variation_id.toString();
       const branch_id = record.branch_id.toString();
       if (record.stock_status == 'Returned') {
+        alreadyReturned.push(record.sku_number);
         continue;
       }
       record.stock_status = 'Returned';
@@ -559,7 +561,8 @@ const purchaseReturn = catchAsyncError(async (req, res, next) => {
     await session.commitTransaction();
     res.status(200).json({
       success: true,
-      message: "sku returned and stock updated successfully"
+      message: "sku returned and stock updated successfully",
+      errorData:alreadyReturned
     });
 
   }
