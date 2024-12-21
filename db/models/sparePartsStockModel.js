@@ -56,11 +56,12 @@ const sparePartsStockSchema = mongoose.Schema({
   updated_at: { type: Date, default: Date.now },
 });
 sparePartsStockSchema.index({ sku_number: 1 });
+sparePartsStockSchema.index({ spare_parts_id: 1 });
 const sparePartsStockModel = mongoose.model(
   "spare_Parts_stock",
   sparePartsStockSchema
 );
-sparePartsStockSchema.index({ spare_parts_id: 1 });
+
 
 
 module.exports = sparePartsStockModel;

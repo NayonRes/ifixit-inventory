@@ -553,9 +553,17 @@ const purchaseReturn = catchAsyncError(async (req, res, next) => {
       const spare_parts_variation_id =
         record.spare_parts_variation_id.toString();
       const branch_id = record.branch_id.toString();
-      if (record.stock_status == "Returned") {
+      if (record.stock_status === "Returned") {
         alreadyReturned.push(record.sku_number);
         continue;
+      }
+      if (record.stock_status === "Available") {
+        await stockCounterAndLimitController.decrementStock(
+          branch_id,
+          spare_parts_variation_id,
+          1,
+          session
+        );
       }
       record.stock_status = "Returned";
       record.remarks = purchase_return_data.find(
@@ -570,12 +578,7 @@ const purchaseReturn = catchAsyncError(async (req, res, next) => {
           session,
         }));
 
-      await stockCounterAndLimitController.decrementStock(
-        branch_id,
-        spare_parts_variation_id,
-        1,
-        session
-      );
+    
     }
 
     await session.commitTransaction();
