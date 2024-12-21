@@ -1,4 +1,4 @@
-const sparePartsSkuModel = require("../db/models/sparePartsStockModel");
+const sparePartsStockModel = require("../db/models/sparePartsStockModel");
 const counterModel = require("../db/models/counterModel");
 const ErrorHander = require("../utils/errorHandler");
 const mongoose = require("mongoose");
@@ -39,11 +39,11 @@ const getAllStock = catchAsyncError(async (req, res, next) => {
     );
   }
 
-  let totalData = await sparePartsSkuModel.countDocuments(query);
+  let totalData = await sparePartsStockModel.countDocuments(query);
   console.log("totalData=================================", totalData);
-  const data = await sparePartsSkuModel.find(query);
+  const data = await sparePartsStockModel.find(query);
 
-  // const data = await sparePartsSkuModel.aggregate([
+  // const data = await sparePartsStockModel.aggregate([
   //   {
   //     $match: query,
   //   },
@@ -119,27 +119,33 @@ const getAllStock = catchAsyncError(async (req, res, next) => {
 const getDataWithPagination = catchAsyncError(async (req, res, next) => {
   const page = parseInt(req.query.page) || 1;
   console.log("===========req.query.page", req.query.page);
+  console.log("===========req.query.stock_status", req.query.stock_status);
   const limit = parseInt(req.query.limit) || 10;
   const startIndex = (page - 1) * limit;
   const endIndex = page * limit;
   var query = {};
-  if (req.query.sku_number) {
-    query.sku_number = new RegExp(`^${req.query.sku_number}$`, "i");
-  }
+  // if (req.query.sku_number) {
+  //   query.sku_number = new RegExp(`^${req.query.sku_number}$`, "i");
+  // }
 
   if (req.query.spare_parts_id) {
-    query.category_id = new mongoose.Types.ObjectId(req.query.spare_parts_id);
+    query.spare_parts_id = new mongoose.Types.ObjectId(
+      req.query.spare_parts_id
+    );
   }
   if (req.query.spare_parts_variation_id) {
-    query.brand_id = new mongoose.Types.ObjectId(
+    query.spare_parts_variation_id = new mongoose.Types.ObjectId(
       req.query.spare_parts_variation_id
     );
   }
   if (req.query.branch_id) {
-    query.device_id = new mongoose.Types.ObjectId(req.query.branch_id);
+    query.branch_id = new mongoose.Types.ObjectId(req.query.branch_id);
   }
   if (req.query.purchase_id) {
     query.purchase_id = new mongoose.Types.ObjectId(req.query.purchase_id);
+  }
+  if (req.query.stock_status) {
+    query.stock_status = new RegExp(`^${req.query.stock_status}$`, "i");
   }
 
   if (req.query.sku_number && !isNaN(req.query.sku_number)) {
@@ -151,11 +157,11 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
     });
   }
 
-  let totalData = await sparePartsSkuModel.countDocuments(query);
+  let totalData = await sparePartsStockModel.countDocuments(query);
   console.log("totalData=================================", totalData);
-  //const data = await sparePartsSkuModel.find(query).skip(startIndex).limit(limit);
+  //const data = await sparePartsStockModel.find(query).skip(startIndex).limit(limit);
 
-  const data = await sparePartsSkuModel.aggregate([
+  const data = await sparePartsStockModel.aggregate([
     {
       $match: query,
     },
@@ -267,7 +273,7 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
 });
 const getById = catchAsyncError(async (req, res, next) => {
   const id = req.params.id;
-  const data = await sparePartsSkuModel.aggregate([
+  const data = await sparePartsStockModel.aggregate([
     {
       $match: { _id: mongoose.Types.ObjectId(id) },
     },
@@ -335,8 +341,6 @@ const getById = catchAsyncError(async (req, res, next) => {
   }
   res.send({ message: "success", status: 200, data: data });
 });
-
-
 
 const createData = catchAsyncError(async (req, res, next) => {
   // Fetch the purchase product
@@ -415,7 +419,7 @@ const createData = catchAsyncError(async (req, res, next) => {
     console.log("newSpareParts", newSpareParts);
 
     // Insert the new spare parts
-    const data = await sparePartsSkuModel.insertMany(newSpareParts, {
+    const data = await sparePartsStockModel.insertMany(newSpareParts, {
       session,
     });
 
@@ -478,7 +482,7 @@ const updateData = catchAsyncError(async (req, res, next) => {
   const { token } = req.cookies;
   const { name } = req.body;
 
-  let data = await sparePartsSkuModel.findById(req.params.id);
+  let data = await sparePartsStockModel.findById(req.params.id);
   let oldParentName = data.name;
 
   if (!data) {
@@ -493,7 +497,7 @@ const updateData = catchAsyncError(async (req, res, next) => {
     updated_at: new Date(),
   };
 
-  data = await sparePartsSkuModel.findByIdAndUpdate(req.params.id, newData, {
+  data = await sparePartsStockModel.findByIdAndUpdate(req.params.id, newData, {
     new: true,
     runValidators: true,
     useFindAndModified: false,
@@ -509,46 +513,62 @@ const updateData = catchAsyncError(async (req, res, next) => {
 
 const purchaseReturn = catchAsyncError(async (req, res, next) => {
   const { token } = req.cookies;
-  const { sku_numbers } = req.body;
+  const { purchase_return_data } = req.body;
+
+  console.log("purchase_return_data", purchase_return_data);
+
   let decodedData = jwt.verify(token, process.env.JWT_SECRET);
 
-  if (!sku_numbers || sku_numbers.length === 0) {
+  if (!purchase_return_data || purchase_return_data.length === 0) {
     return res.status(400).json({ message: "select at least one sku" });
   }
 
-  let alreadyReturned=[];
+  let alreadyReturned = [];
   const session = await mongoose.startSession();
   session.startTransaction();
 
   try {
-    const matchedRecords = await sparePartsSkuModel.find({
-      sku_number: { $in: sku_numbers }
-    }).session(session);
+    let sku_numbers = purchase_return_data?.map((item) =>
+      parseInt(item.sku_number)
+    );
+    console.log("sku_numbers", sku_numbers);
+
+    const matchedRecords = await sparePartsStockModel
+      .find({
+        sku_number: { $in: sku_numbers },
+      })
+      .session(session);
 
     console.log("match skus", matchedRecords);
 
     if (matchedRecords.length === 0) {
       await session.abortTransaction();
       session.endSession();
-      return res.status(404).json({ message: "No records found with one of skus." });
+      return res
+        .status(404)
+        .json({ message: "No records found with one of skus." });
     }
 
     for (const record of matchedRecords) {
-      const spare_parts_variation_id = record.spare_parts_variation_id.toString();
+      const spare_parts_variation_id =
+        record.spare_parts_variation_id.toString();
       const branch_id = record.branch_id.toString();
-      if (record.stock_status == 'Returned') {
+      if (record.stock_status == "Returned") {
         alreadyReturned.push(record.sku_number);
         continue;
       }
-      record.stock_status = 'Returned';
-      record.updated_by = decodedData?.user?.email,
-        record.updated_at = new Date(),
-        data = await sparePartsSkuModel.findByIdAndUpdate(record._id, record, {
+      record.stock_status = "Returned";
+      record.remarks = purchase_return_data.find(
+        (res) => res.sku_number === parseInt(record.sku_number)
+      )?.remarks;
+      (record.updated_by = decodedData?.user?.email),
+        (record.updated_at = new Date()),
+        (data = await sparePartsStockModel.findByIdAndUpdate(record._id, record, {
           new: true,
           runValidators: true,
           useFindAndModified: false,
           session,
-        });
+        }));
 
       await stockCounterAndLimitController.decrementStock(
         branch_id,
@@ -561,28 +581,23 @@ const purchaseReturn = catchAsyncError(async (req, res, next) => {
     await session.commitTransaction();
     res.status(200).json({
       success: true,
-      message: "sku returned and stock updated successfully",
-      errorData:alreadyReturned
+      message: "SKU returned successfully",
+      errorData: alreadyReturned,
     });
-
-  }
-  catch (error) {
+  } catch (error) {
     await session.abortTransaction();
     session.endSession();
 
     console.error("Error on return sku:", error);
     return res.status(500).json({ message: "An error occurred.", error });
-  }
-  finally {
+  } finally {
     session.endSession();
   }
-
 });
-
 
 const deleteData = catchAsyncError(async (req, res, next) => {
   console.log("deleteData function is working");
-  let data = await sparePartsSkuModel.findById(req.params.id);
+  let data = await sparePartsStockModel.findById(req.params.id);
   console.log("data", data);
   if (!data) {
     console.log("if");

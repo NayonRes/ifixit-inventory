@@ -12,12 +12,17 @@ const transferSkuSchema = mongoose.Schema({
     ref: "branchModel",
     required: [true, "Please select branch"],
   },
-  transfer_stockss: {
+  transfer_stocks_sku: {
     type: [Number],
     required: [true, "Please enter at list one sku"],
   },
   transfer_status: {
     type: String,
+    default: "Pending",
+  },
+  shipping_charge: {
+    type: Number,
+    required: [true, "Please enter shipping charge"],
   },
   remarks: {
     type: String,
