@@ -276,6 +276,10 @@ const createData = catchAsyncError(async (req, res, next) => {
 const updateData = async (req, res, next) => {
   console.log("asdasdfasdfasdfasdfs====================updateData");
   let data = await transferStockModel.findById(req.params.id);
+
+  if (data?.transfer_status === "Received") {
+    return res.status(404).json({ message: "This is not updateable" });
+  }
   console.log("get By Id", data);
   const { token } = req.cookies;
   const { transfer_stocks_sku, transfer_from, transfer_to, transfer_status } =
@@ -303,7 +307,7 @@ const updateData = async (req, res, next) => {
     updated_at: new Date(),
   };
 
-  if (transfer_status != "Received") {
+  if (transfer_status !== "Received") {
     data = await transferStockModel.findByIdAndUpdate(req.params.id, newData, {
       new: true,
       runValidators: true,
@@ -313,99 +317,129 @@ const updateData = async (req, res, next) => {
       .status(200)
       .json({ message: "transferred stock updated successfully." });
   }
+  if (data?.transfer_status !== "Received") {
+    const session = await mongoose.startSession();
+    session.startTransaction();
 
-  const session = await mongoose.startSession();
-  session.startTransaction();
-
-  try {
-    // Step 1: Find matching records in sparePartsStockModel
-    const matchedRecords = await sparePartsStockModel
-      .find({
-        sku_number: { $in: transfer_stocks_sku },
-      })
-      .session(session);
-
-    if (matchedRecords.length === 0) {
-      await session.abortTransaction();
-      session.endSession();
-      return res.status(404).json({ message: "No matching records found." });
-    }
-    // Step 2: Process each record to update stock counters
-    for (const record of matchedRecords) {
-      const spare_parts_variation_id =
-        record.spare_parts_variation_id.toString();
-      record.branch_id = transfer_to;
-
-      data = await sparePartsStockModel.findByIdAndUpdate(record._id, record, {
-        new: true,
-        runValidators: true,
-        useFindAndModified: false,
-        session,
-      });
-
-      const fromStockCounter = await stockCounterAndLimitModel
-        .findOne({
-          branch_id: transfer_from,
-          spare_parts_variation_id: spare_parts_variation_id,
+    try {
+      // Step 1: Find matching records in sparePartsStockModel
+      const matchedRecords = await sparePartsStockModel
+        .find({
+          sku_number: { $in: transfer_stocks_sku },
         })
         .session(session);
+      console.log("matchedRecords", matchedRecords);
 
-      console.log("from stock counter", fromStockCounter);
+      if (matchedRecords.length === 0) {
+        await session.abortTransaction();
+        session.endSession();
+        return res.status(404).json({ message: "No matching records found." });
+      }
+      // Step 2: Process each record to update stock counters
+      for (const record of matchedRecords) {
+        const spare_parts_variation_id =
+          record.spare_parts_variation_id.toString();
+        record.branch_id = transfer_to;
 
-      await stockCounterAndLimitController.decrementStock(
-        fromStockCounter.branch_id,
-        fromStockCounter.spare_parts_variation_id,
-        1,
-        session
-      );
+        console.log("record", record);
 
-      // Find or Create toStock
+        data = await sparePartsStockModel.findByIdAndUpdate(
+          record._id,
+          record,
+          {
+            new: true,
+            runValidators: true,
+            useFindAndModified: false,
+            session,
+          }
+        );
+        console.log(
+          "*******************1111111111111************************",
+          data
+        );
 
-      const toStockCounter = await stockCounterAndLimitModel
-        .findOne({
-          branch_id: transfer_to,
-          spare_parts_variation_id,
-        })
-        .session(session);
+        const fromStockCounter = await stockCounterAndLimitModel
+          .findOne({
+            branch_id: transfer_from,
+            spare_parts_variation_id: spare_parts_variation_id,
+          })
+          .session(session);
 
-      console.log("to stock counter", toStockCounter);
-      if (toStockCounter != null) {
-        await stockCounterAndLimitController.incrementStock(
-          transfer_to,
-          spare_parts_variation_id,
+        if (!fromStockCounter) {
+          console.error("fromStockCounter not found:", {
+            branch_id: transfer_from,
+            spare_parts_variation_id,
+          });
+          await session.abortTransaction();
+          session.endSession();
+          return res
+            .status(404)
+            .json({
+              message: "Stock for the source branch not found or not matched.",
+            });
+        }
+
+        console.log("from stock counter", fromStockCounter);
+
+        await stockCounterAndLimitController.decrementStock(
+          fromStockCounter.branch_id,
+          fromStockCounter.spare_parts_variation_id,
           1,
           session
         );
-      } else {
-        const newDocument = {
-          branch_id: transfer_to,
-          spare_parts_variation_id: fromStockCounter.spare_parts_variation_id,
-          spare_parts_id: fromStockCounter.spare_parts_id,
-          total_stock: 1,
-        };
-        await stockCounterAndLimitModel.create([newDocument], { session });
+
+        // Find or Create toStock
+
+        const toStockCounter = await stockCounterAndLimitModel
+          .findOne({
+            branch_id: transfer_to,
+            spare_parts_variation_id,
+          })
+          .session(session);
+
+        console.log("to stock counter", toStockCounter);
+        if (toStockCounter != null) {
+          await stockCounterAndLimitController.incrementStock(
+            transfer_to,
+            spare_parts_variation_id,
+            1,
+            session
+          );
+        } else {
+          const newDocument = {
+            branch_id: transfer_to,
+            spare_parts_variation_id: fromStockCounter.spare_parts_variation_id,
+            spare_parts_id: fromStockCounter.spare_parts_id,
+            total_stock: 1,
+          };
+          await stockCounterAndLimitModel.create([newDocument], { session });
+        }
       }
+
+      data = await transferStockModel.findByIdAndUpdate(
+        req.params.id,
+        newData,
+        {
+          new: true,
+          runValidators: true,
+          useFindAndModified: false,
+          session,
+        }
+      );
+
+      await session.commitTransaction();
+      session.endSession();
+
+      return res
+        .status(200)
+        .json({ message: "sku transferred and stock updated successfully." });
+    } catch (error) {
+      await session.abortTransaction();
+      session.endSession();
+
+      console.error("Error on transfer sku:", error);
+      return res.status(500).json({ message: "An error occurred.", error });
     }
-
-    data = await transferStockModel.findByIdAndUpdate(req.params.id, newData, {
-      new: true,
-      runValidators: true,
-      useFindAndModified: false,
-      session,
-    });
-
-    await session.commitTransaction();
-    session.endSession();
-
-    return res
-      .status(200)
-      .json({ message: "sku transferred and stock updated successfully." });
-  } catch (error) {
-    await session.abortTransaction();
-    session.endSession();
-
-    console.error("Error on transfer sku:", error);
-    return res.status(500).json({ message: "An error occurred.", error });
   }
 };
 
