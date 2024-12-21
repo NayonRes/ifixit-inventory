@@ -48,7 +48,7 @@ const sparePartVariationSchema = mongoose.Schema({
   updated_at: { type: Date, default: Date.now },
 });
 sparePartVariationSchema.index({ name: 1 });
-
+sparePartVariationSchema.index({ spare_parts_variation_id: 1 });
 sparePartVariationModel = mongoose.model(
   "sparePartVariation",
   sparePartVariationSchema

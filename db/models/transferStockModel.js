@@ -44,7 +44,14 @@ const transferSkuSchema = mongoose.Schema({
   },
   updated_at: { type: Date, default: Date.now },
 });
-transferSkuSchema.index({ name: 1 });
+
+// transferSkuSchema.index({ name: 1 });
+transferSkuSchema.index({ transfer_from: 1 });
+transferSkuSchema.index({ transfer_to: 1 });
+transferSkuSchema.index({ transfer_stocks_sku: 1 });
+transferSkuSchema.index({ created_at: 1 });
+transferSkuSchema.index({ status: 1 });
+transferSkuSchema.index({ transfer_status: 1 });
 const transferStockModel = mongoose.model("transfer_stocks", transferSkuSchema);
 
 // const saveData = async () => {

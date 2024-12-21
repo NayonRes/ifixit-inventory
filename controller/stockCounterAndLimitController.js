@@ -210,10 +210,11 @@ const createLimit = catchAsyncError(async (req, res, next) => {
   const spare_parts_id = req.body.spare_parts_id;
 
   let decodedData = jwt.verify(token, process.env.JWT_SECRET);
-  const existingStock = await stockCounterAndLimitModel.findOne({
+  let existingStock = await stockCounterAndLimitModel.findOne({
     branch_id,
     spare_parts_variation_id,
   });
+  console.log("existingStock", existingStock);
 
   if (!existingStock) {
     const newDocument = {
@@ -224,10 +225,10 @@ const createLimit = catchAsyncError(async (req, res, next) => {
       created_by: decodedData?.user?.email,
     };
 
-    await stockCounterAndLimitModel.create(newDocument);
+    let data = await stockCounterAndLimitModel.create(newDocument);
     res.send({ message: "success", status: 201, data: data });
   } else {
-    const data = await stockCounterAndLimitModel.findByIdAndUpdate(
+    let data = await stockCounterAndLimitModel.findByIdAndUpdate(
       existingStock._id,
       {
         $set: {

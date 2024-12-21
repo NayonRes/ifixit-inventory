@@ -60,5 +60,7 @@ const sparePartsStockModel = mongoose.model(
   "spare_Parts_stock",
   sparePartsStockSchema
 );
+sparePartsStockSchema.index({ spare_parts_id: 1 });
+
 
 module.exports = sparePartsStockModel;
