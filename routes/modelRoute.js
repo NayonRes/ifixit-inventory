@@ -5,6 +5,7 @@ const {
   getLeafModelList,
   getDataWithPagination,
   getById,
+  getByDeviceId,
   createData,
   updateData,
   deleteData,
@@ -32,6 +33,9 @@ router
 router
   .route("/:id")
   .get(isAuthenticatedUser, authorizeRoles("dashboard"), getById);
+router
+  .route("/get-by-device/:device_id")
+  .get(isAuthenticatedUser, authorizeRoles("dashboard"), getByDeviceId);
 // router
 //   .route("/create")
 //   .post(isAuthenticatedUser, authorizeRoles("dashboard"), createData);

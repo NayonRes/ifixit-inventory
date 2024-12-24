@@ -4,6 +4,7 @@ const {
   getLeafDeviceList,
   getDataWithPagination,
   getById,
+  getByParent,
   createData,
   updateData,
   deleteData,
@@ -30,6 +31,9 @@ router
 router
   .route("/:id")
   .get(isAuthenticatedUser, authorizeRoles("dashboard"), getById);
+router
+  .route("/get-by-parent/:parent")
+  .get(isAuthenticatedUser, authorizeRoles("dashboard"), getByParent);
 router
   .route("/create")
   .post(isAuthenticatedUser, authorizeRoles("dashboard"), createData);

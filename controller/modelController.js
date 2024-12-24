@@ -81,6 +81,25 @@ const getById = catchAsyncError(async (req, res, next) => {
   res.send({ message: "success", status: 200, data: data });
 });
 
+const getByDeviceId = catchAsyncError(async (req, res, next) => {
+
+  let data = await modelModel
+    .findOne({ 
+      device_id: req.params.device_id })
+    .select('_id name'); 
+
+  if (!data) {
+    return res.status(404).send({ message: "No data found" });
+  }
+
+  res.status(200).send({
+    message: "success",
+    status: 200,
+    data: data
+  });
+});
+
+
 const createData = catchAsyncError(async (req, res, next) => {
   const { token } = req.cookies;
   let newIdserial;
@@ -263,6 +282,7 @@ module.exports = {
   getLeafModelList,
   getDataWithPagination,
   getById,
+  getByDeviceId,
   createData,
   updateData,
   deleteData,
