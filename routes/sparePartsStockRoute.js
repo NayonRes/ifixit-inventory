@@ -6,6 +6,7 @@ const {
   createData,
   updateData,
   purchaseReturn,
+  stockAdjustment,
   deleteData,
 } = require("../controller/sparePartsStockController");
 const { isAuthenticatedUser, authorizeRoles } = require("../middleware/auth");
@@ -31,6 +32,9 @@ router
 router
   .route("/purchase-return")
   .post(isAuthenticatedUser, authorizeRoles("dashboard"), purchaseReturn);
+router
+  .route("/stock-adjustment")
+  .post(isAuthenticatedUser, authorizeRoles("dashboard"), stockAdjustment);
 router
   .route("/delete/:id")
   .delete(isAuthenticatedUser, authorizeRoles("dashboard"), deleteData);
