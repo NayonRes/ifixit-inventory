@@ -85,7 +85,7 @@ const getByDeviceId = catchAsyncError(async (req, res, next) => {
 
   let data = await modelModel
     .findOne({ 
-      device_id: req.params.device_id })
+      device_id: req.query.device_id })
     .select('_id name'); 
 
   if (!data) {

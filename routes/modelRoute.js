@@ -31,10 +31,13 @@ router
   .route("/")
   .get(isAuthenticatedUser, authorizeRoles("dashboard"), getDataWithPagination);
 router
+  .route("/get-by-device/")
+  .get(isAuthenticatedUser, authorizeRoles("dashboard"), getByDeviceId);
+router
   .route("/:id")
   .get(isAuthenticatedUser, authorizeRoles("dashboard"), getById);
 router
-  .route("/get-by-device/:device_id")
+  .route("/get-by-device/")
   .get(isAuthenticatedUser, authorizeRoles("dashboard"), getByDeviceId);
 // router
 //   .route("/create")

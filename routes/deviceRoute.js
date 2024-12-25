@@ -29,11 +29,12 @@ router
   .route("/")
   .get(isAuthenticatedUser, authorizeRoles("dashboard"), getDataWithPagination);
 router
+    .route("/get-by-parent")
+    .get(isAuthenticatedUser, authorizeRoles("dashboard"), getByParent);
+router
   .route("/:id")
   .get(isAuthenticatedUser, authorizeRoles("dashboard"), getById);
-router
-  .route("/get-by-parent/:parent")
-  .get(isAuthenticatedUser, authorizeRoles("dashboard"), getByParent);
+
 router
   .route("/create")
   .post(isAuthenticatedUser, authorizeRoles("dashboard"), createData);

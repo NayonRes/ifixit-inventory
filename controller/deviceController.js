@@ -58,22 +58,19 @@ const getById = catchAsyncError(async (req, res, next) => {
 });
 
 const getByParent = catchAsyncError(async (req, res, next) => {
- 
   let data = await deviceModel
-    .find({ parent_name: req.params.parent })  
+    .find({ parent_name: req.query.parent_name })  
     .select('_id name parent_name'); 
 
   if (data.length === 0) {
     return res.status(404).send({ message: "No data found" });
   }
-  
   res.status(200).send({
     message: "success",
     status: 200,
     data: data
   });
 });
-
 
 const createData = catchAsyncError(async (req, res, next) => {
   const { token } = req.cookies;
