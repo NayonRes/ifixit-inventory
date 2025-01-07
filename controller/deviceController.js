@@ -3,6 +3,8 @@ const ErrorHander = require("../utils/errorHandler");
 const catchAsyncError = require("../middleware/catchAsyncError");
 const filterModel = require("../db/models/filterModel");
 const jwt = require("jsonwebtoken");
+const imageUpload = require("../utils/imageUpload");
+const imageDelete = require("../utils/imageDelete");
 
 const getParentDropdown = catchAsyncError(async (req, res, next) => {
   console.log(
@@ -58,6 +60,7 @@ const getById = catchAsyncError(async (req, res, next) => {
 });
 
 const createData = catchAsyncError(async (req, res, next) => {
+  console.log("req.files", req.files);
   const { token } = req.cookies;
   let newIdserial;
   let newIdNo;
@@ -70,10 +73,17 @@ const createData = catchAsyncError(async (req, res, next) => {
   } else {
     newId = "d100";
   }
+
+  let imageData = [];
+  if (req.files) {
+    imageData = await imageUpload(req.files.image, "device", next);
+  }
+  console.log("imageData", imageData);
   let decodedData = jwt.verify(token, process.env.JWT_SECRET);
   let newData = {
     ...req.body,
     device_id: newId,
+    image: imageData[0],
     created_by: decodedData?.user?.email,
   };
 
@@ -93,12 +103,26 @@ const updateData = catchAsyncError(async (req, res, next) => {
     return next(new ErrorHander("No data found", 404));
   }
   let decodedData = jwt.verify(token, process.env.JWT_SECRET);
+  let imageData = [];
+  let newData = req.body;
+  if (req.files) {
+    imageData = await imageUpload(req.files.image, "device", next);
+  }
+  if (imageData.length > 0) {
+    newData = { ...req.body, image: imageData[0] };
+  }
+  if (data.image.public_id) {
+    console.log("previous device image delete 111111");
 
-  const newData = {
-    ...req.body,
+    await imageDelete(data.image.public_id, next);
+  }
+  newData = {
+    ...newData,
     updated_by: decodedData?.user?.email,
     updated_at: new Date(),
   };
+
+  console.log("newData", newData);
 
   data = await deviceModel.findByIdAndUpdate(req.params.id, newData, {
     new: true,
