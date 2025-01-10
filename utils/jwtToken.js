@@ -1,5 +1,5 @@
 const jwt = require("jsonwebtoken");
-const sendToken = (user, statusCode, res) => {
+const sendToken = (user, branchInfo, statusCode, res) => {
   console.log("user---------------", user);
 
   // const token = user.getJWTToken();
@@ -7,7 +7,7 @@ const sendToken = (user, statusCode, res) => {
   // options for cookie
   const options = {
     expires: new Date(
-    Date.now() + process.env.COOKIE_EXPIRE * 24 * 60 * 60 * 1000
+      Date.now() + process.env.COOKIE_EXPIRE * 24 * 60 * 60 * 1000
     ),
     httpOnly: true, // Cookie is accessible only by the web server
     secure: process.env.NODE_ENV === "production" ? true : false, // Cookie sent only over HTTPS in production
@@ -33,6 +33,8 @@ const sendToken = (user, statusCode, res) => {
     name: user.name || null,
     email: user.email || null,
     image: user.image || null,
+    branch_id: user.branch_id || null,
+    is_main_branch: branchInfo.is_main_branch || null,
     permission: user.permission || [],
     status: user.status,
   };

@@ -67,6 +67,7 @@ const userSchema = new mongoose.Schema({
   remarks: {
     type: String,
   },
+   
   status: {
     type: Boolean,
     default: true,

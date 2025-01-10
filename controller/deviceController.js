@@ -6,6 +6,39 @@ const jwt = require("jsonwebtoken");
 const imageUpload = require("../utils/imageUpload");
 const imageDelete = require("../utils/imageDelete");
 
+const getListGroupByParent = catchAsyncError(async (req, res, next) => {
+  console.log(
+    "getParentDropdown===================================================="
+  );
+
+  // const data = await deviceModel.find().lean();
+
+  const groupsList = await deviceModel.aggregate([
+    {
+      $group: {
+        _id: "$parent_name", // Group by parent_name
+        items: { $push: "$$ROOT" }, // Collect the full document into an array
+      },
+    },
+    {
+      $project: {
+        _id: 0, // Exclude _id from the output
+        parent_name: "$_id",
+        items: 1,
+      },
+    },
+  ]);
+
+  const data = await deviceModel.find({}, "name device_id parent_name").lean();
+
+  console.log("device list----------------", data);
+
+  res.status(200).json({
+    success: true,
+    message: "successful",
+    data: groupsList,
+  });
+});
 const getParentDropdown = catchAsyncError(async (req, res, next) => {
   console.log(
     "getParentDropdown===================================================="
@@ -186,7 +219,7 @@ const getLeafDeviceList = catchAsyncError(async (req, res, next) => {
     // { $match: { parent_name: "Mobile" } },
     {
       $lookup: {
-        from: "categories",
+        from: "devices",
         localField: "name",
         foreignField: "parent_name",
         as: "children",
@@ -266,4 +299,5 @@ module.exports = {
   updateData,
   deleteData,
   getDeviceWiseFilterList,
+  getListGroupByParent,
 };

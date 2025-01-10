@@ -8,6 +8,7 @@ const sendToken = require("../utils/jwtToken");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 const { main } = require("../utils/TestNodemailerMail");
+const branchModel = require("../db/models/branchModel");
 
 const geDropdown = catchAsyncError(async (req, res, next) => {
   console.log("geDropdown====================================================");
@@ -99,7 +100,10 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
     query.name = new RegExp(`^${req.query.name}$`, "i");
   }
   if (req.query.mobile) {
-    const escapedMobile = req.query.mobile.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&');
+    const escapedMobile = req.query.mobile.replace(
+      /[-/\\^$*+?.()|[\]{}]/g,
+      "\\$&"
+    );
     query.mobile = new RegExp(`^${req.query.mobile}$`, "i");
   }
   if (req.query.branch_id) {
@@ -195,7 +199,9 @@ const loginUser = catchAsyncError(async (req, res, next) => {
   // }
 
   // console.log("roleAndPermission=========================", roleAndPermission);
-  sendToken(user, 200, res);
+
+  const branchInfo = await branchModel.findOne({ _id: user?.branch_id });
+  sendToken(user, branchInfo, 200, res);
 });
 
 const logout = catchAsyncError(async (req, res, next) => {
