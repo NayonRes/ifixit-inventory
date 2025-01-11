@@ -27,6 +27,33 @@ const sparePartsStockSchema = mongoose.Schema({
     ref: "purchaseProductModel",
     required: [true, "Please select purchase product"],
   },
+
+  supplier_id: {
+    type: Schema.Types.ObjectId,
+    ref: "supplierModel", // Reference to the brandModel
+    required: [true, "Please select supplier"],
+  },
+
+  brand_id: {
+    type: Schema.Types.ObjectId,
+    ref: "brandModel", // Reference to the brandModel
+    required: [true, "Please enter select brand"],
+  },
+  category_id: {
+    type: Schema.Types.ObjectId,
+    ref: "categoryModel",
+    required: [true, "Please enter select category"],
+  },
+  device_id: {
+    type: Schema.Types.ObjectId,
+    ref: "deviceModel",
+    required: [true, "Please enter select device"],
+  },
+  model_id: {
+    type: Schema.Types.ObjectId,
+    ref: "modelModel",
+    required: [true, "Please enter select model"],
+  },
   sku_number: {
     type: Number,
     unique: true,
@@ -61,7 +88,5 @@ const sparePartsStockModel = mongoose.model(
   "spare_Parts_stock",
   sparePartsStockSchema
 );
-
-
 
 module.exports = sparePartsStockModel;
