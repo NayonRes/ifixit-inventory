@@ -36,6 +36,11 @@ const userSchema = new mongoose.Schema({
     unique: true,
     validate: [validator.isEmail, "Please enter a valid Email"],
   },
+
+  salary: {
+    type: Number,
+    default: 0,
+  },
   password: {
     type: String,
     required: [true, "Please enter Password"],
@@ -67,7 +72,7 @@ const userSchema = new mongoose.Schema({
   remarks: {
     type: String,
   },
-   
+
   status: {
     type: Boolean,
     default: true,
