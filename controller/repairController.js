@@ -15,17 +15,14 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
     const endDate = req.query.endDate;
     var query = {};
 
-    if (req.query.name) {
-        query.name = { $regex: req.query.name, $options: "i" };
-    }
     if (req.query.status) {
         query.status = req.query.status;
     }
     if (req.query.repair_status) {
-        query.repair_status = { $regex: req.query.repair_status, $options: "i" };
+        query.repair_status = { $regex: `^${req.query.repair_status}$`, $options: 'i' };
     }
     if (req.query.payment_status) {
-        query.payment_status = { $regex: req.query.payment_status, $options: "i" };
+        query.payment_status = { $regex: `^${req.query.payment_status}$`, $options: 'i' };
     }
     if (req.query.branch_id) {
         query.branch_id = new mongoose.Types.ObjectId(req.query.branch_id);
@@ -95,7 +92,7 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
                 repair_status: 1,
                 issues: 1,
                 delivery_status: 1,
-                checklist: 1,
+                repair_checklist: 1,
                 payment_info: 1,
 
                 remarks: 1,
@@ -177,7 +174,7 @@ const getById = catchAsyncError(async (req, res, next) => {
                 repair_status: 1,
                 issues: 1,
                 delivery_status: 1,
-                checklist: 1,
+                repair_checklist: 1,
                 payment_info: 1,
 
                 remarks: 1,
@@ -200,7 +197,7 @@ const getById = catchAsyncError(async (req, res, next) => {
     res.status(200).json({
         success: true,
         message: "success",
-        data: data[0], // Access the first (and only) document in the array
+        data: data[0],
     });
 });
 
