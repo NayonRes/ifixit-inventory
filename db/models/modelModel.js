@@ -11,6 +11,14 @@ const modelSchema = mongoose.Schema({
     trim: true,
     unique: true,
   },
+  image: {
+    public_id: {
+      type: String,
+    },
+    url: {
+      type: String,
+    },
+  },
   device_id: {
     type: String,
     // default: 10000,

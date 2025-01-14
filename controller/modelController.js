@@ -2,6 +2,8 @@ const modelModel = require("../db/models/modelModel");
 const ErrorHander = require("../utils/errorHandler");
 const catchAsyncError = require("../middleware/catchAsyncError");
 const filterModel = require("../db/models/filterModel");
+const imageUpload = require("../utils/imageUpload");
+const imageDelete = require("../utils/imageDelete");
 const jwt = require("jsonwebtoken");
 
 const getDeviceWiseModelDropdown = catchAsyncError(async (req, res, next) => {
@@ -84,9 +86,10 @@ const getById = catchAsyncError(async (req, res, next) => {
 const getByDeviceId = catchAsyncError(async (req, res, next) => {
 
   let data = await modelModel
-    .findOne({ 
-      device_id: req.query.device_id })
-    .select('_id name'); 
+    .findOne({
+      device_id: req.query.device_id
+    })
+    .select('_id name');
 
   if (!data) {
     return res.status(404).send({ message: "No data found" });
@@ -105,6 +108,8 @@ const createData = catchAsyncError(async (req, res, next) => {
   let newIdserial;
   let newIdNo;
   let newId;
+  let decodedData = jwt.verify(token, process.env.JWT_SECRET);
+  
   const lastDoc = await modelModel.find().sort({ _id: -1 });
   if (lastDoc.length > 0) {
     newIdserial = lastDoc[0].model_id.slice(0, 1);
@@ -113,10 +118,16 @@ const createData = catchAsyncError(async (req, res, next) => {
   } else {
     newId = "m100";
   }
-  let decodedData = jwt.verify(token, process.env.JWT_SECRET);
+
+  let imageData = [];
+  if (req.files) {
+    imageData = await imageUpload(req.files.image, "model", next);
+  }
+  console.log("imageData", imageData);
   let newData = {
     ...req.body,
     model_id: newId,
+    image: imageData[0],
     created_by: decodedData?.user?.email,
   };
 
@@ -137,7 +148,22 @@ const updateData = catchAsyncError(async (req, res, next) => {
   }
   let decodedData = jwt.verify(token, process.env.JWT_SECRET);
 
-  const newData = {
+
+  let imageData = [];
+  let newData = req.body;
+  if (req.files) {
+    imageData = await imageUpload(req.files.image, "model", next);
+  }
+  if (imageData.length > 0) {
+    newData = { ...req.body, image: imageData[0] };
+  }
+  if (data.image.public_id) {
+    console.log("previous model image delete 111111");
+
+    await imageDelete(data.image.public_id, next);
+  }
+
+  newData = {
     ...req.body,
     updated_by: decodedData?.user?.email,
     updated_at: new Date(),
