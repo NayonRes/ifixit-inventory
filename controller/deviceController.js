@@ -160,12 +160,10 @@ const updateData = catchAsyncError(async (req, res, next) => {
   let decodedData = jwt.verify(token, process.env.JWT_SECRET);
   let imageData = [];
   let newData = req.body;
-  console.log("before image");
   if (req.files && req.files.image) {
     imageData = await imageUpload(req.files.image, "device", next);
   }
   
-  console.log("after image");
   if (imageData.length > 0) {
     newData = { ...req.body, image: imageData[0] };
   }
