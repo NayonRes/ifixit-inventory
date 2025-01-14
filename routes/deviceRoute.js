@@ -9,6 +9,7 @@ const {
   updateData,
   deleteData,
   getDeviceWiseFilterList,
+  getListGroupByParent,
 } = require("../controller/deviceController");
 const { isAuthenticatedUser, authorizeRoles } = require("../middleware/auth");
 const deviceModel = require("../db/models/deviceModel");
@@ -19,6 +20,9 @@ var router = express.Router();
 // router
 //   .route("/create")
 //   .post(createData);
+router
+  .route("/parent-child-list")
+  .get(isAuthenticatedUser, getListGroupByParent);
 router.route("/dropdownlist").get(isAuthenticatedUser, getParentDropdown);
 router.route("/leaf-dropdown").get(isAuthenticatedUser, getLeafDeviceList);
 router

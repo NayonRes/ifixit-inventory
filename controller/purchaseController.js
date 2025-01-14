@@ -122,6 +122,8 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
         branch_id: 1,
         purchase_status: 1,
         payment_status: 1,
+        payment_method: 1,
+        paid_amount: 1,
         shipping_charge: 1,
         remarks: 1,
 
@@ -209,6 +211,8 @@ const getById = catchAsyncError(async (req, res, next) => {
         user_id: 1,
         branch_id: 1,
         purchase_status: 1,
+        payment_method: 1,
+        paid_amount: 1,
         payment_status: 1,
         shipping_charge: 1,
         remarks: 1,
@@ -272,6 +276,14 @@ const getById = catchAsyncError(async (req, res, next) => {
     },
     {
       $lookup: {
+        from: "spareparts",
+        localField: "purchase_products_data.spare_parts_id",
+        foreignField: "_id",
+        as: "purchase_products_data.spare_part_details",
+      },
+    },
+    {
+      $lookup: {
         from: "sparepartvariations",
         localField: "purchase_products_data.spare_parts_variation_id",
         foreignField: "_id",
@@ -288,6 +300,8 @@ const getById = catchAsyncError(async (req, res, next) => {
         branch_id: { $first: "$branch_id" },
         purchase_status: { $first: "$purchase_status" },
         payment_status: { $first: "$payment_status" },
+        payment_method: { $first: "$payment_method" },
+        paid_amount: { $first: "$paid_amount" },
         shipping_charge: { $first: "$shipping_charge" },
         remarks: { $first: "$remarks" },
         status: { $first: "$status" },
@@ -310,6 +324,8 @@ const getById = catchAsyncError(async (req, res, next) => {
         user_id: 1,
         branch_id: 1,
         purchase_status: 1,
+        payment_method: 1,
+        paid_amount: 1,
         payment_status: 1,
         shipping_charge: 1,
         remarks: 1,

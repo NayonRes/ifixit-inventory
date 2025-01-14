@@ -25,11 +25,11 @@ const branchAccessMiddleware = (req, res, next) => {
     // Check if it's the main branch
     if (branch_id === "main") {
       // Main branch: No restriction
-      req.isMainBranch = true; // Add a flag for convenience
+      req.is_main_branch = true; // Add a flag for convenience
     } else {
       // Sub-branch: Restrict to specific branch
       req.params.branch_id = branch_id; // Set branch_id in request params
-      req.isMainBranch = false; // Add a flag for convenience
+      req.is_main_branch = false; // Add a flag for convenience
     }
 
     next(); // Pass control to the next middleware

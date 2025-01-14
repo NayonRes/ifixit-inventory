@@ -3,7 +3,42 @@ const ErrorHander = require("../utils/errorHandler");
 const catchAsyncError = require("../middleware/catchAsyncError");
 const filterModel = require("../db/models/filterModel");
 const jwt = require("jsonwebtoken");
+const imageUpload = require("../utils/imageUpload");
+const imageDelete = require("../utils/imageDelete");
 
+const getListGroupByParent = catchAsyncError(async (req, res, next) => {
+  console.log(
+    "getParentDropdown===================================================="
+  );
+
+  // const data = await deviceModel.find().lean();
+
+  const groupsList = await deviceModel.aggregate([
+    {
+      $group: {
+        _id: "$parent_name", // Group by parent_name
+        items: { $push: "$$ROOT" }, // Collect the full document into an array
+      },
+    },
+    {
+      $project: {
+        _id: 0, // Exclude _id from the output
+        parent_name: "$_id",
+        items: 1,
+      },
+    },
+  ]);
+
+  const data = await deviceModel.find({}, "name device_id parent_name").lean();
+
+  console.log("device list----------------", data);
+
+  res.status(200).json({
+    success: true,
+    message: "successful",
+    data: groupsList,
+  });
+});
 const getParentDropdown = catchAsyncError(async (req, res, next) => {
   console.log(
     "getParentDropdown===================================================="
@@ -73,6 +108,7 @@ const getByParent = catchAsyncError(async (req, res, next) => {
 });
 
 const createData = catchAsyncError(async (req, res, next) => {
+  console.log("req.files", req.files);
   const { token } = req.cookies;
   let newIdserial;
   let newIdNo;
@@ -85,10 +121,17 @@ const createData = catchAsyncError(async (req, res, next) => {
   } else {
     newId = "d100";
   }
+
+  let imageData = [];
+  if (req.files) {
+    imageData = await imageUpload(req.files.image, "device", next);
+  }
+  console.log("imageData", imageData);
   let decodedData = jwt.verify(token, process.env.JWT_SECRET);
   let newData = {
     ...req.body,
     device_id: newId,
+    image: imageData[0],
     created_by: decodedData?.user?.email,
   };
 
@@ -108,12 +151,26 @@ const updateData = catchAsyncError(async (req, res, next) => {
     return next(new ErrorHander("No data found", 404));
   }
   let decodedData = jwt.verify(token, process.env.JWT_SECRET);
+  let imageData = [];
+  let newData = req.body;
+  if (req.files) {
+    imageData = await imageUpload(req.files.image, "device", next);
+  }
+  if (imageData.length > 0) {
+    newData = { ...req.body, image: imageData[0] };
+  }
+  if (data.image.public_id) {
+    console.log("previous device image delete 111111");
 
-  const newData = {
-    ...req.body,
+    await imageDelete(data.image.public_id, next);
+  }
+  newData = {
+    ...newData,
     updated_by: decodedData?.user?.email,
     updated_at: new Date(),
   };
+
+  console.log("newData", newData);
 
   data = await deviceModel.findByIdAndUpdate(req.params.id, newData, {
     new: true,
@@ -177,7 +234,7 @@ const getLeafDeviceList = catchAsyncError(async (req, res, next) => {
     // { $match: { parent_name: "Mobile" } },
     {
       $lookup: {
-        from: "categories",
+        from: "devices",
         localField: "name",
         foreignField: "parent_name",
         as: "children",
@@ -258,4 +315,5 @@ module.exports = {
   updateData,
   deleteData,
   getDeviceWiseFilterList,
+  getListGroupByParent,
 };

@@ -8,13 +8,23 @@ const sendToken = require("../utils/jwtToken");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 const { main } = require("../utils/TestNodemailerMail");
+const branchModel = require("../db/models/branchModel");
 
 const geDropdown = catchAsyncError(async (req, res, next) => {
   console.log("geDropdown====================================================");
+ 
+
+  // Build the filter object
+  const query = {};
+ 
+  if (req.query.designation) {
+    query.designation = new RegExp(`^${req.query.designation}$`, "i");
+  }
+
 
   // const data = await branchModel.find().lean();
   const data = await userModel
-    .find({}, "name designation permission image")
+    .find(query, "name designation permission image")
     .lean();
 
   console.log("user list----------------", data);
@@ -99,7 +109,10 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
     query.name = new RegExp(`^${req.query.name}$`, "i");
   }
   if (req.query.mobile) {
-    const escapedMobile = req.query.mobile.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&');
+    const escapedMobile = req.query.mobile.replace(
+      /[-/\\^$*+?.()|[\]{}]/g,
+      "\\$&"
+    );
     query.mobile = new RegExp(`^${req.query.mobile}$`, "i");
   }
   if (req.query.branch_id) {
@@ -140,6 +153,7 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
         name: 1,
         email: 1,
         mobile: 1,
+        salary: 1,
         designation: 1,
         branch_id: 1,
         image: 1,
@@ -195,7 +209,9 @@ const loginUser = catchAsyncError(async (req, res, next) => {
   // }
 
   // console.log("roleAndPermission=========================", roleAndPermission);
-  sendToken(user, 200, res);
+
+  const branchInfo = await branchModel.findOne({ _id: user?.branch_id });
+  sendToken(user, branchInfo, 200, res);
 });
 
 const logout = catchAsyncError(async (req, res, next) => {
