@@ -86,20 +86,16 @@ const getById = catchAsyncError(async (req, res, next) => {
 const getByDeviceId = catchAsyncError(async (req, res, next) => {
 
   let data = await modelModel
-    .findOne({
+    .find({
       device_id: req.query.device_id
     })
-    .select('_id name');
+    .select('_id name image');
 
   if (!data) {
     return res.status(404).send({ message: "No data found" });
   }
 
-  res.status(200).send({
-    message: "success",
-    status: 200,
-    data: data
-  });
+  res.send({ message: "success", status: 200, data: data });
 });
 
 
