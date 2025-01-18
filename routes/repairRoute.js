@@ -1,24 +1,19 @@
 var express = require("express");
 const {
   getDataWithPagination,
-  getAllStock,
   getById,
   createData,
   updateData,
-  purchaseReturn,
-  stockAdjustment,
   deleteData,
-} = require("../controller/sparePartsStockController");
+} = require("../controller/repairController");
 const { isAuthenticatedUser, authorizeRoles } = require("../middleware/auth");
+const repairModel = require("../db/models/repairModel");
 
 var router = express.Router();
 
 router
   .route("/")
   .get(isAuthenticatedUser, authorizeRoles("dashboard"), getDataWithPagination);
-router
-  .route("/stock-skus-details")
-  .get(isAuthenticatedUser, authorizeRoles("dashboard"), getAllStock);
 router
   .route("/:id")
   .get(isAuthenticatedUser, authorizeRoles("dashboard"), getById);
@@ -29,12 +24,6 @@ router
 router
   .route("/update/:id")
   .put(isAuthenticatedUser, authorizeRoles("dashboard"), updateData);
-router
-  .route("/purchase-return")
-  .post(isAuthenticatedUser, authorizeRoles("dashboard"), purchaseReturn);
-router
-  .route("/stock-adjustment")
-  .post(isAuthenticatedUser, authorizeRoles("dashboard"), stockAdjustment);
 router
   .route("/delete/:id")
   .delete(isAuthenticatedUser, authorizeRoles("dashboard"), deleteData);

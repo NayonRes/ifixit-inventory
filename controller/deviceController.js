@@ -92,6 +92,21 @@ const getById = catchAsyncError(async (req, res, next) => {
   res.send({ message: "success", status: 200, data: data });
 });
 
+const getByParent = catchAsyncError(async (req, res, next) => {
+  let data = await deviceModel
+    .find({ parent_name: req.query.parent_name })
+    .select('_id name parent_name');
+
+  if (data.length === 0) {
+    return res.status(404).send({ message: "No data found" });
+  }
+  res.status(200).send({
+    message: "success",
+    status: 200,
+    data: data
+  });
+});
+
 const createData = catchAsyncError(async (req, res, next) => {
   console.log("req.files", req.files);
   const { token } = req.cookies;
@@ -108,15 +123,22 @@ const createData = catchAsyncError(async (req, res, next) => {
   }
 
   let imageData = [];
-  if (req.files) {
+  if (req.files && req.files.image) {
     imageData = await imageUpload(req.files.image, "device", next);
   }
   console.log("imageData", imageData);
+
+  let iconData = [];
+  if (req.files && req.files.icon) {
+    iconData = await imageUpload(req.files.icon, "device_icon", next);
+  }
+  console.log("iconData", iconData);
   let decodedData = jwt.verify(token, process.env.JWT_SECRET);
   let newData = {
     ...req.body,
     device_id: newId,
     image: imageData[0],
+    icon: iconData[0],
     created_by: decodedData?.user?.email,
   };
 
@@ -138,9 +160,10 @@ const updateData = catchAsyncError(async (req, res, next) => {
   let decodedData = jwt.verify(token, process.env.JWT_SECRET);
   let imageData = [];
   let newData = req.body;
-  if (req.files) {
+  if (req.files && req.files.image) {
     imageData = await imageUpload(req.files.image, "device", next);
   }
+  
   if (imageData.length > 0) {
     newData = { ...req.body, image: imageData[0] };
   }
@@ -149,6 +172,19 @@ const updateData = catchAsyncError(async (req, res, next) => {
 
     await imageDelete(data.image.public_id, next);
   }
+
+  let iconData = [];
+  if (req.files && req.files.icon) {
+    iconData = await imageUpload(req.files.icon, "device_icon", next);
+  }
+  if (iconData.length > 0) {
+    newData = { ...req.body, icon: iconData[0] };
+  }
+  if (data.icon.public_id) {
+    console.log("previous device icon delete 111111");
+    await imageDelete(data.icon.public_id, next);
+  }
+
   newData = {
     ...newData,
     updated_by: decodedData?.user?.email,
@@ -295,6 +331,7 @@ module.exports = {
   getLeafDeviceList,
   getDataWithPagination,
   getById,
+  getByParent,
   createData,
   updateData,
   deleteData,

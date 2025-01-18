@@ -26,6 +26,14 @@ const deviceSchema = mongoose.Schema({
       // required: true,
     },
   },
+  icon: {
+    public_id: {
+      type: String,
+    },
+    url: {
+      type: String,
+    },
+  },
   remarks: {
     type: String,
   },

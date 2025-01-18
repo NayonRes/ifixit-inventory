@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const { Schema } = mongoose;
 
 const modelSchema = mongoose.Schema({
   model_id: {
@@ -11,15 +12,21 @@ const modelSchema = mongoose.Schema({
     trim: true,
     unique: true,
   },
+  image: {
+    public_id: {
+      type: String,
+    },
+    url: {
+      type: String,
+    },
+  },
   device_id: {
-    type: String,
-    // default: 10000,
+    type: Schema.Types.ObjectId,
+    ref: "deviceModel",
     required: [true, "Please enter device name"],
   },
   parent_name: {
     type: String,
-    // default: 10000,
-    // required: [true, "Please enter parent name"],
   },
   remarks: {
     type: String,
