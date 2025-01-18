@@ -3,6 +3,7 @@ const ErrorHander = require("../utils/errorHandler");
 const catchAsyncError = require("../middleware/catchAsyncError");
 const filterModel = require("../db/models/filterModel");
 const jwt = require("jsonwebtoken");
+const mongoose = require("mongoose");
 
 const getDeviceWiseModelDropdown = catchAsyncError(async (req, res, next) => {
   console.log(
@@ -12,7 +13,7 @@ const getDeviceWiseModelDropdown = catchAsyncError(async (req, res, next) => {
 
   var query = {};
   if (req.query.deviceId) {
-    query.device_id = new RegExp(`^${req.query.deviceId}$`, "i");
+    query.device_id = new mongoose.Types.ObjectId("6784d97bf955fc3febc8e367");
   }
   console.log("query", query);
 
