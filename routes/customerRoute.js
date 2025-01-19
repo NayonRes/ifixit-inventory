@@ -2,6 +2,7 @@ var express = require("express");
 const {
   getParentDropdown,
   getDataWithPagination,
+  searchCustomer,
   getById,
   createData,
   updateData,
@@ -21,6 +22,9 @@ router.route("/dropdownlist").get(isAuthenticatedUser, getParentDropdown);
 router
   .route("/")
   .get(isAuthenticatedUser, authorizeRoles("dashboard"), getDataWithPagination);
+router
+  .route("/")
+  .get(isAuthenticatedUser, authorizeRoles("dashboard"), searchCustomer);
 router
   .route("/:id")
   .get(isAuthenticatedUser, authorizeRoles("dashboard"), getById);
