@@ -81,6 +81,14 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
         as: "model_data",
       },
     },
+    {
+      $lookup: {
+        from: "customers",
+        localField: "customer_id",
+        foreignField: "_id",
+        as: "customer_data",
+      },
+    },
 
     {
       $project: {
@@ -89,6 +97,7 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
         model_id: 1,
         branch_id: 1,
         brand_id: 1,
+        customer_id: 1,
         repair_by: 1,
         steps: 1,
         repair_info: 1,
@@ -104,6 +113,7 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
         "model_data.name": 1,
         "model_data.image": 1,
         "brand_data.name": 1,
+        "customer_data.name": 1,
       },
     },
     {
@@ -158,6 +168,14 @@ const getById = catchAsyncError(async (req, res, next) => {
         as: "model_data",
       },
     },
+    {
+      $lookup: {
+        from: "customers",
+        localField: "customer_id",
+        foreignField: "_id",
+        as: "customer_data",
+      },
+    },
 
     {
       $project: {
@@ -166,6 +184,7 @@ const getById = catchAsyncError(async (req, res, next) => {
         model_id: 1,
         branch_id: 1,
         brand_id: 1,
+        customer_id: 1,
         repair_by: 1,
         steps: 1,
         repair_info: 1,
@@ -181,6 +200,7 @@ const getById = catchAsyncError(async (req, res, next) => {
         "model_data.name": 1,
         "model_data.image": 1,
         "brand_data.name": 1,
+        "customer_data.name": 1,
       },
     },
     {
