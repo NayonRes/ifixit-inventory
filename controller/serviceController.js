@@ -2,9 +2,12 @@ const serviceModel = require("../db/models/serviceModel");
 const ErrorHander = require("../utils/errorHandler");
 const catchAsyncError = require("../middleware/catchAsyncError");
 const filterModel = require("../db/models/filterModel");
+const mongoose = require("mongoose");
 const jwt = require("jsonwebtoken");
 const imageUpload = require("../utils/imageUpload");
 const imageDelete = require("../utils/imageDelete");
+// const fs = require('fs');
+// const path = require('path');
 
 const getDataWithPagination = catchAsyncError(async (req, res, next) => {
   const page = parseInt(req.query.page) || 1;
@@ -47,7 +50,7 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
     query.created_at = {
       $lte: new Date(`${endDate}T23:59:59.999Z`),
     };
-  } 
+  }
   let totalData = await serviceModel.countDocuments(query);
   console.log("totalData=================================", totalData);
   //const data = await serviceModel.find(query).skip(startIndex).limit(limit);
@@ -75,6 +78,14 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
     },
     {
       $lookup: {
+        from: "branches",
+        localField: "branch_id",
+        foreignField: "_id",
+        as: "branch_data",
+      },
+    },
+    {
+      $lookup: {
         from: "models",
         localField: "model_id",
         foreignField: "_id",
@@ -113,6 +124,8 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
         "model_data.name": 1,
         "model_data.image": 1,
         "brand_data.name": 1,
+        "branch_data.name": 1,
+        "branch_data._id": 1,
         "customer_data.name": 1,
       },
     },
@@ -140,6 +153,7 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
 });
 const getById = catchAsyncError(async (req, res, next) => {
 
+  const id = req.params.id;
   const data = await serviceModel.aggregate([
     {
       $match: { _id: mongoose.Types.ObjectId(id) },
@@ -158,6 +172,14 @@ const getById = catchAsyncError(async (req, res, next) => {
         localField: "brand_id",
         foreignField: "_id",
         as: "brand_data",
+      },
+    },
+    {
+      $lookup: {
+        from: "branches",
+        localField: "branch_id",
+        foreignField: "_id",
+        as: "branch_data",
       },
     },
     {
@@ -200,19 +222,13 @@ const getById = catchAsyncError(async (req, res, next) => {
         "model_data.name": 1,
         "model_data.image": 1,
         "brand_data.name": 1,
+        "branch_data.name": 1,
+        "branch_data._id": 1,
+        "branch_data.image": 1,
         "customer_data.name": 1,
       },
-    },
-    {
-      $sort: { created_at: -1 },
-    },
-
-    {
-      $skip: startIndex,
-    },
-    {
-      $limit: limit,
-    },
+    }
+    
   ]);
 
   if (!data) {
@@ -222,20 +238,25 @@ const getById = catchAsyncError(async (req, res, next) => {
 });
 
 const createData = catchAsyncError(async (req, res, next) => {
-  console.log("req.files", req.files);
   const { token } = req.cookies;
 
 
   let stepsImageData = [];
   let repairImageData = [];
 
-  if (req.files) {
-    if (req.files.steps.image) {
-      stepsImageData = await imageUpload(req.files.steps.image, "service_step", next);
+  console.log("body========",req.body);
+
+      console.log("base  ---",req.body.steps[0].image);
+  if (req.body.steps) {
+    if (req.body.steps[0].image) {
+      const stepImg = await base64ToImage(req.body.steps[0].image,"service");
+      console.log("step immmg  --",stepImg)
+      stepsImageData = await imageUpload(stepImg, "step", next);
+      console.log("stepsImageData ||||||||||||||",stepsImageData);
     }
 
-    if (req.files.repair_info.image) {
-      repairImageData = await imageUpload(req.files.repair_info.image, "service_repair", next);
+    if (req.body.repair_info.image) {
+      repairImageData = await imageUpload(req.body.repair_info.image, "repair", next);
     }
   }
 
@@ -268,6 +289,40 @@ const createData = catchAsyncError(async (req, res, next) => {
   const data = await serviceModel.create(newData);
   res.send({ message: "success", status: 201, data: data });
 });
+
+const fs = require('fs');
+const path = require('path');
+
+async function base64ToImage(base64String, outputPath) {
+  if (!outputPath || typeof outputPath !== 'string') {
+    throw new Error('Invalid outputPath: The "outputPath" must be a valid string.');
+  }
+
+  // Remove the base64 data URI prefix if present (e.g., 'data:image/png;base64,')
+  const base64Data = base64String.replace(/^data:image\/\w+;base64,/, '');
+
+  // Convert the base64 string to a buffer
+  const buffer = Buffer.from(base64Data, 'base64');
+
+  try {
+    // Ensure the directory exists (optional)
+    const directoryPath = path.dirname(outputPath);
+    if (!fs.existsSync(directoryPath)) {
+      fs.mkdirSync(directoryPath, { recursive: true });
+    }
+
+    // Write the buffer to a file asynchronously
+    await fs.promises.writeFile(outputPath, buffer);
+    console.log(`Image saved to ${outputPath}`);
+
+    // Return the output path or any other result you want to track
+    return outputPath; // You can return the file path, image name, or success message here
+  } catch (error) {
+    console.error('Error saving the image:', error);
+    throw error; // Propagate the error
+  }
+}
+
 
 const updateData = catchAsyncError(async (req, res, next) => {
   const { token } = req.cookies;

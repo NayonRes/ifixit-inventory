@@ -16,10 +16,10 @@ const serviceSchema = mongoose.Schema({
         type: Schema.Types.ObjectId,
         ref: "brandModel",
     },
-    branch_id: {
+    branch_id: [{
         type: Schema.Types.ObjectId,
         ref: "branchModel",
-    },
+    }],
     customer_id: {
         type: Schema.Types.ObjectId,
         ref: "customerModel",
