@@ -116,6 +116,7 @@ const createData = catchAsyncError(async (req, res, next) => {
   }
 
   let imageData = {};
+  console.log("image before process",req.files.image);
   if (req.files) {
     imageData = await imageUpload(req.files.image, "model", next);
   }
