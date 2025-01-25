@@ -6,8 +6,8 @@ const mongoose = require("mongoose");
 const jwt = require("jsonwebtoken");
 const imageUpload = require("../utils/imageUpload");
 const imageDelete = require("../utils/imageDelete");
-// const fs = require('fs');
-// const path = require('path');
+const fs = require('fs');
+const path = require('path');
 
 const getDataWithPagination = catchAsyncError(async (req, res, next) => {
   const page = parseInt(req.query.page) || 1;
@@ -151,6 +151,7 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
     limit: limit,
   });
 });
+
 const getById = catchAsyncError(async (req, res, next) => {
 
   const id = req.params.id;
@@ -228,7 +229,7 @@ const getById = catchAsyncError(async (req, res, next) => {
         "customer_data.name": 1,
       },
     }
-    
+
   ]);
 
   if (!data) {
@@ -239,90 +240,43 @@ const getById = catchAsyncError(async (req, res, next) => {
 
 const createData = catchAsyncError(async (req, res, next) => {
   const { token } = req.cookies;
+  const stepImageData = await processImages(req.body.steps, 'step_image');
+  const repairImageData = await processImages(req.body.repair_info, 'repair_image');
 
+  console.log("stepImageData ;;;;;;;;;;;;[[[[[[[[[", stepImageData);
+  console.log("repairImageData ;;;;;;;;;;;;[[[[[[[[[", repairImageData);
 
-  let stepsImageData = [];
-  let repairImageData = [];
-
-  console.log("body========",req.body);
-
-      console.log("base  ---",req.body.steps[0].image);
-  if (req.body.steps) {
-    if (req.body.steps[0].image) {
-      const stepImg = await base64ToImage(req.body.steps[0].image,"service");
-      console.log("step immmg  --",stepImg)
-      stepsImageData = await imageUpload(stepImg, "step", next);
-      console.log("stepsImageData ||||||||||||||",stepsImageData);
-    }
-
-    if (req.body.repair_info.image) {
-      repairImageData = await imageUpload(req.body.repair_info.image, "repair", next);
-    }
-  }
-
-  let steps = req.body.steps.map((step, index) => ({
+  const updatedSteps = req.body.steps.map((step, index) => ({
     ...step,
-    image: stepsImageData[index] ? {
-      public_id: stepsImageData[index].public_id,
-      url: stepsImageData[index].url
-    } : null
+    step_image: stepImageData[index] && stepImageData[index][0] ? {
+      public_id: stepImageData[index][0].public_id,
+      url: stepImageData[index][0].url,
+    } : null,
   }));
 
-  let repairInfo = req.body.repair_info.map((repair, index) => ({
+  const updatedRepairInfo = req.body.repair_info.map((repair, index) => ({
     ...repair,
-    image: repairImageData[index] ? {
-      public_id: repairImageData[index].public_id,
-      url: repairImageData[index].url
-    } : null
+    repair_image: repairImageData[index] && repairImageData[index][0] ? {
+      public_id: repairImageData[index][0].public_id,
+      url: repairImageData[index][0].url,
+    } : null,
   }));
-  console.log("repairInfo Img data new======",repairImageData);
-  console.log("repairInfo new",repairInfo);
+
+  console.log("Updated steps with images:", updatedSteps);
+  console.log("Updated repair_info with images:", updatedRepairInfo);
 
   let decodedData = jwt.verify(token, process.env.JWT_SECRET);
   let newData = {
     ...req.body,
-    steps,
-    repair_info: repairInfo,
+    steps: updatedSteps,
+    repair_info: updatedRepairInfo,
     created_by: decodedData?.user?.email,
   };
+
 
   const data = await serviceModel.create(newData);
   res.send({ message: "success", status: 201, data: data });
 });
-
-const fs = require('fs');
-const path = require('path');
-
-async function base64ToImage(base64String, outputPath) {
-  if (!outputPath || typeof outputPath !== 'string') {
-    throw new Error('Invalid outputPath: The "outputPath" must be a valid string.');
-  }
-
-  // Remove the base64 data URI prefix if present (e.g., 'data:image/png;base64,')
-  const base64Data = base64String.replace(/^data:image\/\w+;base64,/, '');
-
-  // Convert the base64 string to a buffer
-  const buffer = Buffer.from(base64Data, 'base64');
-
-  try {
-    // Ensure the directory exists (optional)
-    const directoryPath = path.dirname(outputPath);
-    if (!fs.existsSync(directoryPath)) {
-      fs.mkdirSync(directoryPath, { recursive: true });
-    }
-
-    // Write the buffer to a file asynchronously
-    await fs.promises.writeFile(outputPath, buffer);
-    console.log(`Image saved to ${outputPath}`);
-
-    // Return the output path or any other result you want to track
-    return outputPath; // You can return the file path, image name, or success message here
-  } catch (error) {
-    console.error('Error saving the image:', error);
-    throw error; // Propagate the error
-  }
-}
-
 
 const updateData = catchAsyncError(async (req, res, next) => {
   const { token } = req.cookies;
@@ -337,59 +291,64 @@ const updateData = catchAsyncError(async (req, res, next) => {
   }
   let decodedData = jwt.verify(token, process.env.JWT_SECRET);
 
-  let stepsImageData = [];
-  let repairImageData = [];
-  let newData = req.body;
+  const stepImageData = await processImages(req.body.steps, 'step_image');
+  const repairImageData = await processImages(req.body.repair_info, 'repair_image');
 
-  // Handle updating steps image
-  if (req.files && req.files.steps?.image) {
-    stepsImageData = await imageUpload(req.files.steps.image, "service_step", next);
-  }
+  const updatedSteps = req.body.steps.map((step, index) => {
+    const currentStepImage = stepImageData[index] && stepImageData[index][0];
+    const existingStepImage = data.steps[index]?.step_image;
 
-  if (stepsImageData.length > 0) {
-    newData.steps = newData.steps.map((step, index) => ({
+    return {
       ...step,
-      image: {
-        public_id: stepsImageData[index]?.public_id,
-        url: stepsImageData[index]?.url
-      }
-    }));
-  }
+      step_image: currentStepImage ? {
+        public_id: currentStepImage.public_id,
+        url: currentStepImage.url,
+      } : existingStepImage || null,
+    };
+  });
+  const
+    airInfo = req.body.repair_info.map((repair, index) => {
+      const currentRepairImage = repairImageData[index] && repairImageData[index][0];
+      const existingRepairImage = data.repair_info[index]?.repair_image;
 
-  // Handle updating repair_info image
-  if (req.files && req.files.repair_info?.image) {
-    repairImageData = await imageUpload(req.files.repair_info.image, "service_repair", next);
-  }
+      return {
+        ...repair,
+        repair_image: currentRepairImage ? {
+          public_id: currentRepairImage.public_id,
+          url: currentRepairImage.url,
+        } : existingRepairImage || null,
+      };
+    });
+  console.log("Updated steps with images:", updatedSteps);
+  console.log("Updated repair_info with images:", updatedRepairInfo);
 
-  if (repairImageData.length > 0) {
-    newData.repair_info = newData.repair_info.map((repair, index) => ({
-      ...repair,
-      image: {
-        public_id: repairImageData[index]?.public_id,
-        url: repairImageData[index]?.url
-      }
-    }));
-  }
+  let newData = {
+    ...req.body,
+    steps: updatedSteps,
+    repair_info: updatedRepairInfo,
+    updated_by: decodedData?.user?.email,
+  };
 
-  // Handle deleting old images
+
   if (data.steps && data.steps.length > 0) {
     for (let step of data.steps) {
-      if (step.image?.public_id) {
+      if (step.step_image?.public_id) {
         console.log("Deleting old step image");
-        await imageDelete(step.image.public_id, next);
+        await imageDelete(step.step_image.public_id, next);
       }
     }
   }
 
   if (data.repair_info && data.repair_info.length > 0) {
     for (let repair of data.repair_info) {
-      if (repair.image?.public_id) {
+
+      if (repair.repair_image?.public_id) {
         console.log("Deleting old repair_info image");
-        await imageDelete(repair.image.public_id, next);
+        await imageDelete(repair.repair_image.public_id, next);
+
       }
     }
   }
-
 
   newData = {
     ...newData,
@@ -433,6 +392,64 @@ const deleteData = catchAsyncError(async (req, res, next) => {
     data: data,
   });
 });
+
+async function processImages(items, imageField) {
+  const processedImageData = [];
+  console.log("items ===-0", items)
+  console.log("imageField ===-0", imageField)
+  if (!items) { return };
+  for (let item of items) {
+
+    if (item[imageField]) {
+      console.log("item[imageField]", item[imageField])
+      const decodedImage = await base64ToImage(item[imageField], "service");  // Adjust directory as needed
+      console.log(`${imageField} decoded --`, decodedImage);
+
+      const uploadData = await imageUpload(decodedImage, imageField);
+      processedImageData.push(uploadData);
+    } else {
+      processedImageData.push(null);
+    }
+  }
+
+  return processedImageData;
+}
+
+async function base64ToImage(base64String, outputDirectory = 'tmp') {
+  if (!base64String || typeof base64String !== 'string') {
+    return next(new ErrorHander("Base64 string is required", 400));
+  }
+
+  const base64Data = base64String.split(',')[1]; // Get only the Base64 part
+
+  if (!base64Data) {
+    return next(new ErrorHander("Invalid Base64 string", 400));
+  }
+
+  const currentDirectory = __dirname;  // This will return the current directory path
+
+  // Generate a temporary file path using the current timestamp
+  const fileName = `tmp-${Date.now()}.jpeg`; // You can adjust the file extension as needed
+  const tempFilePath = path.join(currentDirectory, outputDirectory, fileName);
+
+  // Ensure the output directory exists, if not create it
+  const outputPath = path.join(currentDirectory, outputDirectory);
+  if (!fs.existsSync(outputPath)) {
+    fs.mkdirSync(outputPath);
+  }
+
+  // Write the Base64 data to the file
+  try {
+    fs.writeFileSync(tempFilePath, Buffer.from(base64Data, 'base64'));
+    console.log(`Image saved successfully at ${tempFilePath}`);
+
+    // Return an object with the file path as 'tempFilePath'
+    return { tempFilePath };  // Return an object with 'tempFilePath' field
+  } catch (error) {
+    console.error('Error saving the image:', error);
+    return next(new ErrorHander("Failed to save the image", 400));
+  }
+}
 
 module.exports = {
   getDataWithPagination,
