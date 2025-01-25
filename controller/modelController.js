@@ -114,8 +114,8 @@ const createData = catchAsyncError(async (req, res, next) => {
     newId = "m100";
   }
 
-  let imageData = {};
-  if (req.files) {
+  let imageData = [];
+  if (req.files && req.files.image) {
     imageData = await imageUpload(req.files.image, "model", next);
   }
   console.log("imageData", imageData);
@@ -142,11 +142,11 @@ const updateData = catchAsyncError(async (req, res, next) => {
 
   let oldParentName = data.name;
   let decodedData = jwt.verify(token, process.env.JWT_SECRET);
-  let imageData = {};
+  let imageData = [];
   let newData = req.body;
 
   console.log("body======", newData);
-  if (req.files) {
+  if (req.files && req.files.image) {
     imageData = await imageUpload(req.files.image, "model", next);
   }
   console.log("image data =========", imageData);
@@ -160,7 +160,7 @@ const updateData = catchAsyncError(async (req, res, next) => {
   }
 
   newData = {
-    ...req.body,
+    ...newData,
     updated_by: decodedData?.user?.email,
     updated_at: new Date(),
   };

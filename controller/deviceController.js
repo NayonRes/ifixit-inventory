@@ -95,7 +95,7 @@ const getById = catchAsyncError(async (req, res, next) => {
 const getByParent = catchAsyncError(async (req, res, next) => {
   let data = await deviceModel
     .find({ parent_name: req.query.parent_name })
-    .select('_id name parent_name');
+    .select("_id name parent_name");
 
   if (data.length === 0) {
     return res.status(404).send({ message: "No data found" });
@@ -103,7 +103,7 @@ const getByParent = catchAsyncError(async (req, res, next) => {
   res.status(200).send({
     message: "success",
     status: 200,
-    data: data
+    data: data,
   });
 });
 
@@ -130,7 +130,7 @@ const createData = catchAsyncError(async (req, res, next) => {
 
   let iconData = [];
   if (req.files && req.files.icon) {
-    iconData = await imageUpload(req.files.icon, "device_icon", next);
+    iconData = await imageUpload(req.files.icon, "device", next);
   }
   console.log("iconData", iconData);
   let decodedData = jwt.verify(token, process.env.JWT_SECRET);
@@ -163,7 +163,7 @@ const updateData = catchAsyncError(async (req, res, next) => {
   if (req.files && req.files.image) {
     imageData = await imageUpload(req.files.image, "device", next);
   }
-  
+
   if (imageData.length > 0) {
     newData = { ...req.body, image: imageData[0] };
   }
@@ -175,10 +175,10 @@ const updateData = catchAsyncError(async (req, res, next) => {
 
   let iconData = [];
   if (req.files && req.files.icon) {
-    iconData = await imageUpload(req.files.icon, "device_icon", next);
+    iconData = await imageUpload(req.files.icon, "device", next);
   }
   if (iconData.length > 0) {
-    newData = { ...req.body, icon: iconData[0] };
+    newData = { ...newData, icon: iconData[0] };
   }
   if (data.icon.public_id) {
     console.log("previous device icon delete 111111");

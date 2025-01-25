@@ -1,30 +1,18 @@
 var express = require("express");
 const {
-  getParentDropdown,
   getDataWithPagination,
-  searchCustomer,
   getById,
   createData,
   updateData,
   deleteData,
-} = require("../controller/customerController");
+} = require("../controller/serviceController");
 const { isAuthenticatedUser, authorizeRoles } = require("../middleware/auth");
-const customerModel = require("../db/models/customerModel");
 
 var router = express.Router();
-
-//Must be maintain the serial of declaring router.route according to less middleware use
-// router
-//   .route("/create")
-//   .post(createData);
-router.route("/dropdownlist").get(isAuthenticatedUser, getParentDropdown);
 
 router
   .route("/")
   .get(isAuthenticatedUser, authorizeRoles("dashboard"), getDataWithPagination);
-router
-  .route("/")
-  .get(isAuthenticatedUser, authorizeRoles("dashboard"), searchCustomer);
 router
   .route("/:id")
   .get(isAuthenticatedUser, authorizeRoles("dashboard"), getById);

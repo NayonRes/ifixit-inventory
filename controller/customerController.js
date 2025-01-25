@@ -20,6 +20,7 @@ const getParentDropdown = catchAsyncError(async (req, res, next) => {
     data: data,
   });
 });
+
 const getDataWithPagination = catchAsyncError(async (req, res, next) => {
   const page = parseInt(req.query.page) || 1;
   console.log("===========req.query.page", req.query.page);
@@ -52,6 +53,37 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
     limit: limit,
   });
 });
+
+const searchCustomer = catchAsyncError(async (req, res, next) => {
+  const page = parseInt(req.query.page) || 1;
+  console.log("===========req.query.page", req.query.page);
+  const limit = parseInt(req.query.limit) || 10;
+  const startIndex = (page - 1) * limit;
+  const endIndex = page * limit;
+  var query = {};
+  if (req.query.name) {
+    query.name = { $regex: req.query.name, $options: "i" };
+  }
+  if (req.query.mobile) {
+    query.mobile = { $regex: req.query.mobile, $options: "i" };
+  }
+  if (req.query.email) {
+    query.email = { $regex: req.query.email, $options: "i" };
+  }
+  let totalData = await customerModel.countDocuments(query);
+  console.log("totalData=================================", totalData);
+  const data = await customerModel.find(query).select('_id mobile image').skip(startIndex).limit(limit);
+  console.log("data", data);
+  res.status(200).json({
+    success: true,
+    message: "successful",
+    data: data,
+    totalData: totalData,
+    pageNo: page,
+    limit: limit,
+  });
+});
+
 const getById = catchAsyncError(async (req, res, next) => {
   let data = await customerModel.findById(req.params.id);
   if (!data) {
@@ -140,6 +172,7 @@ const deleteData = catchAsyncError(async (req, res, next) => {
 module.exports = {
   getParentDropdown,
   getDataWithPagination,
+  searchCustomer,
   getById,
   createData,
   updateData,
