@@ -31,10 +31,10 @@ const serviceSchema = mongoose.Schema({
       title: {
         type: String,
       },
-      sub_title: {
-        type: String,
-      },
-      description: {
+      //   sub_title: {
+      //     type: String,
+      //   },
+      details: {
         type: String,
       },
       step_image: {
@@ -45,12 +45,12 @@ const serviceSchema = mongoose.Schema({
           type: String,
         },
       },
-      question: {
-        type: String,
-      },
-      answer: {
-        type: String,
-      },
+      //   question: {
+      //     type: String,
+      //   },
+      //   answer: {
+      //     type: String,
+      //   },
     },
   ],
 
@@ -67,7 +67,7 @@ const serviceSchema = mongoose.Schema({
           type: String,
         },
       },
-      condition: {
+      details: {
         type: String,
       },
 
@@ -82,6 +82,9 @@ const serviceSchema = mongoose.Schema({
       },
     },
   ],
+  description: {
+    type: String,
+  },
   remarks: {
     type: String,
   },
