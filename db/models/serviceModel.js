@@ -22,10 +22,10 @@ const serviceSchema = mongoose.Schema({
       ref: "branchModel",
     },
   ],
-  customer_id: {
-    type: Schema.Types.ObjectId,
-    ref: "customerModel",
-  },
+  // customer_id: {
+  //   type: Schema.Types.ObjectId,
+  //   ref: "customerModel",
+  // },
   steps: [
     {
       title: {
