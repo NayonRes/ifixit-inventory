@@ -33,7 +33,9 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
     query.brand_id = new mongoose.Types.ObjectId(req.query.brand_id);
   }
   if (req.query.branch_id) {
-    query.branch_id = { $in: [new mongoose.Types.ObjectId(req.query.branch_id)] };
+    query.branch_id = {
+      $in: [new mongoose.Types.ObjectId(req.query.branch_id)],
+    };
   }
   // if (req.query.customer_id) {
   //   query.customer_id = new RegExp(`^${req.query.customer_id}$`, "i");
@@ -77,7 +79,6 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
       },
     },
     {
-
       $lookup: {
         from: "branches",
         localField: "branch_id",
@@ -124,8 +125,7 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
         "model_data.image": 1,
         "brand_data.name": 1,
         "branch_data.name": 1,
-        "branch_data._id": 1,
-        "branch_data.is_main_branch": 1,
+        "branch_data._id": 1, 
         // "customer_data.name": 1,
       },
     },
@@ -139,8 +139,6 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
       $limit: limit,
     },
   ]);
-
-
 
   console.log("data", data);
   res.status(200).json({
@@ -176,7 +174,6 @@ const getById = catchAsyncError(async (req, res, next) => {
       },
     },
     {
-
       $lookup: {
         from: "branches",
         localField: "branch_id",
@@ -223,8 +220,7 @@ const getById = catchAsyncError(async (req, res, next) => {
         "model_data.image": 1,
         "brand_data.name": 1,
         "branch_data.name": 1,
-        "branch_data._id": 1,
-        "branch_data.is_main_branch": 1,
+        "branch_data._id": 1, 
         //"customer_data.name": 1,
       },
     },
@@ -318,7 +314,11 @@ const updateData = catchAsyncError(async (req, res, next) => {
     req.body.steps?.map(async (step, index) => {
       console.log("step", step);
       if (step?.step_image) {
-        const uploadData = await base64ImageUpload(step?.step_image, "service", next);
+        const uploadData = await base64ImageUpload(
+          step?.step_image,
+          "service",
+          next
+        );
         console.log("uploadData", uploadData);
 
         return {
@@ -339,7 +339,11 @@ const updateData = catchAsyncError(async (req, res, next) => {
       console.log("item", item);
 
       if (item?.repair_image) {
-        const uploadData = await base64ImageUpload(item?.repair_image, "service", next);
+        const uploadData = await base64ImageUpload(
+          item?.repair_image,
+          "service",
+          next
+        );
         console.log("uploadData", uploadData);
 
         return {
@@ -359,8 +363,6 @@ const updateData = catchAsyncError(async (req, res, next) => {
 
   console.log("Updated steps with images:", updatedSteps);
   console.log("Updated repair_info with images:", updatedRepairInfo);
-
-
 
   let newData = {
     ...req.body,
