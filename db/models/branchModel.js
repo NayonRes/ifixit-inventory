@@ -23,6 +23,36 @@ const branchSchema = mongoose.Schema({
     type: Boolean,
     default: false,
   },
+  off_day: {
+    type: String,
+  },
+  phone_no_1: {
+    type: String,
+    required: [true, "Please enter phone number"],
+  },
+  phone_no_2: {
+    type: String,
+  },
+  address: {
+    type: String,
+    required: [true, "Please enter address"],
+  },
+  image: {
+    public_id: {
+      type: String,
+    },
+    url: {
+      type: String,
+    },
+  },
+  map_image: {
+    public_id: {
+      type: String,
+    },
+    url: {
+      type: String,
+    },
+  },
   status: {
     type: Boolean,
     default: true,
