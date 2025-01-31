@@ -21,7 +21,6 @@ const geDropdown = catchAsyncError(async (req, res, next) => {
     query.designation = new RegExp(`^${req.query.designation}$`, "i");
   }
 
-
   // const data = await branchModel.find().lean();
   const data = await userModel
     .find(query, "name designation permission image")

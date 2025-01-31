@@ -319,7 +319,7 @@ const updateData = catchAsyncError(async (req, res, next) => {
   const updatedSteps = await Promise.all(
     req.body.steps?.map(async (step, index) => {
       console.log("step", step);
-      if (step?.step_image) {
+      if (step?.step_image?.length > 0) {
         const uploadData = await base64ImageUpload(
           step?.step_image,
           "service",
@@ -332,10 +332,7 @@ const updateData = catchAsyncError(async (req, res, next) => {
           step_image: uploadData[0],
         };
       } else {
-        return {
-          ...step,
-          step_image: data.steps[index]?.step_image || null,
-        };
+        return step;
       }
     })
   );
@@ -344,7 +341,7 @@ const updateData = catchAsyncError(async (req, res, next) => {
     req.body.repair_info?.map(async (item, index) => {
       console.log("item", item);
 
-      if (item?.repair_image) {
+      if (item?.repair_image?.length > 0) {
         const uploadData = await base64ImageUpload(
           item?.repair_image,
           "service",
@@ -357,10 +354,7 @@ const updateData = catchAsyncError(async (req, res, next) => {
           repair_image: uploadData[0],
         };
       } else {
-        return {
-          ...item,
-          repair_image: data.repair_info[index]?.repair_image || null,
-        };
+        return item;
       }
     })
   );
