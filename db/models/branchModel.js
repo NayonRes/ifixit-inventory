@@ -28,14 +28,18 @@ const branchSchema = mongoose.Schema({
   },
   phone_no_1: {
     type: String,
-    required: [true, "Please enter phone number"],
+    // required: [true, "Please enter phone number"],
+    minLength: [11, "Mobile can not less than 11 characters"],
+    maxLength: [11, "Mobile can not exceed 11 characters"],
   },
   phone_no_2: {
     type: String,
+    minLength: [11, "Mobile can not less than 11 characters"],
+    maxLength: [11, "Mobile can not exceed 11 characters"],
   },
   address: {
     type: String,
-    required: [true, "Please enter address"],
+    // required: [true, "Please enter address"],
   },
   image: {
     public_id: {

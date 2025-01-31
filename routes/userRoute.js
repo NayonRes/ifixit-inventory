@@ -1,6 +1,6 @@
 var express = require("express");
 const {
-  geDropdown,
+  getDropdown,
   getById,
   createData,
   updateData,
@@ -21,7 +21,7 @@ router.route("/login").post(loginUser);
 router.route("/update-password").post(updatePassword);
 router.route("/update-profile/:id").put(updateProfile);
 
-router.route("/dropdownlist").get(geDropdown);
+router.route("/dropdownlist").get(getDropdown);
 // router.route("/leaf-dropdown").get(getLeafCategoryList);
 
 // router.route("/category-filter-list").post(getCategoryWiseFilterList);

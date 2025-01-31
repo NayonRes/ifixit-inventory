@@ -230,8 +230,8 @@ const createData = catchAsyncError(async (req, res, next) => {
   const lastDoc = await repairModel.find().sort({ _id: -1 });
 
   if (lastDoc.length > 0) {
-    newIdserial = lastDoc[0].brand_id.slice(0, 2);
-    newIdNo = parseInt(lastDoc[0].brand_id.slice(2)) + 1;
+    newIdserial = lastDoc[0].repair_id.slice(0, 2);
+    newIdNo = parseInt(lastDoc[0].repair_id.slice(2)) + 1;
     newId = newIdserial.concat(newIdNo);
   } else {
     newId = "RN10000";

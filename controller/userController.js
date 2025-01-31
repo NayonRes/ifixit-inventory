@@ -9,16 +9,22 @@ const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 const { main } = require("../utils/TestNodemailerMail");
 const branchModel = require("../db/models/branchModel");
+const { default: mongoose } = require("mongoose");
 
-const geDropdown = catchAsyncError(async (req, res, next) => {
-  console.log("geDropdown====================================================");
- 
+const getDropdown = catchAsyncError(async (req, res, next) => {
+  console.log(
+    "getDropdown===================================================="
+  );
 
   // Build the filter object
   const query = {};
- 
+
   if (req.query.designation) {
     query.designation = new RegExp(`^${req.query.designation}$`, "i");
+  }
+
+  if (req.query.branch_id) {
+    query.branch_id = new mongoose.Types.ObjectId(req.query.branch_id);
   }
 
   // const data = await branchModel.find().lean();
@@ -426,7 +432,7 @@ const updateProfile = catchAsyncError(async (req, res, next) => {
 });
 
 module.exports = {
-  geDropdown,
+  getDropdown,
   getById,
   createData,
   updateData,
