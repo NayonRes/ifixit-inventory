@@ -36,6 +36,6 @@ const repairStatusHistorySchema = mongoose.Schema({
     },
     updated_at: { type: Date, default: Date.now },
 });
-const repairStatusHistoryModel = mongoose.model("repairStatusHistory", repairStatusHistorySchema);
+const repairStatusHistoryModel = mongoose.model("repair_status_history", repairStatusHistorySchema);
 
 module.exports = repairStatusHistoryModel;
