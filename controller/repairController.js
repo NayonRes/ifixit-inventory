@@ -93,6 +93,14 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
     },
     {
       $lookup: {
+        from: "models",
+        localField: "model_id", // it is originally  device_id. For repair module device under primary device list is product brand list
+        foreignField: "_id",
+        as: "model_data",
+      },
+    },
+    {
+      $lookup: {
         from: "branches",
         localField: "branch_id",
         foreignField: "_id",
@@ -125,9 +133,14 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
         updated_by: 1,
         updated_at: 1,
         "customer_data.name": 1,
+        "customer_data._id": 1,
         "customer_data.mobile": 1,
         "brand_data.name": 1,
+        "brand_data._id": 1,
         "branch_data.name": 1,
+        "branch_data._id": 1,
+        "model_data.name": 1,
+        "model_data._id": 1,
       },
     },
     {
@@ -178,6 +191,14 @@ const getById = catchAsyncError(async (req, res, next) => {
     },
     {
       $lookup: {
+        from: "models",
+        localField: "model_id", // it is originally  device_id. For repair module device under primary device list is product brand list
+        foreignField: "_id",
+        as: "model_data",
+      },
+    },
+    {
+      $lookup: {
         from: "branches",
         localField: "branch_id",
         foreignField: "_id",
@@ -210,9 +231,14 @@ const getById = catchAsyncError(async (req, res, next) => {
         updated_by: 1,
         updated_at: 1,
         "customer_data.name": 1,
+        "customer_data._id": 1,
         "customer_data.mobile": 1,
         "brand_data.name": 1,
+        "brand_data._id": 1,
         "branch_data.name": 1,
+        "branch_data._id": 1,
+        "model_data.name": 1,
+        "model_data._id": 1,
       },
     },
   ]);
