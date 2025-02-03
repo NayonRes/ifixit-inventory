@@ -15,6 +15,15 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
     if (req.query.repair_status_name) {
         query.repair_status_name = new RegExp(`^${req.query.repair_status_name}$`, "i");
     }
+    if (req.query.user_id) {
+        query.user_id = new RegExp(`^${req.query.user_id}$`, "i");
+    }
+    if (req.query.repair_id) {
+        query.repair_id = new RegExp(`^${req.query.repair_id}$`, "i");
+    }
+    if (req.query.updated_by) {
+        query.updated_by = new RegExp(`^${req.query.updated_by}$`, "i");
+    }
     if (req.query.status) {
         query.status = req.query.status;
     }
@@ -42,6 +51,15 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
                 as: "repair_data",
             },
         },
+        
+        {
+            $lookup: {
+                from: "users",
+                localField: "updated_by",
+                foreignField: "email",
+                as: "updated_by_data",
+            },
+        },
 
         {
             $project: {
@@ -57,6 +75,9 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
                 updated_by: 1,
                 updated_at: 1,
                 "user_data.name": 1,
+                "updated_by_data.name":1,
+                "updated_by_data.email":1,
+                "updated_by_data._id":1
             },
         },
         {
@@ -106,6 +127,15 @@ const getById = catchAsyncError(async (req, res, next) => {
         },
 
         {
+            $lookup: {
+                from: "users",
+                localField: "updated_by",
+                foreignField: "email",
+                as: "updated_by_data",
+            },
+        },
+
+        {
             $project: {
                 _id: 1,
                 user_id: 1,
@@ -119,6 +149,9 @@ const getById = catchAsyncError(async (req, res, next) => {
                 updated_by: 1,
                 updated_at: 1,
                 "user_data.name": 1,
+                "updated_by_data.name":1,
+                "updated_by_data.email":1,
+                "updated_by_data._id":1
             },
         },
     ]);
@@ -145,6 +178,7 @@ const updateData = catchAsyncError(async (req, res, next) => {
     const { token } = req.cookies;
 
     let data = await repairStatusHistoryModel.findById(req.params.id);
+    console.log("data",data);
     if (!data) {
         console.log("if");
         return next(new ErrorHander("No data found", 404));
@@ -156,7 +190,7 @@ const updateData = catchAsyncError(async (req, res, next) => {
         updated_by: decodedData?.user?.email,
         updated_at: new Date(),
     };
-
+    console.log("newData",newData);
     data = await repairStatusHistoryModel.findByIdAndUpdate(req.params.id, newData, {
         new: true,
         runValidators: true,
