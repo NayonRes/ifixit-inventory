@@ -5,7 +5,37 @@ const PermissionData = [
     permission_name: "dashboard",
     module_name: "Dashboard",
   },
-
+  // Blog
+  {
+    order_no: 1,
+    name: "Blog List",
+    permission_name: "blog_list",
+    module_name: "Blog",
+  },
+  {
+    order_no: 2,
+    name: "Add Blog",
+    permission_name: "add_blog",
+    module_name: "Blog",
+  },
+  {
+    order_no: 3,
+    name: "Update Blog",
+    permission_name: "update_blog",
+    module_name: "Blog",
+  },
+  {
+    order_no: 4,
+    name: "View Blog Details",
+    permission_name: "view_blog_details",
+    module_name: "Blog",
+  },
+  {
+    order_no: 5,
+    name: "Blog Dropdown List",
+    permission_name: "blog_dropdown_list",
+    module_name: "Blog",
+  },
   // Branch
   {
     order_no: 1,
@@ -225,69 +255,68 @@ const PermissionData = [
   },
 
   // Order
+  // {
+  //   order_no: 1,
+  //   name: "Order List",
+  //   permission_name: "order_list",
+  //   module_name: "Order",
+  // },
+  // {
+  //   order_no: 2,
+  //   name: "Place Order",
+  //   permission_name: "place_order",
+  //   module_name: "Order",
+  // },
+  // {
+  //   order_no: 3,
+  //   name: "Cancel Order",
+  //   permission_name: "cancel_order",
+  //   module_name: "Order",
+  // },
+  // {
+  //   order_no: 4,
+  //   name: "View Order Details",
+  //   permission_name: "view_order_details",
+  //   module_name: "Order",
+  // },
+  // {
+  //   order_no: 5,
+  //   name: "Order Dropdown List",
+  //   permission_name: "order_dropdown_list",
+  //   module_name: "Order",
+  // },
+
+  // Service
   {
     order_no: 1,
-    name: "Order List",
-    permission_name: "order_list",
-    module_name: "Order",
+    name: "Service List",
+    permission_name: "service_list",
+    module_name: "Service",
   },
   {
     order_no: 2,
-    name: "Place Order",
-    permission_name: "place_order",
-    module_name: "Order",
+    name: "Add Service",
+    permission_name: "add_service",
+    module_name: "Service",
   },
   {
     order_no: 3,
-    name: "Cancel Order",
-    permission_name: "cancel_order",
-    module_name: "Order",
+    name: "Update Service",
+    permission_name: "update_service",
+    module_name: "Service",
   },
   {
     order_no: 4,
-    name: "View Order Details",
-    permission_name: "view_order_details",
-    module_name: "Order",
+    name: "View Service Details",
+    permission_name: "view_service_details",
+    module_name: "Service",
   },
   {
     order_no: 5,
-    name: "Order Dropdown List",
-    permission_name: "order_dropdown_list",
-    module_name: "Order",
+    name: "Service Dropdown List",
+    permission_name: "service_dropdown_list",
+    module_name: "Service",
   },
-
-  // Role
-  {
-    order_no: 1,
-    name: "Role List",
-    permission_name: "role_list",
-    module_name: "Role",
-  },
-  {
-    order_no: 2,
-    name: "Add Role",
-    permission_name: "add_role",
-    module_name: "Role",
-  },
-  {
-    order_no: 3,
-    name: "Update Role",
-    permission_name: "update_role",
-    module_name: "Role",
-  },
-  {
-    order_no: 4,
-    name: "View Role Details",
-    permission_name: "view_role_details",
-    module_name: "Role",
-  },
-  {
-    order_no: 5,
-    name: "Role Dropdown List",
-    permission_name: "role_dropdown_list",
-    module_name: "Role",
-  },
-
   // Stock
   {
     order_no: 1,
@@ -352,68 +381,67 @@ const PermissionData = [
     module_name: "Repair",
   },
 
-  // Service
+  // Role
   {
     order_no: 1,
-    name: "Service List",
-    permission_name: "service_list",
-    module_name: "Service",
+    name: "Role List",
+    permission_name: "role_list",
+    module_name: "Role",
   },
   {
     order_no: 2,
-    name: "Add Service",
-    permission_name: "add_service",
-    module_name: "Service",
+    name: "Add Role",
+    permission_name: "add_role",
+    module_name: "Role",
   },
   {
     order_no: 3,
-    name: "Update Service",
-    permission_name: "update_service",
-    module_name: "Service",
+    name: "Update Role",
+    permission_name: "update_role",
+    module_name: "Role",
   },
   {
     order_no: 4,
-    name: "View Service Details",
-    permission_name: "view_service_details",
-    module_name: "Service",
+    name: "View Role Details",
+    permission_name: "view_role_details",
+    module_name: "Role",
   },
   {
     order_no: 5,
-    name: "Service Dropdown List",
-    permission_name: "service_dropdown_list",
-    module_name: "Service",
+    name: "Role Dropdown List",
+    permission_name: "role_dropdown_list",
+    module_name: "Role",
   },
-
-  // Blog
+  // User
   {
     order_no: 1,
-    name: "Blog List",
-    permission_name: "blog_list",
-    module_name: "Blog",
+    name: "User List",
+    permission_name: "user_list",
+    module_name: "User",
   },
   {
     order_no: 2,
-    name: "Add Blog",
-    permission_name: "add_blog",
-    module_name: "Blog",
+    name: "Add User",
+    permission_name: "add_user",
+    module_name: "User",
   },
   {
     order_no: 3,
-    name: "Update Blog",
-    permission_name: "update_blog",
-    module_name: "Blog",
+    name: "Update User",
+    permission_name: "update_user",
+    module_name: "User",
   },
   {
     order_no: 4,
-    name: "View Blog Details",
-    permission_name: "view_blog_details",
-    module_name: "Blog",
+    name: "View User Details",
+    permission_name: "view_user_details",
+    module_name: "User",
   },
   {
     order_no: 5,
-    name: "Blog Dropdown List",
-    permission_name: "blog_dropdown_list",
-    module_name: "Blog",
+    name: "User Dropdown List",
+    permission_name: "user_dropdown_list",
+    module_name: "User",
   },
 ];
 
