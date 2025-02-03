@@ -6,6 +6,7 @@ const {
   createData,
   updateData,
   deleteData,
+  getLastPurchaseItem,
 } = require("../controller/purchaseProductController");
 
 const { isAuthenticatedUser, authorizeRoles } = require("../middleware/auth");
@@ -15,6 +16,10 @@ var router = express.Router();
 router
   .route("/")
   .get(isAuthenticatedUser, authorizeRoles("dashboard"), getDataWithPagination);
+
+router
+  .route("/last-purchase")
+  .get(isAuthenticatedUser, authorizeRoles("dashboard"), getLastPurchaseItem);
 router
   .route("/:id")
   .get(isAuthenticatedUser, authorizeRoles("dashboard"), getById);

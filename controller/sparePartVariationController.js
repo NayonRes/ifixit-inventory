@@ -5,7 +5,7 @@ const imageUpload = require("../utils/imageUpload");
 const imageDelete = require("../utils/imageDelete");
 const catchAsyncError = require("../middleware/catchAsyncError");
 const jwt = require("jsonwebtoken");
-
+const branchModel = require("../db/models/branchModel");
 const lightSearchWithPagination = catchAsyncError(async (req, res, next) => {
   const page = parseInt(req.query.page) || 1;
   console.log("===========req.query.page", req.query.page);
@@ -36,7 +36,86 @@ const lightSearchWithPagination = catchAsyncError(async (req, res, next) => {
     limit: limit,
   });
 });
+const mongoose = require("mongoose");
+const { ObjectId } = mongoose.Types;
 
+const allBranchStock = catchAsyncError(async (req, res, next) => {
+  // Retrieve all branches
+  const branchList = await branchModel.find({}, "name _id").lean();
+  const allBranches = branchList.map((b) => new ObjectId(b._id)); // Convert to ObjectId
+
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 10;
+  const startIndex = (page - 1) * limit;
+
+  let query = {};
+  if (req.query.name) {
+    query.name = new RegExp(`^${req.query.name}$`, "i");
+  }
+  if (req.query.status) {
+    query.status = req.query.status;
+  }
+
+  const totalData = await sparePartVariationModel.countDocuments(query);
+
+  const data = await sparePartVariationModel.aggregate([
+    { $match: query },
+    {
+      $lookup: {
+        from: "spareparts",
+        localField: "spare_parts_id",
+        foreignField: "_id",
+        as: "sparepart_data",
+      },
+    },
+    {
+      $lookup: {
+        from: "stock_counter_and_limit",
+        localField: "_id",
+        foreignField: "spare_parts_variation_id",
+        as: "stock_data",
+      },
+    },
+    {
+      $addFields: {
+        stock_data: {
+          $filter: {
+            input: "$stock_data",
+            as: "stock",
+            cond: { $in: ["$$stock.branch_id", allBranches] }, // Ensure branch_id is in allBranches
+          },
+        },
+      },
+    },
+    {
+      $project: {
+        _id: 1,
+        name: 1,
+        price: 1,
+        image: 1,
+        status: 1,
+        created_by: 1,
+        created_at: 1,
+        updated_by: 1,
+        updated_at: 1,
+        "sparepart_data._id": 1,
+        "sparepart_data.name": 1,
+        stock_data: 1, // Include filtered stock data
+      },
+    },
+    { $skip: startIndex },
+    { $limit: limit },
+  ]);
+
+  res.status(200).json({
+    success: true,
+    message: "successful",
+    data: data,
+    totalData: totalData,
+    pageNo: page,
+    limit: limit,
+  });
+});
 
 const getDataWithPagination = catchAsyncError(async (req, res, next) => {
   const page = parseInt(req.query.page) || 1;
@@ -59,10 +138,43 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
 
   let totalData = await sparePartVariationModel.countDocuments(query);
   console.log("totalData=================================", totalData);
-  const data = await sparePartVariationModel
-    .find(query)
-    .skip(startIndex)
-    .limit(limit);
+  // const data = await sparePartVariationModel
+  //   .find(query)
+  //   .skip(startIndex)
+  //   .limit(limit);
+
+  const data = await sparePartVariationModel.aggregate([
+    { $match: query },
+    {
+      $lookup: {
+        from: "spareparts",
+        localField: "spare_parts_id",
+        foreignField: "_id",
+        as: "sparepart_data",
+      },
+    },
+    {
+      $project: {
+        _id: 1,
+        name: 1,
+        price: 1,
+
+        image: 1,
+        status: 1,
+        created_by: 1,
+        created_at: 1,
+        updated_by: 1,
+        updated_at: 1,
+
+        "sparepart_data._id": 1,
+        "sparepart_data.name": 1,
+      },
+    },
+    // { $unwind: "$role" }, // Unwind the array if you expect only one related role per user
+    // { $sort: { created_at: -1 } },
+    { $skip: startIndex },
+    { $limit: limit },
+  ]);
 
   console.log("data", data);
   res.status(200).json({
@@ -196,4 +308,5 @@ module.exports = {
   createData,
   updateData,
   deleteData,
+  allBranchStock,
 };
