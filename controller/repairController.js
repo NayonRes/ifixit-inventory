@@ -45,6 +45,7 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
   if (req.query.customer_id) {
     query.customer_id = new mongoose.Types.ObjectId(req.query.customer_id);
   }
+  // it is originally  device_id. For repair module device under primary device list is product brand list
   if (req.query.brand_id) {
     query.brand_id = new mongoose.Types.ObjectId(req.query.brand_id);
   }
@@ -81,12 +82,21 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
         as: "customer_data",
       },
     },
+
     {
       $lookup: {
-        from: "brands",
-        localField: "brand_id",
+        from: "devices",
+        localField: "brand_id", // it is originally  device_id. For repair module device under primary device list is product brand list
         foreignField: "_id",
         as: "brand_data",
+      },
+    },
+    {
+      $lookup: {
+        from: "models",
+        localField: "model_id", // it is originally  device_id. For repair module device under primary device list is product brand list
+        foreignField: "_id",
+        as: "model_data",
       },
     },
     {
@@ -104,12 +114,14 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
         serial: 1,
         pass_code: 1,
         customer_id: 1,
+        brand_id: 1, // it is originally  device_id. For repair module device under primary device list is product brand list
         branch_id: 1,
-        due: 1,
+        due_amount: 1,
         repair_id: 1,
         repair_by: 1,
         repair_status: 1,
         issues: 1,
+        spare_parts: 1,
         delivery_status: 1,
         repair_checklist: 1,
         payment_info: 1,
@@ -121,8 +133,14 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
         updated_by: 1,
         updated_at: 1,
         "customer_data.name": 1,
+        "customer_data._id": 1,
+        "customer_data.mobile": 1,
         "brand_data.name": 1,
+        "brand_data._id": 1,
         "branch_data.name": 1,
+        "branch_data._id": 1,
+        "model_data.name": 1,
+        "model_data._id": 1,
       },
     },
     {
@@ -165,10 +183,18 @@ const getById = catchAsyncError(async (req, res, next) => {
     },
     {
       $lookup: {
-        from: "brands",
-        localField: "brand_id",
+        from: "devices",
+        localField: "brand_id", // it is originally  device_id. For repair module device under primary device list is product brand list
         foreignField: "_id",
         as: "brand_data",
+      },
+    },
+    {
+      $lookup: {
+        from: "models",
+        localField: "model_id", // it is originally  device_id. For repair module device under primary device list is product brand list
+        foreignField: "_id",
+        as: "model_data",
       },
     },
     {
@@ -186,12 +212,14 @@ const getById = catchAsyncError(async (req, res, next) => {
         serial: 1,
         pass_code: 1,
         customer_id: 1,
+        brand_id: 1, // it is originally  device_id. For repair module device under primary device list is product brand list
         branch_id: 1,
-        due: 1,
+        due_amount: 1,
         repair_id: 1,
         repair_by: 1,
         repair_status: 1,
         issues: 1,
+        spare_parts: 1,
         delivery_status: 1,
         repair_checklist: 1,
         payment_info: 1,
@@ -203,8 +231,14 @@ const getById = catchAsyncError(async (req, res, next) => {
         updated_by: 1,
         updated_at: 1,
         "customer_data.name": 1,
+        "customer_data._id": 1,
+        "customer_data.mobile": 1,
         "brand_data.name": 1,
+        "brand_data._id": 1,
         "branch_data.name": 1,
+        "branch_data._id": 1,
+        "model_data.name": 1,
+        "model_data._id": 1,
       },
     },
   ]);

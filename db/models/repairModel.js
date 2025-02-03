@@ -14,9 +14,10 @@ const repairSchema = mongoose.Schema({
     type: String,
     required: [true, "Please enter pass code"],
   },
+ // it is originally  device_id. For repair module device under primary device list is product brand list
   brand_id: {
     type: Schema.Types.ObjectId,
-    ref: "brandModel",
+    ref: "deviceModel",
     required: [true, "Please enter select brand"],
   },
   customer_id: {
@@ -61,6 +62,32 @@ const repairSchema = mongoose.Schema({
 
   issues: [
     {
+      service_id: {
+        type: Schema.Types.ObjectId,
+        ref: "serviceModel",
+        required: [true, "Please enter select model"],
+      },
+      name: {
+        type: String,
+      },
+      price: {
+        type: Number,
+        default: 0,
+      },
+    },
+  ],
+  spare_parts: [
+    {
+      spare_parts_id: {
+        type: Schema.Types.ObjectId,
+        ref: "sparePartVariationModel",
+        required: [true, "Please enter Spare part Id"],
+      },
+      spare_parts_variation_id: {
+        type: Schema.Types.ObjectId,
+        ref: "sparePartVariationModel",
+        required: [true, "Please enter Spare part Id"],
+      },
       name: {
         type: String,
       },

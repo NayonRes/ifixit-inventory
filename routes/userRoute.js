@@ -28,7 +28,7 @@ router.route("/dropdownlist").get(getDropdown);
 
 router
   .route("/")
-  .get(isAuthenticatedUser, authorizeRoles("dashboard"), getDataWithPagination);
+  .get(isAuthenticatedUser, authorizeRoles("user-list"), getDataWithPagination);
 
 router.route("/logout").get(logout);
 router
