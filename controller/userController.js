@@ -121,7 +121,7 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
     query.mobile = new RegExp(`^${req.query.mobile}$`, "i");
   }
   if (req.query.branch_id) {
-    query.branch_id = new RegExp(`^${req.query.branch_id}$`, "i");
+    query.branch_id = new mongoose.Types.ObjectId(req.query.branch_id);
   }
   if (req.query.email) {
     query.email = new RegExp(`^${req.query.email}$`, "i");
