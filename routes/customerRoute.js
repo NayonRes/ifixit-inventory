@@ -17,26 +17,26 @@ var router = express.Router();
 // router
 //   .route("/create")
 //   .post(createData);
-router.route("/dropdownlist").get(isAuthenticatedUser, getParentDropdown);
+router.route("/dropdownlist").get(isAuthenticatedUser, authorizeRoles("customer_dropdown_list"), getParentDropdown);
 
 router
   .route("/")
-  .get(isAuthenticatedUser, authorizeRoles("dashboard"), getDataWithPagination);
+  .get(isAuthenticatedUser, authorizeRoles("customer_list"), getDataWithPagination);
 router
   .route("/")
-  .get(isAuthenticatedUser, authorizeRoles("dashboard"), searchCustomer);
+  .get(isAuthenticatedUser, authorizeRoles("customer_list"), searchCustomer);
 router
   .route("/:id")
-  .get(isAuthenticatedUser, authorizeRoles("dashboard"), getById);
+  .get(isAuthenticatedUser, authorizeRoles("view_customer_details"), getById);
 router
   .route("/create")
-  .post(isAuthenticatedUser, authorizeRoles("dashboard"), createData);
+  .post(isAuthenticatedUser, authorizeRoles("add_customer"), createData);
 
 router
   .route("/update/:id")
-  .put(isAuthenticatedUser, authorizeRoles("dashboard"), updateData);
-router
-  .route("/delete/:id")
-  .delete(isAuthenticatedUser, authorizeRoles("dashboard"), deleteData);
+  .put(isAuthenticatedUser, authorizeRoles("update_customer"), updateData);
+// router
+//   .route("/delete/:id")
+//   .delete(isAuthenticatedUser, authorizeRoles("dashboard"), deleteData);
 
 module.exports = router;

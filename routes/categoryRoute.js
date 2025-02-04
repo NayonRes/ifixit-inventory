@@ -15,26 +15,26 @@ const categoryModel = require("../db/models/categoryModel");
 var router = express.Router();
 
 //Must be maintain the serial of declaring router.route accordimg to less middleware use
-router.route("/dropdownlist").get(isAuthenticatedUser, getParentDropdown);
-router.route("/leaf-dropdown").get(isAuthenticatedUser, getLeafCategoryList);
+router.route("/dropdownlist").get(isAuthenticatedUser, authorizeRoles("category_dropdown_list"), getParentDropdown);
+router.route("/leaf-dropdown").get(isAuthenticatedUser, authorizeRoles("category_dropdown_list"), getLeafCategoryList);
 router
   .route("/category-filter-list")
-  .post(isAuthenticatedUser, getCategoryWiseFilterList);
+  .post(isAuthenticatedUser, authorizeRoles("category_dropdown_list"), getCategoryWiseFilterList);
 
 router
   .route("/")
-  .get(isAuthenticatedUser, authorizeRoles("dashboard"), getDataWithPagination);
+  .get(isAuthenticatedUser, authorizeRoles("category_list"), getDataWithPagination);
 router
   .route("/:id")
-  .get(isAuthenticatedUser, authorizeRoles("dashboard"), getById);
+  .get(isAuthenticatedUser, authorizeRoles("view_category_details"), getById);
 router
   .route("/create")
-  .post(isAuthenticatedUser, authorizeRoles("dashboard"), createData);
+  .post(isAuthenticatedUser, authorizeRoles("add_category"), createData);
 router
   .route("/update/:id")
-  .put(isAuthenticatedUser, authorizeRoles("dashboard"), updateData);
-router
-  .route("/delete/:id")
-  .delete(isAuthenticatedUser, authorizeRoles("dashboard"), deleteData);
+  .put(isAuthenticatedUser, authorizeRoles("update_category"), updateData);
+// router
+//   .route("/delete/:id")
+//   .delete(isAuthenticatedUser, authorizeRoles("dashboard"), deleteData);
 
 module.exports = router;
