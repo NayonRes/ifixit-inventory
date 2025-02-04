@@ -41,8 +41,8 @@ router
   .route("/update/:id")
   .put(isAuthenticatedUser, authorizeRoles("update_user"), updateData);
 // router.route("/update/:id").put(isAuthenticatedUser, authorizeRoles("per135"),updateData);
-router
-  .route("/delete/:id")
-  .delete(isAuthenticatedUser, authorizeRoles("update_user"), deleteData);
+// router
+//   .route("/delete/:id")
+//   .delete(isAuthenticatedUser, authorizeRoles("update_user"), deleteData);
 
 module.exports = router;
