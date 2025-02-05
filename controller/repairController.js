@@ -1,4 +1,5 @@
 const repairModel = require("../db/models/repairModel");
+const repairStatusHistoryModel = require("../db/models/repairStatusHistoryModel");
 const ErrorHander = require("../utils/errorHandler");
 const catchAsyncError = require("../middleware/catchAsyncError");
 const jwt = require("jsonwebtoken");
@@ -280,7 +281,18 @@ const createData = catchAsyncError(async (req, res, next) => {
     created_by: decodedData?.user?.email,
   };
   const data = await repairModel.create(newData);
-  res.send({ message: "success", status: 201, data: data });
+  // let newStatusData = {
+  //   repair_id: 1,
+  //   user_id: req.body,
+  //   repair_status_name: 1,
+  // };
+  // const statusData = await repairStatusHistoryModel.create(newStatusData);
+  res.send({
+    message: "success",
+    status: 201,
+    data: data,
+    // statusData: statusData,
+  });
 });
 
 const updateData = async (req, res, next) => {

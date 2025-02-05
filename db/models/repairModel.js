@@ -48,7 +48,7 @@ const repairSchema = mongoose.Schema({
   },
   payment_status: {
     type: String,
-    required: [true, "Please enter payment status"],
+    // required: [true, "Please enter payment status"],
   },
   repair_by: {
     type: Schema.Types.ObjectId,
