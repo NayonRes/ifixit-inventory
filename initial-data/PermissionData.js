@@ -273,16 +273,55 @@ const PermissionData = [
     module_name: "Purchase",
   },
   {
-    order_no: 3,
-    name: "View Purchase Details",
-    permission_name: "view_purchase_details",
+    order_no: 2,
+    name: "Update Purchase",
+    permission_name: "update_purchase",
     module_name: "Purchase",
   },
   {
     order_no: 4,
+    name: "View Purchase Details",
+    permission_name: "view_purchase_details",
+    module_name: "Purchase",
+  },
+
+  {
+    order_no: 5,
     name: "Purchase Dropdown List",
     permission_name: "purchase_dropdown_list",
     module_name: "Purchase",
+  },
+  // Purchase Return
+  {
+    order_no: 1,
+    name: "Purchase Return List",
+    permission_name: "purchase_return_list",
+    module_name: "Purchase Return",
+  },
+  {
+    order_no: 2,
+    name: "Add Purchase Return",
+    permission_name: "add_purchase_return",
+    module_name: "Purchase Return",
+  },
+  {
+    order_no: 2,
+    name: "Update Purchase Return",
+    permission_name: "update_purchase_return",
+    module_name: "Purchase Return",
+  },
+  {
+    order_no: 4,
+    name: "View Purchase Return Details",
+    permission_name: "view_purchase_return_details",
+    module_name: "Purchase Return",
+  },
+
+  {
+    order_no: 5,
+    name: "Purchase Return Dropdown List",
+    permission_name: "purchase_return_dropdown_list",
+    module_name: "Purchase Return",
   },
 
   // Order
