@@ -195,6 +195,37 @@ const PermissionData = [
     permission_name: "device_dropdown_list",
     module_name: "Device",
   },
+  // Model
+  {
+    order_no: 1,
+    name: "Model List",
+    permission_name: "model_list",
+    module_name: "Model",
+  },
+  {
+    order_no: 2,
+    name: "Add Model",
+    permission_name: "add_model",
+    module_name: "Model",
+  },
+  {
+    order_no: 3,
+    name: "Update Model",
+    permission_name: "update_model",
+    module_name: "Model",
+  },
+  {
+    order_no: 4,
+    name: "View Model Details",
+    permission_name: "view_model_details",
+    module_name: "Model",
+  },
+  {
+    order_no: 5,
+    name: "Model Dropdown List",
+    permission_name: "model_dropdown_list",
+    module_name: "Model",
+  },
 
   // Product
   {
@@ -317,6 +348,37 @@ const PermissionData = [
     permission_name: "service_dropdown_list",
     module_name: "Service",
   },
+  // Supplier
+  {
+    order_no: 1,
+    name: "Supplier List",
+    permission_name: "supplier_list",
+    module_name: "Supplier",
+  },
+  {
+    order_no: 2,
+    name: "Add Supplier",
+    permission_name: "add_supplier",
+    module_name: "Supplier",
+  },
+  {
+    order_no: 3,
+    name: "Update Supplier",
+    permission_name: "update_supplier",
+    module_name: "Supplier",
+  },
+  {
+    order_no: 4,
+    name: "View Supplier Details",
+    permission_name: "view_supplier_details",
+    module_name: "Supplier",
+  },
+  {
+    order_no: 5,
+    name: "Supplier Dropdown List",
+    permission_name: "supplier_dropdown_list",
+    module_name: "Supplier",
+  },
   // Stock
   {
     order_no: 1,
@@ -346,6 +408,30 @@ const PermissionData = [
     order_no: 5,
     name: "Stock Dropdown List",
     permission_name: "stock_dropdown_list",
+    module_name: "Stock",
+  },
+  {
+    order_no: 6,
+    name: "Stock Transfer List",
+    permission_name: "stock_transfer_list",
+    module_name: "Stock",
+  },
+  {
+    order_no: 7,
+    name: "Add Stock Transfer",
+    permission_name: "add_stock_transfer",
+    module_name: "Stock",
+  },
+  {
+    order_no: 8,
+    name: "Update Stock Transfer",
+    permission_name: "update_stock_transfer",
+    module_name: "Stock",
+  },
+  {
+    order_no: 9,
+    name: "View Stock Transfer Details",
+    permission_name: "view_stock_transfer_details",
     module_name: "Stock",
   },
 
@@ -412,6 +498,39 @@ const PermissionData = [
     permission_name: "role_dropdown_list",
     module_name: "Role",
   },
+
+  // Variant
+  {
+    order_no: 1,
+    name: "Variant List",
+    permission_name: "variant_list",
+    module_name: "Variant",
+  },
+  {
+    order_no: 2,
+    name: "Add Variant",
+    permission_name: "add_variant",
+    module_name: "Variant",
+  },
+  {
+    order_no: 3,
+    name: "Update Variant",
+    permission_name: "update_variant",
+    module_name: "Variant",
+  },
+  {
+    order_no: 4,
+    name: "View Variant Details",
+    permission_name: "view_variant_details",
+    module_name: "Variant",
+  },
+  {
+    order_no: 5,
+    name: "Variant Dropdown List",
+    permission_name: "variant_dropdown_list",
+    module_name: "Variant",
+  },
+
   // User
   {
     order_no: 1,
@@ -421,24 +540,30 @@ const PermissionData = [
   },
   {
     order_no: 2,
+    name: "User Management",
+    permission_name: "user_management",
+    module_name: "User",
+  },
+  {
+    order_no: 3,
     name: "Add User",
     permission_name: "add_user",
     module_name: "User",
   },
   {
-    order_no: 3,
+    order_no: 4,
     name: "Update User",
     permission_name: "update_user",
     module_name: "User",
   },
   {
-    order_no: 4,
+    order_no: 5,
     name: "View User Details",
     permission_name: "view_user_details",
     module_name: "User",
   },
   {
-    order_no: 5,
+    order_no: 6,
     name: "User Dropdown List",
     permission_name: "user_dropdown_list",
     module_name: "User",

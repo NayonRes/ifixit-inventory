@@ -281,17 +281,22 @@ const createData = catchAsyncError(async (req, res, next) => {
     created_by: decodedData?.user?.email,
   };
   const data = await repairModel.create(newData);
-  // let newStatusData = {
-  //   repair_id: 1,
-  //   user_id: req.body,
-  //   repair_status_name: 1,
-  // };
-  // const statusData = await repairStatusHistoryModel.create(newStatusData);
+
+  console.log("data *************************", data._id);
+  console.log("data *************************", data);
+
+  let newStatusData = {
+    repair_id: data._id,
+    user_id: req.body?.repair_by,
+    repair_status_name: req.body?.repair_status,
+    created_by: decodedData?.user?.email,
+  };
+  const statusData = await repairStatusHistoryModel.create(newStatusData);
   res.send({
     message: "success",
     status: 201,
     data: data,
-    // statusData: statusData,
+    statusData: statusData,
   });
 });
 
@@ -322,6 +327,14 @@ const updateData = async (req, res, next) => {
         useFindAndModified: false,
       }
     );
+
+    let newStatusData = {
+      repair_id: updateData._id,
+      user_id: req.body?.repair_by,
+      repair_status_name: req.body?.repair_status,
+      created_by: decodedData?.user?.email,
+    };
+    const statusData = await repairStatusHistoryModel.create(newStatusData);
     res.status(200).json({
       success: true,
       message: "Update successfully",
