@@ -83,6 +83,22 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
         as: "customer_data",
       },
     },
+    {
+      $lookup: {
+        from: "users",
+        localField: "repair_by",
+        foreignField: "_id",
+        as: "repair_by_data",
+      },
+    },
+    {
+      $lookup: {
+        from: "repair_status_histories",
+        localField: "_id",
+        foreignField: "repair_id",
+        as: "repair_status_history_data",
+      },
+    },
 
     {
       $lookup: {
@@ -109,6 +125,26 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
       },
     },
 
+    // {
+    //   $lookup: {
+    //     from: "users",
+    //     let: { history: "$repair_status_history_data.user_id" },
+    //     pipeline: [
+    //       {
+    //         $match: {
+    //           $expr: { $in: ["$_id", "$$history"] },
+    //         },
+    //       },
+    //       {
+    //         $project: {
+    //           _id: 1,
+    //           name: 1,
+    //         },
+    //       },
+    //     ],
+    //     as: "repair_status_users",
+    //   },
+    // },
     {
       $project: {
         _id: 1,
@@ -142,6 +178,12 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
         "branch_data._id": 1,
         "model_data.name": 1,
         "model_data._id": 1,
+        "repair_by_data.name": 1,
+        "repair_by_data._id": 1,
+        "repair_status_history_data.user_id": 1,
+        "repair_status_history_data.repair_id": 1,
+        "repair_status_history_data.repair_status_name": 1,
+        // repair_status_users: 1,
       },
     },
     {
@@ -182,6 +224,15 @@ const getById = catchAsyncError(async (req, res, next) => {
         as: "customer_data",
       },
     },
+
+    {
+      $lookup: {
+        from: "users",
+        localField: "repair_by",
+        foreignField: "_id",
+        as: "repair_by_data",
+      },
+    },
     {
       $lookup: {
         from: "devices",
@@ -240,6 +291,8 @@ const getById = catchAsyncError(async (req, res, next) => {
         "branch_data._id": 1,
         "model_data.name": 1,
         "model_data._id": 1,
+        "repair_by_data.name": 1,
+        "repair_by_data._id": 1,
       },
     },
   ]);
@@ -286,8 +339,9 @@ const createData = catchAsyncError(async (req, res, next) => {
   console.log("data *************************", data);
 
   let newStatusData = {
-    repair_id: data._id,
-    user_id: req.body?.repair_by,
+    user_id: new mongoose.Types.ObjectId(req.body?.repair_by),
+    repair_id: new mongoose.Types.ObjectId(data._id),
+
     repair_status_name: req.body?.repair_status,
     created_by: decodedData?.user?.email,
   };
@@ -329,8 +383,8 @@ const updateData = async (req, res, next) => {
     );
 
     let newStatusData = {
-      repair_id: updateData._id,
-      user_id: req.body?.repair_by,
+      user_id: new mongoose.Types.ObjectId(req.body?.repair_by),
+      repair_id: new mongoose.Types.ObjectId(data._id),
       repair_status_name: req.body?.repair_status,
       created_by: decodedData?.user?.email,
     };

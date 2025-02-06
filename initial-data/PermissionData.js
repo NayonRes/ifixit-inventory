@@ -304,25 +304,25 @@ const PermissionData = [
     permission_name: "add_purchase_return",
     module_name: "Purchase Return",
   },
-  {
-    order_no: 2,
-    name: "Update Purchase Return",
-    permission_name: "update_purchase_return",
-    module_name: "Purchase Return",
-  },
-  {
-    order_no: 4,
-    name: "View Purchase Return Details",
-    permission_name: "view_purchase_return_details",
-    module_name: "Purchase Return",
-  },
+  // {
+  //   order_no: 3,
+  //   name: "Update Purchase Return",
+  //   permission_name: "update_purchase_return",
+  //   module_name: "Purchase Return",
+  // },
+  // {
+  //   order_no: 4,
+  //   name: "View Purchase Return Details",
+  //   permission_name: "view_purchase_return_details",
+  //   module_name: "Purchase Return",
+  // },
 
-  {
-    order_no: 5,
-    name: "Purchase Return Dropdown List",
-    permission_name: "purchase_return_dropdown_list",
-    module_name: "Purchase Return",
-  },
+  // {
+  //   order_no: 5,
+  //   name: "Purchase Return Dropdown List",
+  //   permission_name: "purchase_return_dropdown_list",
+  //   module_name: "Purchase Return",
+  // },
 
   // Order
   // {
@@ -387,6 +387,110 @@ const PermissionData = [
     permission_name: "service_dropdown_list",
     module_name: "Service",
   },
+  // Spare Parts
+  {
+    order_no: 1,
+    name: "Spare Parts List",
+    permission_name: "spare_parts_list",
+    module_name: "Spare Parts",
+  },
+  {
+    order_no: 2,
+    name: "Add Spare Parts",
+    permission_name: "add_spare_parts",
+    module_name: "Spare Parts",
+  },
+  {
+    order_no: 3,
+    name: "Update Spare Parts",
+    permission_name: "update_spare_parts",
+    module_name: "Spare Parts",
+  },
+  {
+    order_no: 4,
+    name: "View Spare Parts Details",
+    permission_name: "view_spare_parts_details",
+    module_name: "Spare Parts",
+  },
+  {
+    order_no: 5,
+    name: "Spare Parts Dropdown List",
+    permission_name: "spare_parts_dropdown_list",
+    module_name: "Spare Parts",
+  },
+  // Stock
+  // {
+  //   order_no: 1,
+  //   name: "Stock List",
+  //   permission_name: "stock_list",
+  //   module_name: "Stock",
+  // },
+  // {
+  //   order_no: 2,
+  //   name: "Add Stock",
+  //   permission_name: "add_stock",
+  //   module_name: "Stock",
+  // },
+  // {
+  //   order_no: 3,
+  //   name: "Update Stock",
+  //   permission_name: "update_stock",
+  //   module_name: "Stock",
+  // },
+  // {
+  //   order_no: 4,
+  //   name: "View Stock Details",
+  //   permission_name: "view_stock_details",
+  //   module_name: "Stock",
+  // },
+  // {
+  //   order_no: 5,
+  //   name: "Stock Dropdown List",
+  //   permission_name: "stock_dropdown_list",
+  //   module_name: "Stock",
+  // },
+  {
+    order_no: 6,
+    name: "Stock Transfer List",
+    permission_name: "stock_transfer_list",
+    module_name: "Stock",
+  },
+  {
+    order_no: 7,
+    name: "Add Stock Transfer",
+    permission_name: "add_stock_transfer",
+    module_name: "Stock",
+  },
+  {
+    order_no: 8,
+    name: "Update Stock Transfer",
+    permission_name: "update_stock_transfer",
+    module_name: "Stock",
+  },
+  {
+    order_no: 9,
+    name: "View Stock Transfer Details",
+    permission_name: "view_stock_transfer_details",
+    module_name: "Stock",
+  },
+  {
+    order_no: 10,
+    name: "Stock Alert List",
+    permission_name: "stock_alert_list",
+    module_name: "Stock",
+  },
+  {
+    order_no: 11,
+    name: "Add Stock Alert",
+    permission_name: "add_stock_alret",
+    module_name: "Stock",
+  },
+  {
+    order_no: 12,
+    name: "Branch Stock List",
+    permission_name: "branch_stock_list",
+    module_name: "Stock",
+  },
   // Supplier
   {
     order_no: 1,
@@ -418,62 +522,6 @@ const PermissionData = [
     permission_name: "supplier_dropdown_list",
     module_name: "Supplier",
   },
-  // Stock
-  {
-    order_no: 1,
-    name: "Stock List",
-    permission_name: "stock_list",
-    module_name: "Stock",
-  },
-  {
-    order_no: 2,
-    name: "Add Stock",
-    permission_name: "add_stock",
-    module_name: "Stock",
-  },
-  {
-    order_no: 3,
-    name: "Update Stock",
-    permission_name: "update_stock",
-    module_name: "Stock",
-  },
-  {
-    order_no: 4,
-    name: "View Stock Details",
-    permission_name: "view_stock_details",
-    module_name: "Stock",
-  },
-  {
-    order_no: 5,
-    name: "Stock Dropdown List",
-    permission_name: "stock_dropdown_list",
-    module_name: "Stock",
-  },
-  {
-    order_no: 6,
-    name: "Stock Transfer List",
-    permission_name: "stock_transfer_list",
-    module_name: "Stock",
-  },
-  {
-    order_no: 7,
-    name: "Add Stock Transfer",
-    permission_name: "add_stock_transfer",
-    module_name: "Stock",
-  },
-  {
-    order_no: 8,
-    name: "Update Stock Transfer",
-    permission_name: "update_stock_transfer",
-    module_name: "Stock",
-  },
-  {
-    order_no: 9,
-    name: "View Stock Transfer Details",
-    permission_name: "view_stock_transfer_details",
-    module_name: "Stock",
-  },
-
   // Repair
   {
     order_no: 1,
@@ -539,36 +587,36 @@ const PermissionData = [
   },
 
   // Variant
-  {
-    order_no: 1,
-    name: "Variant List",
-    permission_name: "variant_list",
-    module_name: "Variant",
-  },
-  {
-    order_no: 2,
-    name: "Add Variant",
-    permission_name: "add_variant",
-    module_name: "Variant",
-  },
-  {
-    order_no: 3,
-    name: "Update Variant",
-    permission_name: "update_variant",
-    module_name: "Variant",
-  },
-  {
-    order_no: 4,
-    name: "View Variant Details",
-    permission_name: "view_variant_details",
-    module_name: "Variant",
-  },
-  {
-    order_no: 5,
-    name: "Variant Dropdown List",
-    permission_name: "variant_dropdown_list",
-    module_name: "Variant",
-  },
+  // {
+  //   order_no: 1,
+  //   name: "Variant List",
+  //   permission_name: "variant_list",
+  //   module_name: "Variant",
+  // },
+  // {
+  //   order_no: 2,
+  //   name: "Add Variant",
+  //   permission_name: "add_variant",
+  //   module_name: "Variant",
+  // },
+  // {
+  //   order_no: 3,
+  //   name: "Update Variant",
+  //   permission_name: "update_variant",
+  //   module_name: "Variant",
+  // },
+  // {
+  //   order_no: 4,
+  //   name: "View Variant Details",
+  //   permission_name: "view_variant_details",
+  //   module_name: "Variant",
+  // },
+  // {
+  //   order_no: 5,
+  //   name: "Variant Dropdown List",
+  //   permission_name: "variant_dropdown_list",
+  //   module_name: "Variant",
+  // },
 
   // User
   {
