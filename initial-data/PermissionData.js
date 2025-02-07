@@ -491,6 +491,12 @@ const PermissionData = [
     permission_name: "branch_stock_list",
     module_name: "Stock",
   },
+  {
+    order_no: 12,
+    name: "All Branch Stock List",
+    permission_name: "all_branch_stock_list",
+    module_name: "Stock",
+  },
   // Supplier
   {
     order_no: 1,
