@@ -138,98 +138,68 @@ const user = mongoose.model("User", userSchema);
 
 const permissions = [
   "dashboard",
-
-  // Branch
+  "blog_list",
+  "add_blog",
+  "update_blog",
+  "view_blog_details",
+  "blog_dropdown_list",
   "branch_list",
   "add_branch",
   "update_branch",
   "view_branch_details",
   "branch_dropdown_list",
-
-  // Brand
   "brand_list",
   "add_brand",
   "update_brand",
   "view_brand_details",
   "brand_dropdown_list",
-
-  // Category
   "category_list",
   "add_category",
   "update_category",
   "view_category_details",
   "category_dropdown_list",
-
-  // Customer
   "customer_list",
   "add_customer",
   "update_customer",
   "view_customer_details",
   "customer_dropdown_list",
-
-  // Device
   "device_list",
   "add_device",
   "update_device",
   "view_device_details",
   "device_dropdown_list",
-
-  // Product
-  "product_list",
-  "add_product",
-  "update_product",
-  "view_product_details",
-  "product_dropdown_list",
-
-  // Purchase
-  "purchase_list",
-  "add_purchase",
-  "view_purchase_details",
-  "purchase_dropdown_list",
-
-  // Model
   "model_list",
   "add_model",
   "update_model",
   "view_model_details",
   "model_dropdown_list",
-
-  // Order
-  "order_list",
-  "place_order",
-  "cancel_order",
-  "view_order_details",
-  "order_dropdown_list",
-
-  // Role
-  "role_list",
-  "add_role",
-  "update_role",
-  "view_role_details",
-  "role_dropdown_list",
-
-  // Spare Parts
+  "product_list",
+  "add_product",
+  "update_product",
+  "view_product_details",
+  "product_dropdown_list",
+  "purchase_list",
+  "add_purchase",
+  "update_purchase",
+  "view_purchase_details",
+  "purchase_dropdown_list",
+  "purchase_return_list",
+  "add_purchase_return",
+  "permission_list",
+  "add_permission",
+  "update_permission",
+  "view_permission_details",
+  "permission_dropdown_list",
+  "service_list",
+  "add_service",
+  "update_service",
+  "view_service_details",
+  "service_dropdown_list",
   "spare_parts_list",
-  "add_spare_part",
-  "update_spare_part",
-  "view_spare_part_details",
+  "add_spare_parts",
+  "update_spare_parts",
+  "view_spare_parts_details",
   "spare_parts_dropdown_list",
-
-  // Supplier
-  "supplier_list",
-  "add_supplier",
-  "update_supplier",
-  "view_supplier_details",
-  "supplier_dropdown_list",
-
-  // User
-  "user_list",
-  "add_user",
-  "update_user",
-  "view_user_details",
-  "user_dropdown_list",
-
-  // Stock
   "stock_list",
   "add_stock",
   "update_stock",
@@ -238,28 +208,35 @@ const permissions = [
   "stock_transfer_list",
   "add_stock_transfer",
   "update_stock_transfer",
-
-  // Repair
+  "view_stock_transfer_details",
+  "stock_alert_list",
+  "add_stock_alret",
+  "branch_stock_list",
+  "all_branch_stock_list",
+  "supplier_list",
+  "add_supplier",
+  "update_supplier",
+  "view_supplier_details",
+  "supplier_dropdown_list",
   "repair_list",
   "add_repair",
   "update_repair",
   "view_repair_details",
   "repair_dropdown_list",
+  "repair_status_list",
+  "add_repair_status",
+  "update_repair_status",
+  "view_repair_status_details",
 
-  // Service
-  "service_list",
-  "add_service",
-  "update_service",
-  "view_service_details",
-  "service_dropdown_list",
-
-  // Blog
-  "blog_list",
-  "add_blog",
-  "update_blog",
-  "view_blog_details",
-  "blog_dropdown_list",
+  // User
+  "user_list",
+  "user_management",
+  "add_user",
+  "update_user",
+  "view_user_details",
+  "user_dropdown_list",
 ];
+
 const permissions2 = [
   "dashboard",
 
@@ -326,17 +303,17 @@ let userData = [
     created_by: "Super Admin",
     permission: permissions,
   },
-  {
-    user_id: "u101",
-    name: "User",
-    email: "user@dg.com",
-    password: "user12345",
-    designation: "Employee",
-    branch_id: new mongoose.Types.ObjectId(),
-    created_by: "Super Admin",
-    mobile: "01977096655",
-    permission: permissions2,
-  },
+  // {
+  //   user_id: "u101",
+  //   name: "User",
+  //   email: "user@dg.com",
+  //   password: "user12345",
+  //   designation: "Employee",
+  //   branch_id: new mongoose.Types.ObjectId(),
+  //   created_by: "Super Admin",
+  //   mobile: "01977096655",
+  //   permission: permissions2,
+  // },
 ];
 const saveData = async () => {
   let totalData = await user.countDocuments();

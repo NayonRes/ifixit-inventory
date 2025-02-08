@@ -13,24 +13,28 @@ var router = express.Router();
 
 router
   .route("/")
-  .get(isAuthenticatedUser, authorizeRoles("dashboard"), getDataWithPagination);
+  .get(
+    isAuthenticatedUser,
+    authorizeRoles("stock_alert_list"),
+    getDataWithPagination
+  );
 router
   .route("/:id")
-  .get(isAuthenticatedUser, authorizeRoles("dashboard"), getById);
+  .get(isAuthenticatedUser, authorizeRoles("stock_alert_list"), getById);
 
 router
   .route("/create")
-  .post(isAuthenticatedUser, authorizeRoles("dashboard"), createData);
+  .post(isAuthenticatedUser, authorizeRoles("add_stock_alret"), createData);
 router
   .route("/create-limit")
-  .post(isAuthenticatedUser, authorizeRoles("dashboard"), createLimit);
+  .post(isAuthenticatedUser, authorizeRoles("add_stock_alret"), createLimit);
 
 router
   .route("/update/:id")
-  .put(isAuthenticatedUser, authorizeRoles("dashboard"), updateData);
+  .put(isAuthenticatedUser, authorizeRoles("add_stock_alret"), updateData);
 
-router
-  .route("/delete/:id")
-  .delete(isAuthenticatedUser, authorizeRoles("dashboard"), deleteData);
+// router
+//   .route("/delete/:id")
+//   .delete(isAuthenticatedUser, authorizeRoles("dashboard"), deleteData);
 
 module.exports = router;

@@ -323,7 +323,37 @@ const PermissionData = [
   //   permission_name: "purchase_return_dropdown_list",
   //   module_name: "Purchase Return",
   // },
-
+  // Permission
+  {
+    order_no: 1,
+    name: "Permission List",
+    permission_name: "permission_list",
+    module_name: "Permission",
+  },
+  {
+    order_no: 2,
+    name: "Add Permission",
+    permission_name: "add_permission",
+    module_name: "Permission",
+  },
+  {
+    order_no: 3,
+    name: "Update Permission",
+    permission_name: "update_permission",
+    module_name: "Permission",
+  },
+  {
+    order_no: 4,
+    name: "View Permission Details",
+    permission_name: "view_permission_details",
+    module_name: "Permission",
+  },
+  {
+    order_no: 5,
+    name: "Permission Dropdown List",
+    permission_name: "permission_dropdown_list",
+    module_name: "Permission",
+  },
   // Order
   // {
   //   order_no: 1,
@@ -419,36 +449,36 @@ const PermissionData = [
     module_name: "Spare Parts",
   },
   // Stock
-  // {
-  //   order_no: 1,
-  //   name: "Stock List",
-  //   permission_name: "stock_list",
-  //   module_name: "Stock",
-  // },
-  // {
-  //   order_no: 2,
-  //   name: "Add Stock",
-  //   permission_name: "add_stock",
-  //   module_name: "Stock",
-  // },
-  // {
-  //   order_no: 3,
-  //   name: "Update Stock",
-  //   permission_name: "update_stock",
-  //   module_name: "Stock",
-  // },
-  // {
-  //   order_no: 4,
-  //   name: "View Stock Details",
-  //   permission_name: "view_stock_details",
-  //   module_name: "Stock",
-  // },
-  // {
-  //   order_no: 5,
-  //   name: "Stock Dropdown List",
-  //   permission_name: "stock_dropdown_list",
-  //   module_name: "Stock",
-  // },
+  {
+    order_no: 1,
+    name: "Stock List",
+    permission_name: "stock_list",
+    module_name: "Stock",
+  },
+  {
+    order_no: 2,
+    name: "Add Stock",
+    permission_name: "add_stock",
+    module_name: "Stock",
+  },
+  {
+    order_no: 3,
+    name: "Update Stock",
+    permission_name: "update_stock",
+    module_name: "Stock",
+  },
+  {
+    order_no: 4,
+    name: "View Stock Details",
+    permission_name: "view_stock_details",
+    module_name: "Stock",
+  },
+  {
+    order_no: 5,
+    name: "Stock Dropdown List",
+    permission_name: "stock_dropdown_list",
+    module_name: "Stock",
+  },
   {
     order_no: 6,
     name: "Stock Transfer List",
@@ -528,6 +558,7 @@ const PermissionData = [
     permission_name: "supplier_dropdown_list",
     module_name: "Supplier",
   },
+
   // Repair
   {
     order_no: 1,
@@ -559,38 +590,63 @@ const PermissionData = [
     permission_name: "repair_dropdown_list",
     module_name: "Repair",
   },
+  {
+    order_no: 6,
+    name: "Repair Status List",
+    permission_name: "repair_status_list",
+    module_name: "Repair",
+  },
+  {
+    order_no: 7,
+    name: "Add Repair Status",
+    permission_name: "add_repair_status",
+    module_name: "Repair",
+  },
+  {
+    order_no: 8,
+    name: "Update Repair Status",
+    permission_name: "update_repair_status",
+    module_name: "Repair",
+  },
+
+  {
+    order_no: 9,
+    name: "View Repair Status Details",
+    permission_name: "view_repair_status_details",
+    module_name: "Repair",
+  },
 
   // Role
-  {
-    order_no: 1,
-    name: "Role List",
-    permission_name: "role_list",
-    module_name: "Role",
-  },
-  {
-    order_no: 2,
-    name: "Add Role",
-    permission_name: "add_role",
-    module_name: "Role",
-  },
-  {
-    order_no: 3,
-    name: "Update Role",
-    permission_name: "update_role",
-    module_name: "Role",
-  },
-  {
-    order_no: 4,
-    name: "View Role Details",
-    permission_name: "view_role_details",
-    module_name: "Role",
-  },
-  {
-    order_no: 5,
-    name: "Role Dropdown List",
-    permission_name: "role_dropdown_list",
-    module_name: "Role",
-  },
+  // {
+  //   order_no: 1,
+  //   name: "Role List",
+  //   permission_name: "role_list",
+  //   module_name: "Role",
+  // },
+  // {
+  //   order_no: 2,
+  //   name: "Add Role",
+  //   permission_name: "add_role",
+  //   module_name: "Role",
+  // },
+  // {
+  //   order_no: 3,
+  //   name: "Update Role",
+  //   permission_name: "update_role",
+  //   module_name: "Role",
+  // },
+  // {
+  //   order_no: 4,
+  //   name: "View Role Details",
+  //   permission_name: "view_role_details",
+  //   module_name: "Role",
+  // },
+  // {
+  //   order_no: 5,
+  //   name: "Role Dropdown List",
+  //   permission_name: "role_dropdown_list",
+  //   module_name: "Role",
+  // },
 
   // Variant
   // {

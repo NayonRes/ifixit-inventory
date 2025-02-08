@@ -19,15 +19,35 @@ var router = express.Router();
 router
   .route("/create")
   .post(isAuthenticatedUser, authorizeRoles("add_brand"), createData);
-router.route("/dropdownlist").get(isAuthenticatedUser, authorizeRoles("brand_dropdown_list"), getParentDropdown);
-router.route("/leaf-dropdown").get(isAuthenticatedUser, authorizeRoles("brand_dropdown_list"), getLeafBrandList);
+router
+  .route("/dropdownlist")
+  .get(
+    isAuthenticatedUser,
+    authorizeRoles("brand_dropdown_list"),
+    getParentDropdown
+  );
+router
+  .route("/leaf-dropdown")
+  .get(
+    isAuthenticatedUser,
+    authorizeRoles("brand_dropdown_list"),
+    getLeafBrandList
+  );
 router
   .route("/brand-filter-list")
-  .post(isAuthenticatedUser, authorizeRoles("brand_dropdown_list"), getBrandWiseFilterList);
+  .post(
+    isAuthenticatedUser,
+    authorizeRoles("brand_dropdown_list"),
+    getBrandWiseFilterList
+  );
 
 router
   .route("/")
-  .get(isAuthenticatedUser, authorizeRoles("add_brand"), getDataWithPagination);
+  .get(
+    isAuthenticatedUser,
+    authorizeRoles("brand_list"),
+    getDataWithPagination
+  );
 router
   .route("/:id")
   .get(isAuthenticatedUser, authorizeRoles("view_brand_details"), getById);

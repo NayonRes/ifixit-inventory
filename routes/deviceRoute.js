@@ -22,19 +22,47 @@ var router = express.Router();
 //   .post(createData);
 router
   .route("/parent-child-list")
-  .get(isAuthenticatedUser, authorizeRoles("device_dropdown_list"), getListGroupByParent);
-router.route("/dropdownlist").get(isAuthenticatedUser, authorizeRoles("device_dropdown_list"), getParentDropdown);
-router.route("/leaf-dropdown").get(isAuthenticatedUser, authorizeRoles("device_dropdown_list"), getLeafDeviceList);
+  .get(
+    isAuthenticatedUser,
+    authorizeRoles("device_dropdown_list"),
+    getListGroupByParent
+  );
+router
+  .route("/dropdownlist")
+  .get(
+    isAuthenticatedUser,
+    authorizeRoles("device_dropdown_list"),
+    getParentDropdown
+  );
+router
+  .route("/leaf-dropdown")
+  .get(
+    isAuthenticatedUser,
+    authorizeRoles("device_dropdown_list"),
+    getLeafDeviceList
+  );
 router
   .route("/device-filter-list")
-  .post(isAuthenticatedUser, authorizeRoles("device_dropdown_list"), getDeviceWiseFilterList);
+  .post(
+    isAuthenticatedUser,
+    authorizeRoles("device_dropdown_list"),
+    getDeviceWiseFilterList
+  );
 
 router
   .route("/")
-  .get(isAuthenticatedUser, authorizeRoles("device_list"), getDataWithPagination);
+  .get(
+    isAuthenticatedUser,
+    authorizeRoles("device_list"),
+    getDataWithPagination
+  );
 router
-    .route("/get-by-parent")
-    .get(isAuthenticatedUser, authorizeRoles("device_list"), getByParent);
+  .route("/get-by-parent")
+  .get(
+    isAuthenticatedUser,
+    authorizeRoles("device_dropdown_list"),
+    getByParent
+  );
 router
   .route("/:id")
   .get(isAuthenticatedUser, authorizeRoles("view_device_details"), getById);

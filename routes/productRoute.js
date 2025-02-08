@@ -33,9 +33,9 @@ router
 router
   .route("/update/:id")
   .put(isAuthenticatedUser, authorizeRoles("update_product"), updateData);
-router
-  .route("/patch/:id")
-  .patch(isAuthenticatedUser, authorizeRoles("update_product"), patchData);
+// router
+//   .route("/patch/:id")
+//   .patch(isAuthenticatedUser, authorizeRoles("update_product"), patchData);
 // router
 //   .route("/delete/:id")
 //   .delete(isAuthenticatedUser, authorizeRoles("dashboard"), deleteData);

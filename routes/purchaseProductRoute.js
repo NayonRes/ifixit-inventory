@@ -12,26 +12,27 @@ const {
 const { isAuthenticatedUser, authorizeRoles } = require("../middleware/auth");
 
 var router = express.Router();
-
+router.route("/last-purchase").get(isAuthenticatedUser, getLastPurchaseItem);
 router
   .route("/")
-  .get(isAuthenticatedUser, authorizeRoles("dashboard"), getDataWithPagination);
+  .get(
+    isAuthenticatedUser,
+    authorizeRoles("product_list"),
+    getDataWithPagination
+  );
 
 router
-  .route("/last-purchase")
-  .get(isAuthenticatedUser, authorizeRoles("dashboard"), getLastPurchaseItem);
-router
   .route("/:id")
-  .get(isAuthenticatedUser, authorizeRoles("dashboard"), getById);
+  .get(isAuthenticatedUser, authorizeRoles("view_product_details"), getById);
 
 router
   .route("/create")
-  .post(isAuthenticatedUser, authorizeRoles("dashboard"), createData);
+  .post(isAuthenticatedUser, authorizeRoles("add_product"), createData);
 router
   .route("/update/:id")
-  .put(isAuthenticatedUser, authorizeRoles("dashboard"), updateData);
-router
-  .route("/delete/:id")
-  .delete(isAuthenticatedUser, authorizeRoles("dashboard"), deleteData);
+  .put(isAuthenticatedUser, authorizeRoles("update_product"), updateData);
+// router
+//   .route("/delete/:id")
+//   .delete(isAuthenticatedUser, authorizeRoles("dashboard"), deleteData);
 
 module.exports = router;
