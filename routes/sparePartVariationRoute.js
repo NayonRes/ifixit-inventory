@@ -7,6 +7,7 @@ const {
   updateData,
   deleteData,
   allBranchStock,
+  branchStock,
 } = require("../controller/sparePartVariationController");
 
 const { isAuthenticatedUser, authorizeRoles } = require("../middleware/auth");
@@ -17,19 +18,18 @@ router
   .route("/")
   .get(isAuthenticatedUser, authorizeRoles("dashboard"), getDataWithPagination);
 router
-  .route("/branch-stock")
-  .get(
-    isAuthenticatedUser,
-    authorizeRoles("dashboard"),
-    allBranchStock
-  );
+  .route("/all-branch-stock")
+  .get(isAuthenticatedUser, authorizeRoles("dashboard"), allBranchStock);
 router
-  .route("/lightSearch")
-  .get(
-    isAuthenticatedUser,
-    authorizeRoles("dashboard"),
-    lightSearchWithPagination
-  );
+  .route("/branch-stock")
+  .get(isAuthenticatedUser, authorizeRoles("dashboard"), branchStock);
+// router
+//   .route("/lightSearch")
+//   .get(
+//     isAuthenticatedUser,
+//     authorizeRoles("dashboard"),
+//     lightSearchWithPagination
+//   );
 router
   .route("/:id")
   .get(isAuthenticatedUser, authorizeRoles("dashboard"), getById);

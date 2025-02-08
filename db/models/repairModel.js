@@ -14,7 +14,7 @@ const repairSchema = mongoose.Schema({
     type: String,
     required: [true, "Please enter pass code"],
   },
- // it is originally  device_id. For repair module device under primary device list is product brand list
+  // it is originally  device_id. For repair module device under primary device list is product brand list
   brand_id: {
     type: Schema.Types.ObjectId,
     ref: "deviceModel",
@@ -48,7 +48,7 @@ const repairSchema = mongoose.Schema({
   },
   payment_status: {
     type: String,
-    required: [true, "Please enter payment status"],
+    // required: [true, "Please enter payment status"],
   },
   repair_by: {
     type: Schema.Types.ObjectId,
@@ -70,7 +70,7 @@ const repairSchema = mongoose.Schema({
       name: {
         type: String,
       },
-      price: {
+      repair_cost: {
         type: Number,
         default: 0,
       },

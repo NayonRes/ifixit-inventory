@@ -1,4 +1,5 @@
 const repairModel = require("../db/models/repairModel");
+const repairStatusHistoryModel = require("../db/models/repairStatusHistoryModel");
 const ErrorHander = require("../utils/errorHandler");
 const catchAsyncError = require("../middleware/catchAsyncError");
 const jwt = require("jsonwebtoken");
@@ -82,11 +83,26 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
         as: "customer_data",
       },
     },
-
+    {
+      $lookup: {
+        from: "users",
+        localField: "repair_by",
+        foreignField: "_id",
+        as: "repair_by_data",
+      },
+    },
+    {
+      $lookup: {
+        from: "repair_status_histories",
+        localField: "_id",
+        foreignField: "repair_id",
+        as: "repair_status_history_data",
+      },
+    },
     {
       $lookup: {
         from: "devices",
-        localField: "brand_id", // it is originally  device_id. For repair module device under primary device list is product brand list
+        localField: "brand_id",
         foreignField: "_id",
         as: "brand_data",
       },
@@ -94,7 +110,7 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
     {
       $lookup: {
         from: "models",
-        localField: "model_id", // it is originally  device_id. For repair module device under primary device list is product brand list
+        localField: "model_id",
         foreignField: "_id",
         as: "model_data",
       },
@@ -107,14 +123,52 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
         as: "branch_data",
       },
     },
-
+    // Lookup users for user_id inside repair_status_history_data
+    {
+      $lookup: {
+        from: "users",
+        localField: "repair_status_history_data.user_id",
+        foreignField: "_id",
+        as: "repair_status_users",
+      },
+    },
+    // Merge repair_status_users into repair_status_history_data
+    {
+      $addFields: {
+        repair_status_history_data: {
+          $map: {
+            input: "$repair_status_history_data",
+            as: "history",
+            in: {
+              $mergeObjects: [
+                "$$history",
+                {
+                  user_data: {
+                    $arrayElemAt: [
+                      {
+                        $filter: {
+                          input: "$repair_status_users",
+                          as: "user",
+                          cond: { $eq: ["$$user._id", "$$history.user_id"] },
+                        },
+                      },
+                      0,
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+        },
+      },
+    },
     {
       $project: {
         _id: 1,
         serial: 1,
         pass_code: 1,
         customer_id: 1,
-        brand_id: 1, // it is originally  device_id. For repair module device under primary device list is product brand list
+        brand_id: 1,
         branch_id: 1,
         due_amount: 1,
         repair_id: 1,
@@ -125,28 +179,35 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
         delivery_status: 1,
         repair_checklist: 1,
         payment_info: 1,
-
         remarks: 1,
         status: 1,
         created_by: 1,
         created_at: 1,
         updated_by: 1,
         updated_at: 1,
-        "customer_data.name": 1,
-        "customer_data._id": 1,
-        "customer_data.mobile": 1,
+        customer_data: 1,
+
         "brand_data.name": 1,
         "brand_data._id": 1,
         "branch_data.name": 1,
         "branch_data._id": 1,
         "model_data.name": 1,
         "model_data._id": 1,
+        "repair_by_data.name": 1,
+        "repair_by_data._id": 1,
+        "repair_status_history_data.user_id": 1,
+        "repair_status_history_data.repair_id": 1,
+        "repair_status_history_data.repair_status_name": 1,
+        "repair_status_history_data.remarks": 1,
+        "repair_status_history_data.created_at": 1,
+        "repair_status_history_data.user_data._id": 1,
+        "repair_status_history_data.user_data.name": 1,
+        "repair_status_history_data.user_data.designation": 1,
       },
     },
     {
       $sort: { created_at: -1 },
     },
-
     {
       $skip: startIndex,
     },
@@ -183,8 +244,24 @@ const getById = catchAsyncError(async (req, res, next) => {
     },
     {
       $lookup: {
+        from: "users",
+        localField: "repair_by",
+        foreignField: "_id",
+        as: "repair_by_data",
+      },
+    },
+    {
+      $lookup: {
+        from: "repair_status_histories",
+        localField: "_id",
+        foreignField: "repair_id",
+        as: "repair_status_history_data",
+      },
+    },
+    {
+      $lookup: {
         from: "devices",
-        localField: "brand_id", // it is originally  device_id. For repair module device under primary device list is product brand list
+        localField: "brand_id",
         foreignField: "_id",
         as: "brand_data",
       },
@@ -192,7 +269,7 @@ const getById = catchAsyncError(async (req, res, next) => {
     {
       $lookup: {
         from: "models",
-        localField: "model_id", // it is originally  device_id. For repair module device under primary device list is product brand list
+        localField: "model_id",
         foreignField: "_id",
         as: "model_data",
       },
@@ -205,14 +282,52 @@ const getById = catchAsyncError(async (req, res, next) => {
         as: "branch_data",
       },
     },
-
+    // Lookup users for user_id inside repair_status_history_data
+    {
+      $lookup: {
+        from: "users",
+        localField: "repair_status_history_data.user_id",
+        foreignField: "_id",
+        as: "repair_status_users",
+      },
+    },
+    // Merge repair_status_users into repair_status_history_data
+    {
+      $addFields: {
+        repair_status_history_data: {
+          $map: {
+            input: "$repair_status_history_data",
+            as: "history",
+            in: {
+              $mergeObjects: [
+                "$$history",
+                {
+                  user_data: {
+                    $arrayElemAt: [
+                      {
+                        $filter: {
+                          input: "$repair_status_users",
+                          as: "user",
+                          cond: { $eq: ["$$user._id", "$$history.user_id"] },
+                        },
+                      },
+                      0,
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+        },
+      },
+    },
     {
       $project: {
         _id: 1,
         serial: 1,
         pass_code: 1,
         customer_id: 1,
-        brand_id: 1, // it is originally  device_id. For repair module device under primary device list is product brand list
+        brand_id: 1,
         branch_id: 1,
         due_amount: 1,
         repair_id: 1,
@@ -223,25 +338,118 @@ const getById = catchAsyncError(async (req, res, next) => {
         delivery_status: 1,
         repair_checklist: 1,
         payment_info: 1,
-
         remarks: 1,
         status: 1,
         created_by: 1,
         created_at: 1,
         updated_by: 1,
         updated_at: 1,
-        "customer_data.name": 1,
-        "customer_data._id": 1,
-        "customer_data.mobile": 1,
+        customer_data: 1,
+
         "brand_data.name": 1,
         "brand_data._id": 1,
         "branch_data.name": 1,
         "branch_data._id": 1,
         "model_data.name": 1,
         "model_data._id": 1,
+        "repair_by_data.name": 1,
+        "repair_by_data._id": 1,
+        "repair_status_history_data.user_id": 1,
+        "repair_status_history_data.repair_id": 1,
+        "repair_status_history_data.repair_status_name": 1,
+        "repair_status_history_data.remarks": 1,
+        "repair_status_history_data.created_at": 1,
+        "repair_status_history_data.user_data._id": 1,
+        "repair_status_history_data.user_data.name": 1,
+        "repair_status_history_data.user_data.designation": 1,
       },
     },
   ]);
+
+  // const data = await repairModel.aggregate([
+  //   {
+  //     $match: { _id: mongoose.Types.ObjectId(id) },
+  //   },
+  //   {
+  //     $lookup: {
+  //       from: "customers",
+  //       localField: "customer_id",
+  //       foreignField: "_id",
+  //       as: "customer_data",
+  //     },
+  //   },
+
+  //   {
+  //     $lookup: {
+  //       from: "users",
+  //       localField: "repair_by",
+  //       foreignField: "_id",
+  //       as: "repair_by_data",
+  //     },
+  //   },
+  //   {
+  //     $lookup: {
+  //       from: "devices",
+  //       localField: "brand_id", // it is originally  device_id. For repair module device under primary device list is product brand list
+  //       foreignField: "_id",
+  //       as: "brand_data",
+  //     },
+  //   },
+  //   {
+  //     $lookup: {
+  //       from: "models",
+  //       localField: "model_id", // it is originally  device_id. For repair module device under primary device list is product brand list
+  //       foreignField: "_id",
+  //       as: "model_data",
+  //     },
+  //   },
+  //   {
+  //     $lookup: {
+  //       from: "branches",
+  //       localField: "branch_id",
+  //       foreignField: "_id",
+  //       as: "branch_data",
+  //     },
+  //   },
+
+  //   {
+  //     $project: {
+  //       _id: 1,
+  //       serial: 1,
+  //       pass_code: 1,
+  //       customer_id: 1,
+  //       brand_id: 1, // it is originally  device_id. For repair module device under primary device list is product brand list
+  //       branch_id: 1,
+  //       due_amount: 1,
+  //       repair_id: 1,
+  //       repair_by: 1,
+  //       repair_status: 1,
+  //       issues: 1,
+  //       spare_parts: 1,
+  //       delivery_status: 1,
+  //       repair_checklist: 1,
+  //       payment_info: 1,
+
+  //       remarks: 1,
+  //       status: 1,
+  //       created_by: 1,
+  //       created_at: 1,
+  //       updated_by: 1,
+  //       updated_at: 1,
+  //       "customer_data.name": 1,
+  //       "customer_data._id": 1,
+  //       "customer_data.mobile": 1,
+  //       "brand_data.name": 1,
+  //       "brand_data._id": 1,
+  //       "branch_data.name": 1,
+  //       "branch_data._id": 1,
+  //       "model_data.name": 1,
+  //       "model_data._id": 1,
+  //       "repair_by_data.name": 1,
+  //       "repair_by_data._id": 1,
+  //     },
+  //   },
+  // ]);
 
   if (!data || data.length === 0) {
     return next(new ErrorHander("No data found", 404));
@@ -280,7 +488,24 @@ const createData = catchAsyncError(async (req, res, next) => {
     created_by: decodedData?.user?.email,
   };
   const data = await repairModel.create(newData);
-  res.send({ message: "success", status: 201, data: data });
+
+  console.log("data *************************", data._id);
+  console.log("data *************************", data);
+
+  let newStatusData = {
+    user_id: new mongoose.Types.ObjectId(req.body?.repair_by),
+    repair_id: new mongoose.Types.ObjectId(data._id),
+
+    repair_status_name: req.body?.repair_status,
+    created_by: decodedData?.user?.email,
+  };
+  const statusData = await repairStatusHistoryModel.create(newStatusData);
+  res.send({
+    message: "success",
+    status: 201,
+    data: data,
+    statusData: statusData,
+  });
 });
 
 const updateData = async (req, res, next) => {
@@ -310,6 +535,14 @@ const updateData = async (req, res, next) => {
         useFindAndModified: false,
       }
     );
+
+    let newStatusData = {
+      user_id: new mongoose.Types.ObjectId(req.body?.repair_by),
+      repair_id: new mongoose.Types.ObjectId(data._id),
+      repair_status_name: req.body?.repair_status,
+      created_by: decodedData?.user?.email,
+    };
+    const statusData = await repairStatusHistoryModel.create(newStatusData);
     res.status(200).json({
       success: true,
       message: "Update successfully",

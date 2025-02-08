@@ -235,6 +235,9 @@ const permissions = [
   "update_stock",
   "view_stock_details",
   "stock_dropdown_list",
+  "stock_transfer_list",
+  "add_stock_transfer",
+  "update_stock_transfer",
 
   // Repair
   "repair_list",
@@ -304,6 +307,7 @@ const permissions2 = [
 
   // User
   "user_list",
+  "user_management",
   "add_user",
   "update_user",
   "view_user_details",

@@ -39,10 +39,8 @@ const lightSearchWithPagination = catchAsyncError(async (req, res, next) => {
 const mongoose = require("mongoose");
 const { ObjectId } = mongoose.Types;
 
-const allBranchStock = catchAsyncError(async (req, res, next) => {
+const branchStock = catchAsyncError(async (req, res, next) => {
   // Retrieve all branches
-  const branchList = await branchModel.find({}, "name _id").lean();
-  const allBranches = branchList.map((b) => new ObjectId(b._id)); // Convert to ObjectId
 
   const page = parseInt(req.query.page) || 1;
   const limit = parseInt(req.query.limit) || 10;
@@ -52,6 +50,18 @@ const allBranchStock = catchAsyncError(async (req, res, next) => {
   if (req.query.name) {
     query.name = new RegExp(`^${req.query.name}$`, "i");
   }
+  // ai table nai  branch_id
+  // if (req.query.branch_id) {
+  //   query.branch_id = new mongoose.Types.ObjectId(req.query.branch_id);
+  // }
+  if (req.query.spare_parts_id) {
+    query.spare_parts_id = new mongoose.Types.ObjectId(
+      req.query.spare_parts_id
+    );
+  }
+  if (req.query.spare_parts_variation_id) {
+    query._id = new mongoose.Types.ObjectId(req.query.spare_parts_variation_id);
+  }
   if (req.query.status) {
     query.status = req.query.status;
   }
@@ -60,6 +70,8 @@ const allBranchStock = catchAsyncError(async (req, res, next) => {
 
   const data = await sparePartVariationModel.aggregate([
     { $match: query },
+
+    // Lookup sparepart data
     {
       $lookup: {
         from: "spareparts",
@@ -68,25 +80,34 @@ const allBranchStock = catchAsyncError(async (req, res, next) => {
         as: "sparepart_data",
       },
     },
+
+    // Lookup stock data from stock_counter_and_limits
     {
       $lookup: {
-        from: "stock_counter_and_limit",
-        localField: "_id",
-        foreignField: "spare_parts_variation_id",
+        from: "stock_counter_and_limits",
+        let: {
+          variationId: "$_id",
+          branchId: new mongoose.Types.ObjectId(req.query.branch_id),
+        }, // Store spare_parts_variation_id and branch_id
+        pipeline: [
+          {
+            $match: {
+              $expr: {
+                $and: [
+                  { $eq: ["$spare_parts_variation_id", "$$variationId"] }, // Match variation ID
+                  { $eq: ["$branch_id", "$$branchId"] },
+                ],
+              },
+            },
+          },
+        ],
         as: "stock_data",
       },
     },
-    {
-      $addFields: {
-        stock_data: {
-          $filter: {
-            input: "$stock_data",
-            as: "stock",
-            cond: { $in: ["$$stock.branch_id", allBranches] }, // Ensure branch_id is in allBranches
-          },
-        },
-      },
-    },
+
+    // Structure stock data per branch
+
+    // Final projection
     {
       $project: {
         _id: 1,
@@ -100,9 +121,140 @@ const allBranchStock = catchAsyncError(async (req, res, next) => {
         updated_at: 1,
         "sparepart_data._id": 1,
         "sparepart_data.name": 1,
-        stock_data: 1, // Include filtered stock data
+        stock_data: 1, // Include structured stock data per branch
       },
     },
+
+    // Pagination
+    { $skip: startIndex },
+    { $limit: limit },
+  ]);
+
+  res.status(200).json({
+    success: true,
+    message: "successful",
+    data: data,
+    totalData: totalData,
+    pageNo: page,
+    limit: limit,
+  });
+});
+const allBranchStock = catchAsyncError(async (req, res, next) => {
+  // Retrieve all branches
+  const branchList = await branchModel.find({}, "name _id").lean();
+  const allBranches = branchList.map((b) => new ObjectId(b._id)); // Convert to ObjectId
+
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 10;
+  const startIndex = (page - 1) * limit;
+
+  let query = {};
+  if (req.query.name) {
+    query.name = new RegExp(`^${req.query.name}$`, "i");
+  }
+  // ai table nai  branch_id
+  // if (req.query.branch_id) {
+  //   query.branch_id = new mongoose.Types.ObjectId(req.query.branch_id);
+  // }
+  if (req.query.spare_parts_id) {
+    query.spare_parts_id = new mongoose.Types.ObjectId(
+      req.query.spare_parts_id
+    );
+  }
+  if (req.query.spare_parts_variation_id) {
+    query._id = new mongoose.Types.ObjectId(req.query.spare_parts_variation_id);
+  }
+  if (req.query.status) {
+    query.status = req.query.status;
+  }
+
+  const totalData = await sparePartVariationModel.countDocuments(query);
+
+  const data = await sparePartVariationModel.aggregate([
+    { $match: query },
+
+    // Lookup sparepart data
+    {
+      $lookup: {
+        from: "spareparts",
+        localField: "spare_parts_id",
+        foreignField: "_id",
+        as: "sparepart_data",
+      },
+    },
+
+    // Lookup stock data from stock_counter_and_limits
+    {
+      $lookup: {
+        from: "stock_counter_and_limits",
+        let: { variationId: "$_id" }, // Store spare_parts_variation_id
+        pipeline: [
+          {
+            $match: {
+              $expr: {
+                $eq: ["$spare_parts_variation_id", "$$variationId"], // Match variation ID
+              },
+            },
+          },
+        ],
+        as: "stock_data",
+      },
+    },
+
+    // Structure stock data per branch
+    {
+      $addFields: {
+        stock_data: {
+          $map: {
+            input: allBranches, // Loop through all branches
+            as: "branch",
+            in: {
+              branch_id: "$$branch", // Assign branch ID
+              stock: {
+                //   $filter: {
+                //     input: "$stock_data", // Filter the joined stock data
+                //     as: "stock",
+                //     cond: {
+                //       $eq: ["$$stock.branch_id", "$$branch"],
+                //     }, // Match branch_id
+                //   },
+
+                $filter: {
+                  input: "$stock_data", // Filter the joined stock data
+                  as: "stock",
+                  cond: {
+                    $and: [
+                      { $eq: ["$$stock.branch_id", "$$branch"] }, // Match branch_id
+                      { $eq: ["$$stock.spare_parts_variation_id", "$_id"] }, // Match spare_parts_variation_id
+                    ],
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+
+    // Final projection
+    {
+      $project: {
+        _id: 1,
+        name: 1,
+        price: 1,
+        image: 1,
+        status: 1,
+        created_by: 1,
+        created_at: 1,
+        updated_by: 1,
+        updated_at: 1,
+        "sparepart_data._id": 1,
+        "sparepart_data.name": 1,
+        stock_data: 1, // Include structured stock data per branch
+      },
+    },
+
+    // Pagination
     { $skip: startIndex },
     { $limit: limit },
   ]);
@@ -309,4 +461,5 @@ module.exports = {
   updateData,
   deleteData,
   allBranchStock,
+  branchStock,
 };
