@@ -16,6 +16,24 @@ const deviceSchema = mongoose.Schema({
     // default: 10000,
     // required: [true, "Please enter parent name"],
   },
+  image: {
+    public_id: {
+      type: String,
+      // required: true,
+    },
+    url: {
+      type: String,
+      // required: true,
+    },
+  },
+  icon: {
+    public_id: {
+      type: String,
+    },
+    url: {
+      type: String,
+    },
+  },
   remarks: {
     type: String,
   },

@@ -1,317 +1,720 @@
 const PermissionData = [
   {
-    permission_id: "per101",
     order_no: 1,
     name: "Dashboard",
     permission_name: "dashboard",
     module_name: "Dashboard",
   },
-
-  //----------------Branch----------------
+  // Blog
   {
-    permission_id: "per102",
+    order_no: 1,
+    name: "Blog List",
+    permission_name: "blog_list",
+    module_name: "Blog",
+  },
+  {
+    order_no: 2,
+    name: "Add Blog",
+    permission_name: "add_blog",
+    module_name: "Blog",
+  },
+  {
+    order_no: 3,
+    name: "Update Blog",
+    permission_name: "update_blog",
+    module_name: "Blog",
+  },
+  {
+    order_no: 4,
+    name: "View Blog Details",
+    permission_name: "view_blog_details",
+    module_name: "Blog",
+  },
+  {
+    order_no: 5,
+    name: "Blog Dropdown List",
+    permission_name: "blog_dropdown_list",
+    module_name: "Blog",
+  },
+  // Branch
+  {
     order_no: 1,
     name: "Branch List",
     permission_name: "branch_list",
     module_name: "Branch",
   },
   {
-    permission_id: "per103",
     order_no: 2,
     name: "Add Branch",
     permission_name: "add_branch",
     module_name: "Branch",
   },
   {
-    permission_id: "per104",
     order_no: 3,
     name: "Update Branch",
     permission_name: "update_branch",
     module_name: "Branch",
   },
-
-  //----------------Brand----------------
   {
-    permission_id: "per105",
+    order_no: 4,
+    name: "View Branch Details",
+    permission_name: "view_branch_details",
+    module_name: "Branch",
+  },
+  {
+    order_no: 5,
+    name: "Branch Dropdown List",
+    permission_name: "branch_dropdown_list",
+    module_name: "Branch",
+  },
+
+  // Brand
+  {
     order_no: 1,
     name: "Brand List",
     permission_name: "brand_list",
     module_name: "Brand",
   },
   {
-    permission_id: "per106",
     order_no: 2,
     name: "Add Brand",
     permission_name: "add_brand",
     module_name: "Brand",
   },
   {
-    permission_id: "per107",
     order_no: 3,
     name: "Update Brand",
     permission_name: "update_brand",
     module_name: "Brand",
   },
-
-  //----------------Category----------------
   {
-    permission_id: "per108",
+    order_no: 4,
+    name: "View Brand Details",
+    permission_name: "view_brand_details",
+    module_name: "Brand",
+  },
+  {
+    order_no: 5,
+    name: "Brand Dropdown List",
+    permission_name: "brand_dropdown_list",
+    module_name: "Brand",
+  },
+
+  // Category
+  {
     order_no: 1,
     name: "Category List",
     permission_name: "category_list",
     module_name: "Category",
   },
   {
-    permission_id: "per109",
     order_no: 2,
     name: "Add Category",
     permission_name: "add_category",
     module_name: "Category",
   },
   {
-    permission_id: "per110",
     order_no: 3,
     name: "Update Category",
     permission_name: "update_category",
     module_name: "Category",
   },
-
-  //----------------Customer----------------
   {
-    permission_id: "per111",
+    order_no: 4,
+    name: "View Category Details",
+    permission_name: "view_category_details",
+    module_name: "Category",
+  },
+  {
+    order_no: 5,
+    name: "Category Dropdown List",
+    permission_name: "category_dropdown_list",
+    module_name: "Category",
+  },
+
+  // Customer
+  {
     order_no: 1,
     name: "Customer List",
     permission_name: "customer_list",
     module_name: "Customer",
   },
   {
-    permission_id: "per112",
     order_no: 2,
     name: "Add Customer",
     permission_name: "add_customer",
     module_name: "Customer",
   },
   {
-    permission_id: "per113",
     order_no: 3,
     name: "Update Customer",
     permission_name: "update_customer",
     module_name: "Customer",
   },
-
-  //----------------Device----------------
   {
-    permission_id: "per114",
+    order_no: 4,
+    name: "View Customer Details",
+    permission_name: "view_customer_details",
+    module_name: "Customer",
+  },
+  {
+    order_no: 5,
+    name: "Customer Dropdown List",
+    permission_name: "customer_dropdown_list",
+    module_name: "Customer",
+  },
+
+  // Device
+  {
     order_no: 1,
     name: "Device List",
     permission_name: "device_list",
     module_name: "Device",
   },
   {
-    permission_id: "per115",
     order_no: 2,
     name: "Add Device",
     permission_name: "add_device",
     module_name: "Device",
   },
   {
-    permission_id: "per116",
     order_no: 3,
     name: "Update Device",
     permission_name: "update_device",
     module_name: "Device",
   },
-
-  //----------------Filter----------------
   {
-    permission_id: "per117",
-    order_no: 1,
-    name: "Filter Options",
-    permission_name: "filter_options",
-    module_name: "Filter",
+    order_no: 4,
+    name: "View Device Details",
+    permission_name: "view_device_details",
+    module_name: "Device",
   },
   {
-    permission_id: "per118",
-    order_no: 2,
-    name: "Apply Filters",
-    permission_name: "apply_filters",
-    module_name: "Filter",
+    order_no: 5,
+    name: "Device Dropdown List",
+    permission_name: "device_dropdown_list",
+    module_name: "Device",
   },
-
-  //----------------Product----------------
+  // Model
   {
-    permission_id: "per119",
-    order_no: 1,
-    name: "Product List",
-    permission_name: "product_list",
-    module_name: "Product",
-  },
-  {
-    permission_id: "per120",
-    order_no: 2,
-    name: "Add Product",
-    permission_name: "add_product",
-    module_name: "Product",
-  },
-  {
-    permission_id: "per121",
-    order_no: 3,
-    name: "Update Product",
-    permission_name: "update_product",
-    module_name: "Product",
-  },
-
-  //----------------Purchase----------------
-  {
-    permission_id: "per122",
-    order_no: 1,
-    name: "Purchase List",
-    permission_name: "purchase_list",
-    module_name: "Purchase",
-  },
-  {
-    permission_id: "per123",
-    order_no: 2,
-    name: "Add Purchase",
-    permission_name: "add_purchase",
-    module_name: "Purchase",
-  },
-
-  //----------------Model----------------
-  {
-    permission_id: "per124",
     order_no: 1,
     name: "Model List",
     permission_name: "model_list",
     module_name: "Model",
   },
   {
-    permission_id: "per125",
     order_no: 2,
     name: "Add Model",
     permission_name: "add_model",
     module_name: "Model",
   },
   {
-    permission_id: "per126",
     order_no: 3,
     name: "Update Model",
     permission_name: "update_model",
     module_name: "Model",
   },
-
-  //----------------Order----------------
   {
-    permission_id: "per127",
+    order_no: 4,
+    name: "View Model Details",
+    permission_name: "view_model_details",
+    module_name: "Model",
+  },
+  {
+    order_no: 5,
+    name: "Model Dropdown List",
+    permission_name: "model_dropdown_list",
+    module_name: "Model",
+  },
+
+  // Product
+  {
     order_no: 1,
-    name: "Order List",
-    permission_name: "order_list",
-    module_name: "Order",
+    name: "Product List",
+    permission_name: "product_list",
+    module_name: "Product",
   },
   {
-    permission_id: "per128",
     order_no: 2,
-    name: "Place Order",
-    permission_name: "place_order",
-    module_name: "Order",
+    name: "Add Product",
+    permission_name: "add_product",
+    module_name: "Product",
   },
   {
-    permission_id: "per129",
     order_no: 3,
-    name: "Cancel Order",
-    permission_name: "cancel_order",
-    module_name: "Order",
+    name: "Update Product",
+    permission_name: "update_product",
+    module_name: "Product",
+  },
+  {
+    order_no: 4,
+    name: "View Product Details",
+    permission_name: "view_product_details",
+    module_name: "Product",
+  },
+  {
+    order_no: 5,
+    name: "Product Dropdown List",
+    permission_name: "product_dropdown_list",
+    module_name: "Product",
   },
 
-  //----------------Role----------------
+  // Purchase
   {
-    permission_id: "per130",
     order_no: 1,
-    name: "Role List",
-    permission_name: "role_list",
-    module_name: "Role",
+    name: "Purchase List",
+    permission_name: "purchase_list",
+    module_name: "Purchase",
   },
   {
-    permission_id: "per131",
     order_no: 2,
-    name: "Add Role",
-    permission_name: "add_role",
-    module_name: "Role",
+    name: "Add Purchase",
+    permission_name: "add_purchase",
+    module_name: "Purchase",
   },
   {
-    permission_id: "per132",
-    order_no: 3,
-    name: "Update Role",
-    permission_name: "update_role",
-    module_name: "Role",
+    order_no: 2,
+    name: "Update Purchase",
+    permission_name: "update_purchase",
+    module_name: "Purchase",
+  },
+  {
+    order_no: 4,
+    name: "View Purchase Details",
+    permission_name: "view_purchase_details",
+    module_name: "Purchase",
   },
 
-  //----------------Spare Parts----------------
   {
-    permission_id: "per133",
+    order_no: 5,
+    name: "Purchase Dropdown List",
+    permission_name: "purchase_dropdown_list",
+    module_name: "Purchase",
+  },
+  // Purchase Return
+  {
+    order_no: 1,
+    name: "Purchase Return List",
+    permission_name: "purchase_return_list",
+    module_name: "Purchase Return",
+  },
+  {
+    order_no: 2,
+    name: "Add Purchase Return",
+    permission_name: "add_purchase_return",
+    module_name: "Purchase Return",
+  },
+  // {
+  //   order_no: 3,
+  //   name: "Update Purchase Return",
+  //   permission_name: "update_purchase_return",
+  //   module_name: "Purchase Return",
+  // },
+  // {
+  //   order_no: 4,
+  //   name: "View Purchase Return Details",
+  //   permission_name: "view_purchase_return_details",
+  //   module_name: "Purchase Return",
+  // },
+
+  // {
+  //   order_no: 5,
+  //   name: "Purchase Return Dropdown List",
+  //   permission_name: "purchase_return_dropdown_list",
+  //   module_name: "Purchase Return",
+  // },
+  // Permission
+  {
+    order_no: 1,
+    name: "Permission List",
+    permission_name: "permission_list",
+    module_name: "Permission",
+  },
+  {
+    order_no: 2,
+    name: "Add Permission",
+    permission_name: "add_permission",
+    module_name: "Permission",
+  },
+  {
+    order_no: 3,
+    name: "Update Permission",
+    permission_name: "update_permission",
+    module_name: "Permission",
+  },
+  {
+    order_no: 4,
+    name: "View Permission Details",
+    permission_name: "view_permission_details",
+    module_name: "Permission",
+  },
+  {
+    order_no: 5,
+    name: "Permission Dropdown List",
+    permission_name: "permission_dropdown_list",
+    module_name: "Permission",
+  },
+  // Order
+  // {
+  //   order_no: 1,
+  //   name: "Order List",
+  //   permission_name: "order_list",
+  //   module_name: "Order",
+  // },
+  // {
+  //   order_no: 2,
+  //   name: "Place Order",
+  //   permission_name: "place_order",
+  //   module_name: "Order",
+  // },
+  // {
+  //   order_no: 3,
+  //   name: "Cancel Order",
+  //   permission_name: "cancel_order",
+  //   module_name: "Order",
+  // },
+  // {
+  //   order_no: 4,
+  //   name: "View Order Details",
+  //   permission_name: "view_order_details",
+  //   module_name: "Order",
+  // },
+  // {
+  //   order_no: 5,
+  //   name: "Order Dropdown List",
+  //   permission_name: "order_dropdown_list",
+  //   module_name: "Order",
+  // },
+
+  // Service
+  {
+    order_no: 1,
+    name: "Service List",
+    permission_name: "service_list",
+    module_name: "Service",
+  },
+  {
+    order_no: 2,
+    name: "Add Service",
+    permission_name: "add_service",
+    module_name: "Service",
+  },
+  {
+    order_no: 3,
+    name: "Update Service",
+    permission_name: "update_service",
+    module_name: "Service",
+  },
+  {
+    order_no: 4,
+    name: "View Service Details",
+    permission_name: "view_service_details",
+    module_name: "Service",
+  },
+  {
+    order_no: 5,
+    name: "Service Dropdown List",
+    permission_name: "service_dropdown_list",
+    module_name: "Service",
+  },
+  // Spare Parts
+  {
     order_no: 1,
     name: "Spare Parts List",
     permission_name: "spare_parts_list",
     module_name: "Spare Parts",
   },
   {
-    permission_id: "per134",
     order_no: 2,
-    name: "Add Spare Part",
-    permission_name: "add_spare_part",
+    name: "Add Spare Parts",
+    permission_name: "add_spare_parts",
     module_name: "Spare Parts",
   },
   {
-    permission_id: "per135",
     order_no: 3,
-    name: "Update Spare Part",
-    permission_name: "update_spare_part",
+    name: "Update Spare Parts",
+    permission_name: "update_spare_parts",
     module_name: "Spare Parts",
   },
-
-  //----------------Supplier----------------
   {
-    permission_id: "per136",
+    order_no: 4,
+    name: "View Spare Parts Details",
+    permission_name: "view_spare_parts_details",
+    module_name: "Spare Parts",
+  },
+  {
+    order_no: 5,
+    name: "Spare Parts Dropdown List",
+    permission_name: "spare_parts_dropdown_list",
+    module_name: "Spare Parts",
+  },
+  // Stock
+  {
+    order_no: 1,
+    name: "Stock List",
+    permission_name: "stock_list",
+    module_name: "Stock",
+  },
+  {
+    order_no: 2,
+    name: "Add Stock",
+    permission_name: "add_stock",
+    module_name: "Stock",
+  },
+  {
+    order_no: 3,
+    name: "Update Stock",
+    permission_name: "update_stock",
+    module_name: "Stock",
+  },
+  {
+    order_no: 4,
+    name: "View Stock Details",
+    permission_name: "view_stock_details",
+    module_name: "Stock",
+  },
+  {
+    order_no: 5,
+    name: "Stock Dropdown List",
+    permission_name: "stock_dropdown_list",
+    module_name: "Stock",
+  },
+  {
+    order_no: 6,
+    name: "Stock Transfer List",
+    permission_name: "stock_transfer_list",
+    module_name: "Stock",
+  },
+  {
+    order_no: 7,
+    name: "Add Stock Transfer",
+    permission_name: "add_stock_transfer",
+    module_name: "Stock",
+  },
+  {
+    order_no: 8,
+    name: "Update Stock Transfer",
+    permission_name: "update_stock_transfer",
+    module_name: "Stock",
+  },
+  {
+    order_no: 9,
+    name: "View Stock Transfer Details",
+    permission_name: "view_stock_transfer_details",
+    module_name: "Stock",
+  },
+  {
+    order_no: 10,
+    name: "Stock Alert List",
+    permission_name: "stock_alert_list",
+    module_name: "Stock",
+  },
+  {
+    order_no: 11,
+    name: "Add Stock Alert",
+    permission_name: "add_stock_alret",
+    module_name: "Stock",
+  },
+  {
+    order_no: 12,
+    name: "Branch Stock List",
+    permission_name: "branch_stock_list",
+    module_name: "Stock",
+  },
+  {
+    order_no: 12,
+    name: "All Branch Stock List",
+    permission_name: "all_branch_stock_list",
+    module_name: "Stock",
+  },
+  // Supplier
+  {
     order_no: 1,
     name: "Supplier List",
     permission_name: "supplier_list",
     module_name: "Supplier",
   },
   {
-    permission_id: "per137",
     order_no: 2,
     name: "Add Supplier",
     permission_name: "add_supplier",
     module_name: "Supplier",
   },
   {
-    permission_id: "per138",
     order_no: 3,
     name: "Update Supplier",
     permission_name: "update_supplier",
     module_name: "Supplier",
   },
-
-  //----------------User----------------
   {
-    permission_id: "per139",
+    order_no: 4,
+    name: "View Supplier Details",
+    permission_name: "view_supplier_details",
+    module_name: "Supplier",
+  },
+  {
+    order_no: 5,
+    name: "Supplier Dropdown List",
+    permission_name: "supplier_dropdown_list",
+    module_name: "Supplier",
+  },
+
+  // Repair
+  {
+    order_no: 1,
+    name: "Repair List",
+    permission_name: "repair_list",
+    module_name: "Repair",
+  },
+  {
+    order_no: 2,
+    name: "Add Repair",
+    permission_name: "add_repair",
+    module_name: "Repair",
+  },
+  {
+    order_no: 3,
+    name: "Update Repair",
+    permission_name: "update_repair",
+    module_name: "Repair",
+  },
+  {
+    order_no: 4,
+    name: "View Repair Details",
+    permission_name: "view_repair_details",
+    module_name: "Repair",
+  },
+  {
+    order_no: 5,
+    name: "Repair Dropdown List",
+    permission_name: "repair_dropdown_list",
+    module_name: "Repair",
+  },
+  {
+    order_no: 6,
+    name: "Repair Status List",
+    permission_name: "repair_status_list",
+    module_name: "Repair",
+  },
+  {
+    order_no: 7,
+    name: "Add Repair Status",
+    permission_name: "add_repair_status",
+    module_name: "Repair",
+  },
+  {
+    order_no: 8,
+    name: "Update Repair Status",
+    permission_name: "update_repair_status",
+    module_name: "Repair",
+  },
+
+  {
+    order_no: 9,
+    name: "View Repair Status Details",
+    permission_name: "view_repair_status_details",
+    module_name: "Repair",
+  },
+
+  // Role
+  // {
+  //   order_no: 1,
+  //   name: "Role List",
+  //   permission_name: "role_list",
+  //   module_name: "Role",
+  // },
+  // {
+  //   order_no: 2,
+  //   name: "Add Role",
+  //   permission_name: "add_role",
+  //   module_name: "Role",
+  // },
+  // {
+  //   order_no: 3,
+  //   name: "Update Role",
+  //   permission_name: "update_role",
+  //   module_name: "Role",
+  // },
+  // {
+  //   order_no: 4,
+  //   name: "View Role Details",
+  //   permission_name: "view_role_details",
+  //   module_name: "Role",
+  // },
+  // {
+  //   order_no: 5,
+  //   name: "Role Dropdown List",
+  //   permission_name: "role_dropdown_list",
+  //   module_name: "Role",
+  // },
+
+  // Variant
+  // {
+  //   order_no: 1,
+  //   name: "Variant List",
+  //   permission_name: "variant_list",
+  //   module_name: "Variant",
+  // },
+  // {
+  //   order_no: 2,
+  //   name: "Add Variant",
+  //   permission_name: "add_variant",
+  //   module_name: "Variant",
+  // },
+  // {
+  //   order_no: 3,
+  //   name: "Update Variant",
+  //   permission_name: "update_variant",
+  //   module_name: "Variant",
+  // },
+  // {
+  //   order_no: 4,
+  //   name: "View Variant Details",
+  //   permission_name: "view_variant_details",
+  //   module_name: "Variant",
+  // },
+  // {
+  //   order_no: 5,
+  //   name: "Variant Dropdown List",
+  //   permission_name: "variant_dropdown_list",
+  //   module_name: "Variant",
+  // },
+
+  // User
+  {
     order_no: 1,
     name: "User List",
     permission_name: "user_list",
     module_name: "User",
   },
   {
-    permission_id: "per140",
     order_no: 2,
+    name: "User Management",
+    permission_name: "user_management",
+    module_name: "User",
+  },
+  {
+    order_no: 3,
     name: "Add User",
     permission_name: "add_user",
     module_name: "User",
   },
   {
-    permission_id: "per141",
-    order_no: 3,
+    order_no: 4,
     name: "Update User",
     permission_name: "update_user",
+    module_name: "User",
+  },
+  {
+    order_no: 5,
+    name: "View User Details",
+    permission_name: "view_user_details",
+    module_name: "User",
+  },
+  {
+    order_no: 6,
+    name: "User Dropdown List",
+    permission_name: "user_dropdown_list",
     module_name: "User",
   },
 ];

@@ -25,6 +25,8 @@ const OrderSchema = new mongoose.Schema({
   customer_phone: {
     type: String,
     required: [true, "Please enter customer phone number"],
+    minLength: [11, "Mobile can not less than 11 characters"],
+    maxLength: [11, "Mobile can not exceed 11 characters"],
   },
   product_details: [
     {

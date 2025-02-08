@@ -20,9 +20,9 @@ const imageUpload = async (images, folderName, next) => {
   for (let index = 0; index < myFiles.length; index++) {
     console.log("for ------------------------------------");
     const element = myFiles[index];
-    const dimensions = sizeOf(element.tempFilePath);
+    const dimensions = sizeOf(element?.tempFilePath);
     console.log("dimensions", dimensions);
-    console.log(dimensions.width, dimensions.height, dimensions.type);
+    console.log(dimensions?.width, dimensions?.height, dimensions?.type);
     if (!["svg", "png", "jpg", "jpeg"].includes(dimensions.type)) {
       return next(new ErrorHander("image type must be svg/png/jpg/jpeg", 400));
     }

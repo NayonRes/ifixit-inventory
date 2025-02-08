@@ -3,6 +3,8 @@ const ErrorHander = require("../utils/errorHandler");
 const catchAsyncError = require("../middleware/catchAsyncError");
 const filterModel = require("../db/models/filterModel");
 const jwt = require("jsonwebtoken");
+const imageUpload = require("../utils/imageUpload");
+const imageDelete = require("../utils/imageDelete");
 
 const getParentDropdown = catchAsyncError(async (req, res, next) => {
   console.log(
@@ -30,6 +32,9 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
   if (req.query.name) {
     query.name = new RegExp(`^${req.query.name}$`, "i");
   }
+  if (req.query.phone_no_1) {
+    query.phone_no_1 = new RegExp(`^${req.query.phone_no_1}$`, "i");
+  }
   if (req.query.status) {
     query.status = req.query.status;
   }
@@ -49,6 +54,7 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
     limit: limit,
   });
 });
+
 const getById = catchAsyncError(async (req, res, next) => {
   let data = await branchModel.findById(req.params.id);
   if (!data) {
@@ -70,10 +76,24 @@ const createData = catchAsyncError(async (req, res, next) => {
   } else {
     newId = "b100";
   }
+
+  let imageData = [];
+  let map_imageData = [];
+  if (req.files && req.files.image) {
+    if (req.files.image) {
+      imageData = await imageUpload(req.files.image, "branch", next);
+    }
+    if (req.files.map_image) {
+      map_imageData = await imageUpload(req.files.map_image, "branch", next);
+    }
+  }
+
   let decodedData = jwt.verify(token, process.env.JWT_SECRET);
   let newData = {
     ...req.body,
     branch_id: newId,
+    image: imageData[0],
+    map_image: map_imageData[0],
     created_by: decodedData?.user?.email,
   };
 
@@ -92,13 +112,40 @@ const updateData = catchAsyncError(async (req, res, next) => {
     console.log("if");
     return next(new ErrorHander("No data found", 404));
   }
-  let decodedData = jwt.verify(token, process.env.JWT_SECRET);
 
-  const newData = {
-    ...req.body,
-    updated_by: decodedData?.user?.email,
-    updated_at: new Date(),
-  };
+  let imageData = [];
+  let map_imageData = [];
+  let newData = { ...req.body };
+
+  if (req.files) {
+    if (req.files.image) {
+      imageData = await imageUpload(req.files.image, "branch", next);
+    }
+    if (req.files.map_image) {
+      map_imageData = await imageUpload(req.files.map_image, "branch", next);
+    }
+  }
+
+  console.log("image data =========", imageData);
+  console.log("map_image data =========", map_imageData);
+  if (imageData.length > 0) {
+    newData.image = imageData[0];
+  }
+  if (map_imageData.length > 0) {
+    newData.map_image = map_imageData[0];
+  }
+  if (data.image.public_id) {
+    console.log("previous branch image delete 111111");
+    await imageDelete(data.image.public_id, next);
+  }
+  if (data.map_image.public_id) {
+    console.log("previous branch image delete 111111");
+    await imageDelete(data.map_image.public_id, next);
+  }
+
+  let decodedData = jwt.verify(token, process.env.JWT_SECRET);
+  newData.updated_by = decodedData?.user?.email;
+  newData.updated_at = new Date();
 
   data = await branchModel.findByIdAndUpdate(req.params.id, newData, {
     new: true,

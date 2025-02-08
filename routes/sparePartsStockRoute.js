@@ -6,6 +6,7 @@ const {
   createData,
   updateData,
   purchaseReturn,
+  stockAdjustment,
   deleteData,
 } = require("../controller/sparePartsStockController");
 const { isAuthenticatedUser, authorizeRoles } = require("../middleware/auth");
@@ -14,25 +15,28 @@ var router = express.Router();
 
 router
   .route("/")
-  .get(isAuthenticatedUser, authorizeRoles("dashboard"), getDataWithPagination);
+  .get(isAuthenticatedUser, authorizeRoles("stock_list"), getDataWithPagination);
 router
   .route("/stock-skus-details")
-  .get(isAuthenticatedUser, authorizeRoles("dashboard"), getAllStock);
+  .get(isAuthenticatedUser, authorizeRoles("stock_list"), getAllStock);
 router
   .route("/:id")
-  .get(isAuthenticatedUser, authorizeRoles("dashboard"), getById);
+  .get(isAuthenticatedUser, authorizeRoles("view_stock_details"), getById);
 router
   .route("/create")
-  .post(isAuthenticatedUser, authorizeRoles("dashboard"), createData);
+  .post(isAuthenticatedUser, authorizeRoles("add_stock"), createData);
 
 router
   .route("/update/:id")
-  .put(isAuthenticatedUser, authorizeRoles("dashboard"), updateData);
+  .put(isAuthenticatedUser, authorizeRoles("update_stock"), updateData);
 router
   .route("/purchase-return")
-  .post(isAuthenticatedUser, authorizeRoles("dashboard"), purchaseReturn);
+  .post(isAuthenticatedUser, authorizeRoles("update_stock"), purchaseReturn);
 router
-  .route("/delete/:id")
-  .delete(isAuthenticatedUser, authorizeRoles("dashboard"), deleteData);
+  .route("/stock-adjustment")
+  .post(isAuthenticatedUser, authorizeRoles("update_stock"), stockAdjustment);
+// router
+//   .route("/delete/:id")
+//   .delete(isAuthenticatedUser, authorizeRoles("dashboard"), deleteData);
 
 module.exports = router;

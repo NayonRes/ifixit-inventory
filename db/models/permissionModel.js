@@ -2,10 +2,10 @@ const mongoose = require("mongoose");
 const PermissionData = require("../../initial-data/PermissionData");
 
 const permissionSchema = mongoose.Schema({
-  permission_id: {
-    type: String,
-    required: [true, "Please enter permission id"],
-  },
+  // permission_id: {
+  //   type: String,
+  //   required: [true, "Please enter permission id"],
+  // },
   name: {
     type: String,
     required: [true, "Please enter permission display name"],
@@ -62,7 +62,7 @@ const saveData = async () => {
       const element = PermissionData[index];
 
       const permissionDoc = new permissionModel({
-        permission_id: element.permission_id,
+        // permission_id: element.permission_id,
         name: element.name,
         order_no: element.order_no,
         permission_name: element.permission_name,

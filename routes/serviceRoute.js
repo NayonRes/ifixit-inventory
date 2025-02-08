@@ -5,33 +5,24 @@ const {
   createData,
   updateData,
   deleteData,
-} = require("../controller/purchaseReturnController");
-
+} = require("../controller/serviceController");
 const { isAuthenticatedUser, authorizeRoles } = require("../middleware/auth");
 
 var router = express.Router();
 
 router
   .route("/")
-  .get(
-    isAuthenticatedUser,
-    authorizeRoles("purchase_return_list"),
-    getDataWithPagination
-  );
+  .get(isAuthenticatedUser, authorizeRoles("service_list"), getDataWithPagination);
 router
   .route("/:id")
-  .get(isAuthenticatedUser, authorizeRoles("view_purchase_details"), getById);
-
+  .get(isAuthenticatedUser, authorizeRoles("view_service_details"), getById);
 router
   .route("/create")
-  .post(isAuthenticatedUser, authorizeRoles("add_purchase_return"), createData);
+  .post(isAuthenticatedUser, authorizeRoles("add_service"), createData);
+
 router
   .route("/update/:id")
-  .put(
-    isAuthenticatedUser,
-    authorizeRoles("update_purchase_return"),
-    updateData
-  );
+  .put(isAuthenticatedUser, authorizeRoles("update_service"), updateData);
 // router
 //   .route("/delete/:id")
 //   .delete(isAuthenticatedUser, authorizeRoles("dashboard"), deleteData);

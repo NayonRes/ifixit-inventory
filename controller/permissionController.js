@@ -81,7 +81,6 @@ const getLeafPermissionList = catchAsyncError(async (req, res, next) => {
 // });
 
 const getDataWithPagination = catchAsyncError(async (req, res, next) => {
- 
   console.log(
     "totalData===================Permission==============111111111111"
   );
@@ -109,21 +108,21 @@ const getById = catchAsyncError(async (req, res, next) => {
 
 const createData = catchAsyncError(async (req, res, next) => {
   const { token } = req.cookies;
-  let newIdserial;
-  let newIdNo;
-  let newId;
-  const lastDoc = await permissionModel.find().sort({ _id: -1 });
-  if (lastDoc.length > 0) {
-    newIdserial = lastDoc[0].permission_id.slice(0, 3);
-    newIdNo = parseInt(lastDoc[0].permission_id.slice(3)) + 1;
-    newId = newIdserial.concat(newIdNo);
-  } else {
-    newId = "f100";
-  }
+  // let newIdserial;
+  // let newIdNo;
+  // let newId;
+  // const lastDoc = await permissionModel.find().sort({ _id: -1 });
+  // if (lastDoc.length > 0) {
+  //   newIdserial = lastDoc[0].permission_id.slice(0, 3);
+  //   newIdNo = parseInt(lastDoc[0].permission_id.slice(3)) + 1;
+  //   newId = newIdserial.concat(newIdNo);
+  // } else {
+  //   newId = "per100";
+  // }
   let decodedData = jwt.verify(token, process.env.JWT_SECRET);
   let newData = {
     ...req.body,
-    permission_id: newId,
+    // permission_id: newId,
     created_by: decodedData?.user?.email,
   };
 

@@ -598,6 +598,102 @@ const purchaseReturn = catchAsyncError(async (req, res, next) => {
   }
 });
 
+const stockAdjustment = catchAsyncError(async (req, res, next) => {
+  const { token } = req.cookies;
+  const adjust_skus = req.body.sku_numbers;
+  const stock_status = req.body.stock_status;
+  console.log("req body",req.body.sku_numbers);
+  console.log("stock_status",stock_status);
+
+
+  let decodedData = jwt.verify(token, process.env.JWT_SECRET);
+
+  if (!adjust_skus || adjust_skus.length === 0) {
+    return res.status(400).json({ message: "select at least one sku" });
+  }
+
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
+  try {
+    let sku_numbers = adjust_skus?.map((item) =>
+      parseInt(item)
+    );
+    console.log("sku_numbers", sku_numbers);
+
+    const matchedRecords = await sparePartsStockModel
+      .find({
+        sku_number: { $in: sku_numbers },
+      })
+      .session(session);
+
+    console.log("match skus", matchedRecords);
+
+    if (matchedRecords.length === 0) {
+      await session.abortTransaction();
+      session.endSession();
+      return res
+        .status(404)
+        .json({ message: "No records found with one of skus." });
+    }
+
+    for (const record of matchedRecords) {
+      const spare_parts_variation_id =
+        record.spare_parts_variation_id.toString();
+      const branch_id = record.branch_id.toString();
+
+        console.log("before decrement calling============")
+      if(record.stock_status == "Available" && stock_status !="Available"){
+        console.log("decrement calling============")
+        await stockCounterAndLimitController.decrementStock(
+          branch_id,
+          spare_parts_variation_id,
+          1,
+          session
+        );
+      }
+
+      else if(record.stock_status != "Available" && stock_status =="Available"){
+        console.log("increment calling======")
+
+        await stockCounterAndLimitController.incrementStock(
+          branch_id,
+          spare_parts_variation_id,
+          1,
+          session
+        );
+      }
+
+      record.stock_status = stock_status;
+      record.remarks = sku_numbers.find(
+        (res) => res === parseInt(record.sku_number)
+      )?.remarks;
+      (record.updated_by = decodedData?.user?.email),
+        (record.updated_at = new Date()),
+        (data = await sparePartsStockModel.findByIdAndUpdate(record._id, record, {
+          new: true,
+          runValidators: true,
+          useFindAndModified: false,
+          session,
+        }));
+    }
+
+    await session.commitTransaction();
+    res.status(200).json({
+      success: true,
+      message: "Stock adjusted successfully"
+    });
+  } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
+
+    console.error("Error on return sku:", error);
+    return res.status(500).json({ message: "An error occurred.", error });
+  } finally {
+    session.endSession();
+  }
+});
+
 const deleteData = catchAsyncError(async (req, res, next) => {
   console.log("deleteData function is working");
   let data = await sparePartsStockModel.findById(req.params.id);
@@ -622,5 +718,6 @@ module.exports = {
   createData,
   updateData,
   purchaseReturn,
+  stockAdjustment,
   deleteData,
 };

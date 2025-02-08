@@ -37,16 +37,20 @@ const purchaseSchema = mongoose.Schema({
     required: [true, "Please enter business location"],
   },
   invoice_number: {
-    type: String, 
+    type: String,
     default: null,
   },
   shipping_charge: {
     type: Number,
     default: null,
   },
+  payment_method: {
+    type: String,
+    required: [true, "Please enter payment method"],
+  },
   paid_amount: {
     type: Number,
-    default: null,
+    default: 0,
   },
   product_Ids: {
     type: [String],

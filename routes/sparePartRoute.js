@@ -14,22 +14,22 @@ var router = express.Router();
 
 router
   .route("/")
-  .get(isAuthenticatedUser, authorizeRoles("dashboard"), getDataWithPagination);
-router
-  .route("/lightSearch")
-  .get(isAuthenticatedUser, authorizeRoles("per123"), lightSearchWithPagination);
+  .get(isAuthenticatedUser, authorizeRoles("spare_parts_list"), getDataWithPagination);
+// router
+//   .route("/lightSearch")
+//   .get(isAuthenticatedUser, authorizeRoles("per123"), lightSearchWithPagination);
 router
   .route("/:id")
-  .get(isAuthenticatedUser, authorizeRoles("dashboard"), getById);
+  .get(isAuthenticatedUser, authorizeRoles("view_spare_parts_details"), getById);
 
 router
   .route("/create")
-  .post(isAuthenticatedUser, authorizeRoles("dashboard"), createData);
+  .post(isAuthenticatedUser, authorizeRoles("add_spare_parts"), createData);
 router
   .route("/update/:id")
-  .put(isAuthenticatedUser, authorizeRoles("dashboard"), updateData);
-router
-  .route("/delete/:id")
-  .delete(isAuthenticatedUser, authorizeRoles("dashboard"), deleteData);
+  .put(isAuthenticatedUser, authorizeRoles("update_spare_parts"), updateData);
+// router
+//   .route("/delete/:id")
+//   .delete(isAuthenticatedUser, authorizeRoles("dashboard"), deleteData);
 
 module.exports = router;

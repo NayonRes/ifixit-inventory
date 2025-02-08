@@ -19,9 +19,43 @@ const branchSchema = mongoose.Schema({
   remarks: {
     type: String,
   },
-  isMainBranch: {
+  is_main_branch: {
     type: Boolean,
     default: false,
+  },
+  off_day: {
+    type: String,
+  },
+  phone_no_1: {
+    type: String,
+    // required: [true, "Please enter phone number"],
+    minLength: [11, "Mobile can not less than 11 characters"],
+    maxLength: [11, "Mobile can not exceed 11 characters"],
+  },
+  phone_no_2: {
+    type: String,
+    minLength: [11, "Mobile can not less than 11 characters"],
+    maxLength: [11, "Mobile can not exceed 11 characters"],
+  },
+  address: {
+    type: String,
+    // required: [true, "Please enter address"],
+  },
+  image: {
+    public_id: {
+      type: String,
+    },
+    url: {
+      type: String,
+    },
+  },
+  map_image: {
+    public_id: {
+      type: String,
+    },
+    url: {
+      type: String,
+    },
   },
   status: {
     type: Boolean,
@@ -51,7 +85,7 @@ const saveData = async () => {
       branch_id: "b100",
       name: "IFIXIT",
       parent_name: "IFIXIT",
-      isMainBranch: true,
+      is_main_branch: true,
     });
     await branchDoc.save();
   }
