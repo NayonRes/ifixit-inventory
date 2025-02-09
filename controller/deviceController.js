@@ -45,7 +45,13 @@ const getParentDropdown = catchAsyncError(async (req, res, next) => {
   );
 
   // const data = await deviceModel.find().lean();
-  const data = await deviceModel.find({}, "name device_id parent_name").lean();
+  let query = {};
+  if (req.query.parent_name) {
+    query.parent_name = new RegExp(`^${req.query.parent_name}$`, "i");
+  }
+  const data = await deviceModel
+    .find(query, "name device_id parent_name")
+    .lean();
 
   console.log("device list----------------", data);
 
@@ -55,21 +61,70 @@ const getParentDropdown = catchAsyncError(async (req, res, next) => {
     data: data,
   });
 });
+const getDeviceBrandDataWithPagination = catchAsyncError(
+  async (req, res, next) => {
+    const page = parseInt(req.query.page) || 1;
+    console.log("===========req.query.page", req.query.page);
+    const limit = parseInt(req.query.limit) || 10;
+    const startIndex = (page - 1) * limit;
+    const endIndex = page * limit;
+    let query = {
+      name: { $ne: "Primary" }, // Exclude documents where name is "Primary"
+    };
+
+    if (req.query.name) {
+      query.name = {
+        $regex: new RegExp(`^${req.query.name}$`, "i"),
+        $ne: "Primary",
+      };
+    }
+    if (req.query.status) {
+      query.status = req.query.status;
+    }
+    if (req.query.parent_name) {
+      query.parent_name = new RegExp(`^${req.query.parent_name}$`, "i");
+    }
+    if (req.query.order_no && !isNaN(req.query.order_no)) {
+      query.order_no = parseInt(req.query.order_no);
+    }
+    let totalData = await deviceModel.countDocuments(query);
+    console.log("totalData=================================", totalData);
+    const data = await deviceModel.find(query).skip(startIndex).limit(limit);
+    console.log("data", data);
+    res.status(200).json({
+      success: true,
+      message: "successful",
+      data: data,
+      totalData: totalData,
+      pageNo: page,
+      limit: limit,
+    });
+  }
+);
 const getDataWithPagination = catchAsyncError(async (req, res, next) => {
   const page = parseInt(req.query.page) || 1;
   console.log("===========req.query.page", req.query.page);
   const limit = parseInt(req.query.limit) || 10;
   const startIndex = (page - 1) * limit;
   const endIndex = page * limit;
-  var query = {};
+  let query = {
+    parent_name: { $ne: "Primary" }, // Exclude documents where name is "Primary"
+  };
+
   if (req.query.name) {
-    query.name = new RegExp(`^${req.query.name}$`, "i");
+    query.name = {
+      $regex: new RegExp(`^${req.query.name}$`, "i"),
+      $ne: "Primary",
+    };
   }
   if (req.query.status) {
     query.status = req.query.status;
   }
   if (req.query.parent_name) {
     query.parent_name = new RegExp(`^${req.query.parent_name}$`, "i");
+  }
+  if (req.query.order_no && !isNaN(req.query.order_no)) {
+    query.order_no = parseInt(req.query.order_no);
   }
   let totalData = await deviceModel.countDocuments(query);
   console.log("totalData=================================", totalData);
@@ -330,6 +385,7 @@ module.exports = {
   getParentDropdown,
   getLeafDeviceList,
   getDataWithPagination,
+  getDeviceBrandDataWithPagination,
   getById,
   getByParent,
   createData,

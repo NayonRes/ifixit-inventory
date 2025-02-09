@@ -34,6 +34,11 @@ const deviceSchema = mongoose.Schema({
       type: String,
     },
   },
+  order_no: {
+    type: Number,
+    required: [true, "Please enter device order no"],
+    unique: true,
+  },
   remarks: {
     type: String,
   },
@@ -65,6 +70,7 @@ const saveData = async () => {
       device_id: "d100",
       name: "Primary",
       parent_name: "Primary",
+      order_no: 0,
     });
     await deviceDoc.save();
   }

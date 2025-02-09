@@ -3,6 +3,7 @@ const {
   getParentDropdown,
   getLeafDeviceList,
   getDataWithPagination,
+  getDeviceBrandDataWithPagination,
   getById,
   getByParent,
   createData,
@@ -55,6 +56,13 @@ router
     isAuthenticatedUser,
     authorizeRoles("device_list"),
     getDataWithPagination
+  );
+router
+  .route("/device-brand")
+  .get(
+    isAuthenticatedUser,
+    authorizeRoles("device_list"),
+    getDeviceBrandDataWithPagination
   );
 router
   .route("/get-by-parent")
