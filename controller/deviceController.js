@@ -111,6 +111,7 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
         _id: 1,
         name: 1,
         images: 1,
+        device_brand_id: 1,
         order_no: 1,
         remarks: 1,
 
