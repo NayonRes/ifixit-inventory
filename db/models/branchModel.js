@@ -11,10 +11,14 @@ const branchSchema = mongoose.Schema({
     trim: true,
     unique: true,
   },
-  parent_name: {
-    type: String,
-    // default: 10000,
-    required: [true, "Please enter parent name"],
+  // parent_name: {
+  //   type: String,
+  //   required: [true, "Please enter parent name"],
+  // },
+  parent_id: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "branchModel", // Reference to the brandModel
+    default: null,
   },
   remarks: {
     type: String,
@@ -29,13 +33,13 @@ const branchSchema = mongoose.Schema({
   phone_no_1: {
     type: String,
     // required: [true, "Please enter phone number"],
-    minLength: [11, "Mobile can not less than 11 characters"],
-    maxLength: [11, "Mobile can not exceed 11 characters"],
+    // minLength: [11, "Mobile can not less than 11 characters"],
+    // maxLength: [11, "Mobile can not exceed 11 characters"],
   },
   phone_no_2: {
     type: String,
-    minLength: [11, "Mobile can not less than 11 characters"],
-    maxLength: [11, "Mobile can not exceed 11 characters"],
+    // minLength: [11, "Mobile can not less than 11 characters"],
+    // maxLength: [11, "Mobile can not exceed 11 characters"],
   },
   address: {
     type: String,
@@ -83,8 +87,8 @@ const saveData = async () => {
   if (totalData < 1) {
     const branchDoc = new branchModel({
       branch_id: "b100",
-      name: "IFIXIT",
-      parent_name: "IFIXIT",
+      name: "Head Office",
+      // parent_name: "IFIXIT",
       is_main_branch: true,
     });
     await branchDoc.save();
