@@ -237,59 +237,7 @@ const permissions = [
   "user_dropdown_list",
 ];
 
-const permissions2 = [
-  "dashboard",
-
-  // Branch
-  "branch_list",
-  "add_branch",
-  "update_branch",
-  "view_branch_details",
-  "branch_dropdown_list",
-
-  // Brand
-  "brand_list",
-  "add_brand",
-  "update_brand",
-  "view_brand_details",
-  "brand_dropdown_list",
-
-  // Category
-  "category_list",
-  "add_category",
-  "update_category",
-  "view_category_details",
-  "category_dropdown_list",
-
-  // Customer
-  "customer_list",
-  "add_customer",
-  "update_customer",
-  "view_customer_details",
-  "customer_dropdown_list",
-
-  // Device
-  "device_list",
-  "add_device",
-  "update_device",
-  "view_device_details",
-  "device_dropdown_list",
-
-  // Role
-  "role_list",
-  "add_role",
-  "update_role",
-  "view_role_details",
-  "role_dropdown_list",
-
-  // User
-  "user_list",
-  "user_management",
-  "add_user",
-  "update_user",
-  "view_user_details",
-  "user_dropdown_list",
-];
+ 
 
 let userData = [
   {
