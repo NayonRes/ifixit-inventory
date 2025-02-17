@@ -295,12 +295,12 @@ let userData = [
   {
     user_id: "u100",
     name: "Admin",
-    email: "admin@dg.com",
+    email: "mahnayon@gmail.com",
     designation: "Owner",
     password: "admin12345",
     branch_id: new mongoose.Types.ObjectId(),
     mobile: "01793661517",
-    created_by: "Super Admin",
+    created_by: "Technical Admin",
     permission: permissions,
   },
   // {

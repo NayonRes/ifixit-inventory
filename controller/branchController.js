@@ -87,11 +87,12 @@ const createData = catchAsyncError(async (req, res, next) => {
       map_imageData = await imageUpload(req.files.map_image, "branch", next);
     }
   }
-
+  const mainBranch = await branchModel.find({ is_main_branch: true });
   let decodedData = jwt.verify(token, process.env.JWT_SECRET);
   let newData = {
     ...req.body,
     branch_id: newId,
+    parent_id: mainBranch[0]._id,
     image: imageData[0],
     map_image: map_imageData[0],
     created_by: decodedData?.user?.email,
@@ -153,15 +154,15 @@ const updateData = catchAsyncError(async (req, res, next) => {
     useFindAndModified: false,
   });
 
-  const childrenParentUpdate = await branchModel.updateMany(
-    { parent_name: oldParentName },
-    { $set: { parent_name: name } }
-  );
+  // const childrenParentUpdate = await branchModel.updateMany(
+  //   { parent_name: oldParentName },
+  //   { $set: { parent_name: name } }
+  // );
   res.status(200).json({
     success: true,
     message: "Update successfully",
     data: data,
-    childrenParentUpdate,
+    // childrenParentUpdate,
   });
 });
 

@@ -1,4 +1,4 @@
-const deviceModel = require("../db/models/deviceModel");
+const deviceBrandModel = require("../db/models/deviceBrandModel");
 const ErrorHander = require("../utils/errorHandler");
 const catchAsyncError = require("../middleware/catchAsyncError");
 const filterModel = require("../db/models/filterModel");
@@ -11,9 +11,9 @@ const getListGroupByParent = catchAsyncError(async (req, res, next) => {
     "getParentDropdown===================================================="
   );
 
-  // const data = await deviceModel.find().lean();
+  // const data = await deviceBrandModel.find().lean();
 
-  const groupsList = await deviceModel.aggregate([
+  const groupsList = await deviceBrandModel.aggregate([
     {
       $group: {
         _id: "$parent_name", // Group by parent_name
@@ -29,7 +29,9 @@ const getListGroupByParent = catchAsyncError(async (req, res, next) => {
     },
   ]);
 
-  const data = await deviceModel.find({}, "name device_id parent_name").lean();
+  const data = await deviceBrandModel
+    .find({}, "name device_brand_id parent_name")
+    .lean();
 
   console.log("device list----------------", data);
 
@@ -44,13 +46,13 @@ const getParentDropdown = catchAsyncError(async (req, res, next) => {
     "getParentDropdown===================================================="
   );
 
-  // const data = await deviceModel.find().lean();
+  // const data = await deviceBrandModel.find().lean();
   let query = {};
   if (req.query.parent_name) {
     query.parent_name = new RegExp(`^${req.query.parent_name}$`, "i");
   }
-  const data = await deviceModel
-    .find(query, "name device_id parent_name")
+  const data = await deviceBrandModel
+    .find(query, "name device_brand_id parent_name")
     .sort({ order_no: -1 })
     .lean();
 
@@ -85,57 +87,13 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
   if (req.query.order_no && !isNaN(req.query.order_no)) {
     query.order_no = parseInt(req.query.order_no);
   }
-  let totalData = await deviceModel.countDocuments(query);
+  let totalData = await deviceBrandModel.countDocuments(query);
   console.log("totalData=================================", totalData);
-  // const data = await deviceModel
-  //   .find(query)
-  //   .sort({ order_no: -1 })
-  //   .skip(startIndex)
-  //   .limit(limit);
-
-  const data = await deviceModel.aggregate([
-    {
-      $match: query,
-    },
-    {
-      $lookup: {
-        from: "device-brands",
-        localField: "device_brand_id",
-        foreignField: "_id",
-        as: "device_brand_data",
-      },
-    },
-
-    {
-      $project: {
-        _id: 1,
-        name: 1,
-        images: 1,
-        device_brand_id: 1,
-        order_no: 1,
-        remarks: 1,
-
-        status: 1,
-        created_by: 1,
-        created_at: 1,
-        updated_by: 1,
-        updated_at: 1,
-        "device_brand_data._id": 1,
-        "device_brand_data.name": 1,
-      },
-    },
-    {
-      $sort: { order_no: -1 },
-    },
-
-    {
-      $skip: startIndex,
-    },
-    {
-      $limit: limit,
-    },
-  ]);
-
+  const data = await deviceBrandModel
+    .find(query)
+    .sort({ order_no: -1 })
+    .skip(startIndex)
+    .limit(limit);
   console.log("data", data);
   res.status(200).json({
     success: true,
@@ -147,7 +105,7 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
   });
 });
 const getById = catchAsyncError(async (req, res, next) => {
-  let data = await deviceModel.findById(req.params.id);
+  let data = await deviceBrandModel.findById(req.params.id);
   if (!data) {
     return res.send({ message: "No data found", status: 404 });
   }
@@ -155,7 +113,7 @@ const getById = catchAsyncError(async (req, res, next) => {
 });
 
 const getByParent = catchAsyncError(async (req, res, next) => {
-  let data = await deviceModel
+  let data = await deviceBrandModel
     .find({ parent_name: req.query.parent_name })
     .select("_id name parent_name");
 
@@ -175,13 +133,13 @@ const createData = catchAsyncError(async (req, res, next) => {
   let newIdserial;
   let newIdNo;
   let newId;
-  const lastDoc = await deviceModel.find().sort({ _id: -1 });
+  const lastDoc = await deviceBrandModel.find().sort({ _id: -1 });
   if (lastDoc.length > 0) {
-    newIdserial = lastDoc[0].device_id.slice(0, 1);
-    newIdNo = parseInt(lastDoc[0].device_id.slice(1)) + 1;
+    newIdserial = lastDoc[0].device_brand_id.slice(0, 2);
+    newIdNo = parseInt(lastDoc[0].device_brand_id.slice(2)) + 1;
     newId = newIdserial.concat(newIdNo);
   } else {
-    newId = "d100";
+    newId = "db100";
   }
 
   let imageData = [];
@@ -198,13 +156,13 @@ const createData = catchAsyncError(async (req, res, next) => {
   let decodedData = jwt.verify(token, process.env.JWT_SECRET);
   let newData = {
     ...req.body,
-    device_id: newId,
+    device_brand_id: newId,
     image: imageData[0],
     icon: iconData[0],
     created_by: decodedData?.user?.email,
   };
 
-  const data = await deviceModel.create(newData);
+  const data = await deviceBrandModel.create(newData);
   res.send({ message: "success", status: 201, data: data });
 });
 
@@ -212,7 +170,7 @@ const updateData = catchAsyncError(async (req, res, next) => {
   const { token } = req.cookies;
   const { name } = req.body;
 
-  let data = await deviceModel.findById(req.params.id);
+  let data = await deviceBrandModel.findById(req.params.id);
   let oldParentName = data.name;
 
   if (!data) {
@@ -255,13 +213,13 @@ const updateData = catchAsyncError(async (req, res, next) => {
 
   console.log("newData", newData);
 
-  data = await deviceModel.findByIdAndUpdate(req.params.id, newData, {
+  data = await deviceBrandModel.findByIdAndUpdate(req.params.id, newData, {
     new: true,
     runValidators: true,
     useFindAndModified: false,
   });
 
-  const childrenParentUpdate = await deviceModel.updateMany(
+  const childrenParentUpdate = await deviceBrandModel.updateMany(
     { parent_name: oldParentName },
     { $set: { parent_name: name } }
   );
@@ -275,7 +233,7 @@ const updateData = catchAsyncError(async (req, res, next) => {
 
 const deleteData = catchAsyncError(async (req, res, next) => {
   console.log("deleteData function is working");
-  let data = await deviceModel.findById(req.params.id);
+  let data = await deviceBrandModel.findById(req.params.id);
   console.log("data", data);
   if (!data) {
     console.log("if");
@@ -292,7 +250,7 @@ const deleteData = catchAsyncError(async (req, res, next) => {
 
 async function getAllLeafNodes(data) {
   console.log("getAllLeafNodes", data);
-  let parents = await deviceModel.find({
+  let parents = await deviceBrandModel.find({
     name: { $ne: "Primary" },
     parent_name: new RegExp(`^${data.name}$`, "i"),
   });
@@ -313,7 +271,7 @@ async function getAllLeafNodes(data) {
 
 const getLeafDeviceList = catchAsyncError(async (req, res, next) => {
   console.log("getLeafDeviceList");
-  const leafNodes2 = await deviceModel.aggregate([
+  const leafNodes2 = await deviceBrandModel.aggregate([
     // { $match: { parent_name: "Mobile" } },
     {
       $lookup: {
@@ -329,7 +287,7 @@ const getLeafDeviceList = catchAsyncError(async (req, res, next) => {
       },
     },
     { $match: { isLeaf: true } },
-    { $project: { _id: 1, name: 1, parent_name: 1, device_id: 1 } },
+    { $project: { _id: 1, name: 1, parent_name: 1, device_brand_id: 1 } },
   ]);
 
   // res.json(leafNodes2);
@@ -349,7 +307,7 @@ const getDeviceWiseFilterList = catchAsyncError(async (req, res, next) => {
 
   const stringIds = [];
   leafNodes.map((res) => {
-    stringIds.push(res.device_id.toString());
+    stringIds.push(res.device_brand_id.toString());
   });
 
   console.log("stringIds", stringIds);
@@ -358,7 +316,7 @@ const getDeviceWiseFilterList = catchAsyncError(async (req, res, next) => {
   const data = await filterModel
     .find(
       {
-        device_id: {
+        device_brand_id: {
           $in: stringIds,
         },
       },

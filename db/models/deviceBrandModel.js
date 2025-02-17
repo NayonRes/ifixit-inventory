@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 const { Schema } = mongoose;
-const deviceSchema = mongoose.Schema({
-  device_id: {
+const deviceBrandSchema = mongoose.Schema({
+  device_brand_id: {
     type: String,
     required: [true, "Please enter device id"],
   },
@@ -11,17 +11,11 @@ const deviceSchema = mongoose.Schema({
     trim: true,
     unique: true,
   },
-  // parent_name: {
-  //   type: String,
-  //   // default: 10000,
-  //   // required: [true, "Please enter parent name"],
-  // },
-  device_brand_id: {
+  parent_id: {
     type: Schema.Types.ObjectId,
     ref: "deviceBrandModel", // Reference to the brandModel
-    required: [true, "Please enter select device model"],
+    default: null,
   },
-
   image: {
     public_id: {
       type: String,
@@ -65,22 +59,7 @@ const deviceSchema = mongoose.Schema({
   },
   updated_at: { type: Date, default: Date.now },
 });
-deviceSchema.index({ order_no: 1 });
-const deviceModel = mongoose.model("device", deviceSchema);
+deviceBrandSchema.index({ order_no: 1 });
+const deviceBrandModel = mongoose.model("device-brand", deviceBrandSchema);
 
-// const saveData = async () => {
-//   let totalData = await deviceModel.countDocuments();
-//   console.log("totalData 123456", totalData);
-//   if (totalData < 1) {
-//     const deviceDoc = new deviceModel({
-//       device_id: "d100",
-//       name: "Primary",
-//       parent_name: "Primary",
-//       order_no: 0,
-//     });
-//     await deviceDoc.save();
-//   }
-// };
-// saveData();
-
-module.exports = deviceModel;
+module.exports = deviceBrandModel;
