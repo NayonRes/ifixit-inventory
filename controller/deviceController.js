@@ -85,6 +85,9 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
   if (req.query.order_no && !isNaN(req.query.order_no)) {
     query.order_no = parseInt(req.query.order_no);
   }
+
+
+
   let totalData = await deviceModel.countDocuments(query);
   console.log("totalData=================================", totalData);
   // const data = await deviceModel

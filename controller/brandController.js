@@ -27,6 +27,8 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
   const startIndex = (page - 1) * limit;
   const endIndex = page * limit;
   var query = {};
+
+  query.name = { ...query.name, $ne: "Primary" };
   if (req.query.name) {
     query.name = new RegExp(`^${req.query.name}$`, "i");
   }
@@ -36,6 +38,7 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
   if (req.query.parent_name) {
     query.parent_name = new RegExp(`^${req.query.parent_name}$`, "i");
   }
+
   let totalData = await brandModel.countDocuments(query);
   console.log("totalData=================================", totalData);
   const data = await brandModel.find(query).skip(startIndex).limit(limit);
