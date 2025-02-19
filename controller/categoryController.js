@@ -27,6 +27,7 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
   const startIndex = (page - 1) * limit;
   const endIndex = page * limit;
   var query = {};
+  query.name = { ...query.name, $ne: "Primary" };
   if (req.query.name) {
     query.name = new RegExp(`^${req.query.name}$`, "i");
   }
