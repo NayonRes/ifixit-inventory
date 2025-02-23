@@ -5,6 +5,7 @@ const filterModel = require("../db/models/filterModel");
 const jwt = require("jsonwebtoken");
 const imageUpload = require("../utils/imageUpload");
 const imageDelete = require("../utils/imageDelete");
+const { default: mongoose } = require("mongoose");
 
 const getListGroupByParent = catchAsyncError(async (req, res, next) => {
   console.log(
@@ -79,15 +80,15 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
   if (req.query.status) {
     query.status = req.query.status;
   }
-  if (req.query.parent_name) {
-    query.parent_name = new RegExp(`^${req.query.parent_name}$`, "i");
-  }
+  // if (req.query.parent_name) {
+  //   query.parent_name = new RegExp(`^${req.query.parent_name}$`, "i");
+  // }
   if (req.query.order_no && !isNaN(req.query.order_no)) {
     query.order_no = parseInt(req.query.order_no);
   }
-
-
-
+  if (req.query.parent_id) {
+    query.parent_id = new mongoose.Types.ObjectId(req.query.parent_id);
+  }
   let totalData = await deviceModel.countDocuments(query);
   console.log("totalData=================================", totalData);
   // const data = await deviceModel
@@ -108,6 +109,14 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
         as: "device_brand_data",
       },
     },
+    {
+      $lookup: {
+        from: "devices",
+        localField: "parent_id",
+        foreignField: "_id",
+        as: "parent_data",
+      },
+    },
 
     {
       $project: {
@@ -115,6 +124,7 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
         name: 1,
         images: 1,
         device_brand_id: 1,
+        parent_id: 1,
         order_no: 1,
         remarks: 1,
 
@@ -125,6 +135,8 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
         updated_at: 1,
         "device_brand_data._id": 1,
         "device_brand_data.name": 1,
+        "parent_data._id": 1,
+        "parent_data.name": 1,
       },
     },
     {
@@ -178,6 +190,10 @@ const createData = catchAsyncError(async (req, res, next) => {
   let newIdserial;
   let newIdNo;
   let newId;
+
+  if (req.body.parent_id === "") {
+    req.body.parent_id = null;
+  }
   const lastDoc = await deviceModel.find().sort({ _id: -1 });
   if (lastDoc.length > 0) {
     newIdserial = lastDoc[0].device_id.slice(0, 1);
@@ -214,7 +230,9 @@ const createData = catchAsyncError(async (req, res, next) => {
 const updateData = catchAsyncError(async (req, res, next) => {
   const { token } = req.cookies;
   const { name } = req.body;
-
+  if (req.body.parent_id === "") {
+    req.body.parent_id = null;
+  }
   let data = await deviceModel.findById(req.params.id);
   let oldParentName = data.name;
 
@@ -264,15 +282,15 @@ const updateData = catchAsyncError(async (req, res, next) => {
     useFindAndModified: false,
   });
 
-  const childrenParentUpdate = await deviceModel.updateMany(
-    { parent_name: oldParentName },
-    { $set: { parent_name: name } }
-  );
+  // const childrenParentUpdate = await deviceModel.updateMany(
+  //   { parent_name: oldParentName },
+  //   { $set: { parent_name: name } }
+  // );
   res.status(200).json({
     success: true,
     message: "Update successfully",
     data: data,
-    childrenParentUpdate,
+    // childrenParentUpdate,
   });
 });
 
@@ -314,15 +332,44 @@ async function getAllLeafNodes(data) {
   return [...childNodes.flat()];
 }
 
+// const getLeafDeviceList = catchAsyncError(async (req, res, next) => {
+//   console.log("getLeafDeviceList");
+//   const leafNodes2 = await deviceModel.aggregate([
+//     // { $match: { parent_name: "Mobile" } },
+//     {
+//       $lookup: {
+//         from: "devices",
+//         localField: "name",
+//         foreignField: "parent_name",
+//         as: "children",
+//       },
+//     },
+//     {
+//       $addFields: {
+//         isLeaf: { $eq: ["$children", []] },
+//       },
+//     },
+//     { $match: { isLeaf: true } },
+//     { $project: { _id: 1, name: 1, parent_name: 1, device_id: 1 } },
+//   ]);
+
+//   // res.json(leafNodes2);
+
+//   res.status(200).json({
+//     success: true,
+//     message: "successful",
+//     data: leafNodes2,
+//   });
+// });
 const getLeafDeviceList = catchAsyncError(async (req, res, next) => {
   console.log("getLeafDeviceList");
-  const leafNodes2 = await deviceModel.aggregate([
-    // { $match: { parent_name: "Mobile" } },
+
+  const leafNodes = await deviceModel.aggregate([
     {
       $lookup: {
-        from: "devices",
-        localField: "name",
-        foreignField: "parent_name",
+        from: "devices", // Collection name
+        localField: "_id",
+        foreignField: "parent_id",
         as: "children",
       },
     },
@@ -332,15 +379,22 @@ const getLeafDeviceList = catchAsyncError(async (req, res, next) => {
       },
     },
     { $match: { isLeaf: true } },
-    { $project: { _id: 1, name: 1, parent_name: 1, device_id: 1 } },
+    {
+      $project: {
+        _id: 1,
+        name: 1,
+        parent_id: 1, // Instead of `parent_name`
+        device_id: 1,
+        order_no: 1, // Include order_no for sorting
+      },
+    },
+    { $sort: { order_no: 1 } }, // Sorting by order_no
   ]);
-
-  // res.json(leafNodes2);
 
   res.status(200).json({
     success: true,
-    message: "successful",
-    data: leafNodes2,
+    message: "Successful",
+    data: leafNodes,
   });
 });
 const getDeviceWiseFilterList = catchAsyncError(async (req, res, next) => {

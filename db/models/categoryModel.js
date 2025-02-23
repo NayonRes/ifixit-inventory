@@ -11,10 +11,16 @@ const categorySchema = mongoose.Schema({
     trim: true,
     unique: true,
   },
-  parent_name: {
-    type: String,
-    // default: 10000,
-    required: [true, "Please enter parent name"],
+  // parent_name: {
+  //   type: String,
+  //   // default: 10000,
+  //   required: [true, "Please enter parent name"],
+  // },
+  parent_id: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "category",
+    default: null,
+    // required: [true, "Please enter Spare part Id"],
   },
   remarks: {
     type: String,
@@ -38,7 +44,7 @@ const categorySchema = mongoose.Schema({
 });
 
 categorySchema.index({ name: 1 });
- 
+
 const categoryModel = mongoose.model("category", categorySchema);
 
 const saveData = async () => {
@@ -53,6 +59,6 @@ const saveData = async () => {
     await catDoc.save();
   }
 };
-saveData();
+// saveData();
 
 module.exports = categoryModel;

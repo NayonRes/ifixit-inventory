@@ -20,7 +20,10 @@ const getDeviceWiseModelDropdown = catchAsyncError(async (req, res, next) => {
   console.log("query", query);
 
   // const data = await modelModel.find(query, "name model_id").lean();
-  const data = await modelModel.find(query, { name: 1, model_id: 1 }).lean();
+  const data = await modelModel
+    .find(query, { name: 1, model_id: 1 })
+    .sort({ order_no: -1 })
+    .lean();
 
   console.log("device wise model list----------------", data);
 
@@ -37,7 +40,10 @@ const getParentDropdown = catchAsyncError(async (req, res, next) => {
   );
 
   // const data = await modelModel.find().lean();
-  const data = await modelModel.find({}, "name model_id").lean();
+  const data = await modelModel
+    .find({}, "name model_id")
+    .sort({ order_no: -1 })
+    .lean();
 
   console.log("model list----------------", data);
 
@@ -63,9 +69,16 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
   if (req.query.parent_name) {
     query.parent_name = new RegExp(`^${req.query.parent_name}$`, "i");
   }
+  if (req.query.order_no && !isNaN(req.query.order_no)) {
+    query.order_no = parseInt(req.query.order_no);
+  }
   let totalData = await modelModel.countDocuments(query);
   console.log("totalData=================================", totalData);
-  const data = await modelModel.find(query).skip(startIndex).limit(limit);
+  const data = await modelModel
+    .find(query)
+    .sort({ order_no: -1 })
+    .skip(startIndex)
+    .limit(limit);
   console.log("data", data);
   res.status(200).json({
     success: true,

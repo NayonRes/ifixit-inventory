@@ -12,6 +12,11 @@ const modelSchema = mongoose.Schema({
     trim: true,
     unique: true,
   },
+  order_no: {
+    type: Number,
+    required: [true, "Please enter device order no"],
+    unique: true,
+  },
   image: {
     public_id: {
       type: String,
@@ -49,6 +54,7 @@ const modelSchema = mongoose.Schema({
   updated_at: { type: Date, default: Date.now },
 });
 modelSchema.index({ name: 1 });
+modelSchema.index({ order_no: 1 });
 const modelModel = mongoose.model("model", modelSchema);
 
 const saveData = async () => {

@@ -19,9 +19,15 @@ const deviceSchema = mongoose.Schema({
   device_brand_id: {
     type: Schema.Types.ObjectId,
     ref: "deviceBrandModel", // Reference to the brandModel
-    required: [true, "Please enter select device model"],
+    default: null,
+    // required: [true, "Please enter select device model"],
   },
-
+  parent_id: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "device",
+    default: null,
+    // required: [true, "Please enter Spare part Id"],
+  },
   image: {
     public_id: {
       type: String,

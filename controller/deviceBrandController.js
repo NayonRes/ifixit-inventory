@@ -133,6 +133,9 @@ const createData = catchAsyncError(async (req, res, next) => {
   let newIdserial;
   let newIdNo;
   let newId;
+  if (req.body.parent_id === "") {
+    req.body.parent_id = null;
+  }
   const lastDoc = await deviceBrandModel.find().sort({ _id: -1 });
   if (lastDoc.length > 0) {
     newIdserial = lastDoc[0].device_brand_id.slice(0, 2);
@@ -169,7 +172,9 @@ const createData = catchAsyncError(async (req, res, next) => {
 const updateData = catchAsyncError(async (req, res, next) => {
   const { token } = req.cookies;
   const { name } = req.body;
-
+  if (req.body.parent_id === "") {
+    req.body.parent_id = null;
+  }
   let data = await deviceBrandModel.findById(req.params.id);
   let oldParentName = data.name;
 

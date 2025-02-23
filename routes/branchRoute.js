@@ -15,19 +15,32 @@ const branchModel = require("../db/models/branchModel");
 var router = express.Router();
 
 //Must be maintain the serial of declaring router.route according to less middleware use
-
+router.route("/").get(getDataWithPagination);
 router
   .route("/create")
   .post(isAuthenticatedUser, authorizeRoles("add_branch"), createData);
-router.route("/dropdownlist").get(isAuthenticatedUser,authorizeRoles("branch_dropdown_list"), getParentDropdown);
-router.route("/leaf-dropdown").get(isAuthenticatedUser,authorizeRoles("branch_dropdown_list"), getLeafBranchList);
+router
+  .route("/dropdownlist")
+  .get(
+    isAuthenticatedUser,
+    authorizeRoles("branch_dropdown_list"),
+    getParentDropdown
+  );
+router
+  .route("/leaf-dropdown")
+  .get(
+    isAuthenticatedUser,
+    authorizeRoles("branch_dropdown_list"),
+    getLeafBranchList
+  );
 router
   .route("/branch-filter-list")
-  .post(isAuthenticatedUser, authorizeRoles("branch_dropdown_list"), getBranchWiseFilterList);
+  .post(
+    isAuthenticatedUser,
+    authorizeRoles("branch_dropdown_list"),
+    getBranchWiseFilterList
+  );
 
-router
-  .route("/")
-  .get(isAuthenticatedUser, authorizeRoles("branch_list"), getDataWithPagination);
 router
   .route("/:id")
   .get(isAuthenticatedUser, authorizeRoles("view_branch_details"), getById);
