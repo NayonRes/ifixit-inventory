@@ -11,10 +11,15 @@ const brandSchema = mongoose.Schema({
     trim: true,
     unique: true,
   },
-  parent_name: {
-    type: String,
-    // default: 10000,
-    required: [true, "Please enter parent name"],
+  // parent_name: {
+  //   type: String,
+  //   // default: 10000,
+  //   required: [true, "Please enter parent name"],
+  // },
+  parent_id: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "brand",
+    default: null,
   },
   remarks: {
     type: String,
@@ -51,6 +56,6 @@ const saveData = async () => {
     await brandDoc.save();
   }
 };
-saveData();
+// saveData();
 
 module.exports = brandModel;

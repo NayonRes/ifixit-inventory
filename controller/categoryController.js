@@ -107,15 +107,15 @@ const updateData = catchAsyncError(async (req, res, next) => {
     useFindAndModified: false,
   });
 
-  const childrenParentUpdate = await categoryModel.updateMany(
-    { parent_name: oldParentName },
-    { $set: { parent_name: name } }
-  );
+  // const childrenParentUpdate = await categoryModel.updateMany(
+  //   { parent_name: oldParentName },
+  //   { $set: { parent_name: name } }
+  // );
   res.status(200).json({
     success: true,
     message: "Update successfully",
     data: data,
-    childrenParentUpdate,
+    // childrenParentUpdate,
   });
 });
 
