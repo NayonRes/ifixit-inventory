@@ -29,7 +29,7 @@ const imageUpload = async (images, folderName, next) => {
 
     try {
       const buffer = await sharp(element.tempFilePath)
-        .resize(800, 600)
+        // .resize(800, 600)
         .toBuffer();
       console.log("buffer", buffer);
       const result = await new Promise((resolve, reject) => {
