@@ -347,7 +347,13 @@ const updateData = async (req, res, next) => {
 
       await sparePartsStockModel.updateMany(
         { sku_number: { $in: transfer_stocks_sku } },
-        { $set: { branch_id: transfer_to } },
+        {
+          $set: {
+            branch_id: transfer_to,
+            updated_by: decodedData?.user?.email,
+            updated_at: new Date(),
+          },
+        },
         { session }
       );
       // Step 2: Process each record to update stock counters
@@ -378,7 +384,6 @@ const updateData = async (req, res, next) => {
           });
         }
       }
-    
 
       for (
         let index = 0;
