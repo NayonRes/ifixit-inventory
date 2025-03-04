@@ -14,6 +14,7 @@ const {
 var router = express.Router();
 const userModel = require("../db/models/userModel");
 const { isAuthenticatedUser, authorizeRoles } = require("../middleware/auth");
+const branchAccessMiddleware = require("../middleware/branchAccessMiddleware");
 
 //Must be maintain the serial of declaring router.route accordimg to less middleware use
 router.route("/logout").get(logout);
@@ -34,10 +35,6 @@ router
 // router.route("/category-filter-list").post(getCategoryWiseFilterList);
 
 router
-  .route("/")
-  .get(isAuthenticatedUser, authorizeRoles("user_list"), getDataWithPagination);
-
-router
   .route("/:id")
   .get(isAuthenticatedUser, authorizeRoles("view_user_details"), getById);
 router
@@ -46,6 +43,15 @@ router
 router
   .route("/update/:id")
   .put(isAuthenticatedUser, authorizeRoles("update_user"), updateData);
+
+router
+  .route("/")
+  .get(
+    isAuthenticatedUser,
+    authorizeRoles("user_list"),
+    branchAccessMiddleware,
+    getDataWithPagination
+  );
 // router.route("/update/:id").put(isAuthenticatedUser, authorizeRoles("per135"),updateData);
 // router
 //   .route("/delete/:id")

@@ -46,7 +46,7 @@ const purchaseSchema = mongoose.Schema({
   },
   payment_method: {
     type: String,
-    required: [true, "Please enter payment method"],
+    // required: [true, "Please enter payment method"],
   },
   paid_amount: {
     type: Number,

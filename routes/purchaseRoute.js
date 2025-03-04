@@ -9,6 +9,7 @@ const {
 } = require("../controller/purchaseController");
 const { isAuthenticatedUser, authorizeRoles } = require("../middleware/auth");
 const purchaseModel = require("../db/models/purchaseModel");
+const branchAccessMiddleware = require("../middleware/branchAccessMiddleware");
 
 var router = express.Router();
 
@@ -25,14 +26,6 @@ router
   );
 
 router
-  .route("/")
-  .get(
-    isAuthenticatedUser,
-    authorizeRoles("purchase_list"),
-    getDataWithPagination
-  );
-
-router
   .route("/:id")
   .get(isAuthenticatedUser, authorizeRoles("view_purchase_details"), getById);
 // router
@@ -42,6 +35,14 @@ router
 router
   .route("/update/:id")
   .put(isAuthenticatedUser, authorizeRoles("update_purchase"), updateData);
+router
+  .route("/")
+  .get(
+    isAuthenticatedUser,
+    authorizeRoles("purchase_list"),
+    branchAccessMiddleware,
+    getDataWithPagination
+  );
 // router
 //     .route("/delete/:id")
 //     .delete(isAuthenticatedUser, authorizeRoles("dashboard"), deleteData);

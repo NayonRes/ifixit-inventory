@@ -3,7 +3,7 @@ const jwt = require("jsonwebtoken");
 const branchAccessMiddleware = (req, res, next) => {
   try {
     // Extract token from headers
-    const token = req.headers.authorization?.split(" ")[1];
+    const { token } = req.cookies;
     if (!token) {
       return res
         .status(401)
@@ -14,7 +14,7 @@ const branchAccessMiddleware = (req, res, next) => {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
     // Extract branch_id from token payload
-    const { branch_id } = decoded;
+    const { branch_id, is_main_branch } = decoded?.user;
 
     if (!branch_id) {
       return res
@@ -22,16 +22,9 @@ const branchAccessMiddleware = (req, res, next) => {
         .json({ message: "Invalid token: Branch ID missing" });
     }
 
-    // Check if it's the main branch
-    if (branch_id === "main") {
-      // Main branch: No restriction
-      req.is_main_branch = true; // Add a flag for convenience
-    } else {
-      // Sub-branch: Restrict to specific branch
-      req.params.branch_id = branch_id; // Set branch_id in request params
-      req.is_main_branch = false; // Add a flag for convenience
+    if (!is_main_branch || is_main_branch === null) {
+      req.query.branch_id = branch_id; // Set branch_id in request params
     }
-
     next(); // Pass control to the next middleware
   } catch (error) {
     console.error("Error in branch access middleware:", error);

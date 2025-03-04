@@ -307,19 +307,24 @@ const updateData = async (req, res, next) => {
   };
 
   if (transfer_status !== "Received") {
-    data = await transferStockModel.findByIdAndUpdate(req.params.id, newData, {
-      new: true,
-      runValidators: true,
-      useFindAndModified: false,
-    });
+    let reponseData = await transferStockModel.findByIdAndUpdate(
+      req.params.id,
+      newData,
+      {
+        new: true,
+        runValidators: true,
+        useFindAndModified: false,
+      }
+    );
     console.log("update transfer stock status only");
-    return res
-      .status(200)
-      .json({ message: "transferred stock updated successfully." });
+    return res.status(200).json({
+      data: reponseData,
+      message: "transferred stock updated successfully.",
+    });
   }
   console.log("run below part");
 
-  if (data?.transfer_status !== "Received") {
+  if (transfer_status === "Received" && data?.transfer_status !== "Received") {
     const session = await mongoose.startSession();
     session.startTransaction();
 
@@ -337,26 +342,23 @@ const updateData = async (req, res, next) => {
         session.endSession();
         return res.status(404).json({ message: "No matching records found." });
       }
+
+      // updating treansfer sku's branch id
+
+      await sparePartsStockModel.updateMany(
+        { sku_number: { $in: transfer_stocks_sku } },
+        { $set: { branch_id: transfer_to } },
+        { session }
+      );
       // Step 2: Process each record to update stock counters
 
       let matchedRecordForStockAdjustment = [];
       for (const record of matchedRecords) {
         const spare_parts_variation_id =
           record.spare_parts_variation_id.toString();
-        record.branch_id = transfer_to;
 
         console.log("record", record);
         // updating branch id of stock
-        data = await sparePartsStockModel.findByIdAndUpdate(
-          record._id,
-          record,
-          {
-            new: true,
-            runValidators: true,
-            useFindAndModified: false,
-            session,
-          }
-        );
 
         const matchedIncrementStock = matchedRecordForStockAdjustment.find(
           (entry) =>
@@ -376,10 +378,7 @@ const updateData = async (req, res, next) => {
           });
         }
       }
-      console.log(
-        "matchedRecordForStockAdjustment",
-        matchedRecordForStockAdjustment
-      );
+    
 
       for (
         let index = 0;
@@ -390,14 +389,14 @@ const updateData = async (req, res, next) => {
 
         // finding for decrement stock count
 
-        const fromStockCounter = await stockCounterAndLimitModel
+        const transferFromStockCounter = await stockCounterAndLimitModel
           .findOne({
             branch_id: element?.transfer_from,
             spare_parts_variation_id: element?.spare_parts_variation_id,
           })
           .session(session);
-        if (!fromStockCounter) {
-          console.error("fromStockCounter not found:", {
+        if (!transferFromStockCounter) {
+          console.error("transferFromStockCounter not found:", {
             branch_id: element?.transfer_from,
             spare_parts_variation_id: element?.spare_parts_variation_id,
           });
@@ -408,7 +407,7 @@ const updateData = async (req, res, next) => {
           });
         }
 
-        console.log("from stock counter", fromStockCounter);
+        console.log("from stock counter", transferFromStockCounter);
 
         await stockCounterAndLimitController.decrementStock(
           element?.transfer_from,
@@ -419,21 +418,21 @@ const updateData = async (req, res, next) => {
 
         // Find or Create toStock
 
-        let toStockCounter = await stockCounterAndLimitModel
+        let transferToStockCounter = await stockCounterAndLimitModel
           .findOne({
             branch_id: element?.transfer_to,
             spare_parts_variation_id: element?.spare_parts_variation_id,
           })
           .session(session);
 
-        console.log("to stock counter", toStockCounter);
+        console.log("to stock counter", transferToStockCounter);
 
-        if (!toStockCounter) {
+        if (!transferToStockCounter) {
           // If stock does not exist at the destination, create a new entry
           const newStock = new stockCounterAndLimitModel({
             branch_id: element.transfer_to,
             spare_parts_variation_id: element.spare_parts_variation_id,
-            spare_parts_id: fromStockCounter.spare_parts_id,
+            spare_parts_id: transferFromStockCounter.spare_parts_id,
             total_stock: element.matched,
           });
 

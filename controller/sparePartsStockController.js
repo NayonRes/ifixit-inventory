@@ -373,8 +373,6 @@ const createData = catchAsyncError(async (req, res, next) => {
 
   console.log("--------------------req.body---------", req.body);
 
-  //stockCounterAndLimitController.incrementStock('6748929c8252b33bfe40e491','674896368252b33bfe40e5d7',20);
-  // stockCounterAndLimitController.decrementStock('6748929c8252b33bfe40e491','674896368252b33bfe40e5d7',10);
   // Validate request data
   if (!quantity || !purchaseProductId) {
     return res.status(400).send({ message: "Invalid input", status: 400 });
@@ -469,9 +467,7 @@ const createData = catchAsyncError(async (req, res, next) => {
     // Roll back the transaction in case of an error
     await session.abortTransaction();
     console.error("Error processing product update:", error);
-    res
-      .status(500)
-      .send("An error occurred while processing the product update.");
+    res.status(500).send({ message: error, status: 201, data });
   } finally {
     // End the session
     session.endSession();
@@ -548,7 +544,8 @@ const purchaseReturn = catchAsyncError(async (req, res, next) => {
         .status(404)
         .json({ message: "No records found with one of skus." });
     }
-
+    let matchedRecordForStockAdjustment = [];
+    let listForUpdateReturn = [];
     for (const record of matchedRecords) {
       const spare_parts_variation_id =
         record.spare_parts_variation_id.toString();
@@ -558,34 +555,56 @@ const purchaseReturn = catchAsyncError(async (req, res, next) => {
         continue;
       }
       if (record.stock_status === "Available") {
-        await stockCounterAndLimitController.decrementStock(
-          branch_id,
-          spare_parts_variation_id,
-          1,
-          session
+        const matchedStock = matchedRecordForStockAdjustment.find(
+          (entry) =>
+            entry.branch_id === branch_id &&
+            entry.spare_parts_variation_id === spare_parts_variation_id
         );
+
+        if (matchedStock) {
+          matchedStock.matched += 1;
+        } else {
+          matchedRecordForStockAdjustment.push({
+            branch_id: branch_id,
+            spare_parts_variation_id,
+            matched: 1,
+          });
+        }
+
+        // await stockCounterAndLimitController.decrementStock(
+        //   branch_id,
+        //   spare_parts_variation_id,
+        //   1,
+        //   session
+        // );
       }
+
       record.stock_status = "Returned";
+
       record.remarks = purchase_return_data.find(
         (res) => res.sku_number === parseInt(record.sku_number)
       )?.remarks;
-      (record.updated_by = decodedData?.user?.email),
-        (record.updated_at = new Date()),
-        (data = await sparePartsStockModel.findByIdAndUpdate(record._id, record, {
-          new: true,
-          runValidators: true,
-          useFindAndModified: false,
-          session,
-        }));
 
-    
+      (record.updated_by = decodedData?.user?.email),
+        (record.updated_at = new Date());
+      // (data = await sparePartsStockModel.findByIdAndUpdate(
+      //   record._id,
+      //   record,
+      //   {
+      //     new: true,
+      //     runValidators: true,
+      //     useFindAndModified: false,
+      //     session,
+      //   }
+      // ));
+      listForUpdateReturn.push(record);
     }
 
     await session.commitTransaction();
     res.status(200).json({
       success: true,
       message: "SKU returned successfully",
-      errorData: alreadyReturned,
+      alreadyReturnedData: alreadyReturned,
     });
   } catch (error) {
     await session.abortTransaction();
@@ -602,9 +621,8 @@ const stockAdjustment = catchAsyncError(async (req, res, next) => {
   const { token } = req.cookies;
   const adjust_skus = req.body.sku_numbers;
   const stock_status = req.body.stock_status;
-  console.log("req body",req.body.sku_numbers);
-  console.log("stock_status",stock_status);
-
+  console.log("req body", req.body.sku_numbers);
+  console.log("stock_status", stock_status);
 
   let decodedData = jwt.verify(token, process.env.JWT_SECRET);
 
@@ -616,9 +634,7 @@ const stockAdjustment = catchAsyncError(async (req, res, next) => {
   session.startTransaction();
 
   try {
-    let sku_numbers = adjust_skus?.map((item) =>
-      parseInt(item)
-    );
+    let sku_numbers = adjust_skus?.map((item) => parseInt(item));
     console.log("sku_numbers", sku_numbers);
 
     const matchedRecords = await sparePartsStockModel
@@ -642,19 +658,20 @@ const stockAdjustment = catchAsyncError(async (req, res, next) => {
         record.spare_parts_variation_id.toString();
       const branch_id = record.branch_id.toString();
 
-        console.log("before decrement calling============")
-      if(record.stock_status == "Available" && stock_status !="Available"){
-        console.log("decrement calling============")
+      console.log("before decrement calling============");
+      if (record.stock_status == "Available" && stock_status != "Available") {
+        console.log("decrement calling============");
         await stockCounterAndLimitController.decrementStock(
           branch_id,
           spare_parts_variation_id,
           1,
           session
         );
-      }
-
-      else if(record.stock_status != "Available" && stock_status =="Available"){
-        console.log("increment calling======")
+      } else if (
+        record.stock_status != "Available" &&
+        stock_status == "Available"
+      ) {
+        console.log("increment calling======");
 
         await stockCounterAndLimitController.incrementStock(
           branch_id,
@@ -670,18 +687,22 @@ const stockAdjustment = catchAsyncError(async (req, res, next) => {
       )?.remarks;
       (record.updated_by = decodedData?.user?.email),
         (record.updated_at = new Date()),
-        (data = await sparePartsStockModel.findByIdAndUpdate(record._id, record, {
-          new: true,
-          runValidators: true,
-          useFindAndModified: false,
-          session,
-        }));
+        (data = await sparePartsStockModel.findByIdAndUpdate(
+          record._id,
+          record,
+          {
+            new: true,
+            runValidators: true,
+            useFindAndModified: false,
+            session,
+          }
+        ));
     }
 
     await session.commitTransaction();
     res.status(200).json({
       success: true,
-      message: "Stock adjusted successfully"
+      message: "Stock adjusted successfully",
     });
   } catch (error) {
     await session.abortTransaction();

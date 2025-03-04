@@ -219,7 +219,7 @@ const createData = catchAsyncError(async (req, res, next) => {
 });
 
 const updateData = async (req, res, next) => {
-    console.log("asdasdfasdfasdfasdfs====================updateData");
+   
 
     try {
         const { token } = req.cookies;
