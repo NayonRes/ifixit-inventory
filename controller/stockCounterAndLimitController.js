@@ -349,19 +349,26 @@ const deleteData = catchAsyncError(async (req, res, next) => {
   });
 });
 
-async function incrementStock(branch_id, spare_parts_variation_id, stock) {
+async function incrementStock(
+  branch_id,
+  spare_parts_variation_id,
+  stock,
+  session
+) {
   const stockCounterAndLimit = parseInt(stock);
   try {
-    const existingStock = await stockCounterAndLimitModel.findOne({
-      branch_id,
-      spare_parts_variation_id,
-    });
+    const existingStock = await stockCounterAndLimitModel
+      .findOne({
+        branch_id,
+        spare_parts_variation_id,
+      })
+      .session(session);
 
     if (existingStock) {
       await stockCounterAndLimitModel.findByIdAndUpdate(
         { _id: mongoose.Types.ObjectId(existingStock._id) },
         { $inc: { total_stock: stockCounterAndLimit } },
-        { upsert: false, new: true }
+        { upsert: false, new: true, session }
       );
       console.log(
         `Total stock for ${branch_id}, ${spare_parts_variation_id}, ${existingStock._id} has been incremented.`
@@ -376,17 +383,25 @@ async function incrementStock(branch_id, spare_parts_variation_id, stock) {
   }
 }
 
-async function decrementStock(branch_id, spare_parts_variation_id, stock) {
+async function decrementStock(
+  branch_id,
+  spare_parts_variation_id,
+  stock,
+  session
+) {
   try {
-    const existingStock = await stockCounterAndLimitModel.findOne({
-      branch_id,
-      spare_parts_variation_id,
-    });
+    const existingStock = await stockCounterAndLimitModel
+      .findOne({
+        branch_id,
+        spare_parts_variation_id,
+      })
+      .session(session);
 
     if (existingStock) {
       await stockCounterAndLimitModel.updateOne(
         { _id: existingStock._id },
-        { $inc: { total_stock: -stock } }
+        { $inc: { total_stock: -stock } },
+        { session }
       );
       console.log(
         `Total stock for ${branch_id}, ${spare_parts_variation_id} has been incremented.`

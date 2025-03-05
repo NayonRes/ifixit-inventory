@@ -384,7 +384,7 @@ const updateData = async (req, res, next) => {
           });
         }
       }
-
+      let abortTransaction = false; // Flag to track if transaction should be aborted
       for (
         let index = 0;
         index < matchedRecordForStockAdjustment.length;
@@ -405,11 +405,15 @@ const updateData = async (req, res, next) => {
             branch_id: element?.transfer_from,
             spare_parts_variation_id: element?.spare_parts_variation_id,
           });
-          await session.abortTransaction();
-          session.endSession();
-          return res.status(404).json({
-            message: "Stock for the source branch not found or not matched.",
-          });
+
+          abortTransaction = true; // Set flag to abort after loop
+          break; // Exit the loop if condition is met
+
+          // await session.abortTransaction();
+          // session.endSession();
+          // return res.status(404).json({
+          //   message: "Stock for the source branch not found or not matched.",
+          // });
         }
 
         console.log("from stock counter", transferFromStockCounter);
@@ -454,7 +458,13 @@ const updateData = async (req, res, next) => {
           );
         }
       }
-
+      if (abortTransaction) {
+        await session.abortTransaction();
+        session.endSession();
+        return res.status(404).json({
+          message: "Stock for the source branch not found or not matched.",
+        });
+      }
       data = await transferStockModel.findByIdAndUpdate(
         req.params.id,
         newData,

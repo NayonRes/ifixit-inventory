@@ -17,6 +17,11 @@ const sparePartsStockSchema = mongoose.Schema({
     ref: "branchModel",
     required: [true, "Please select branch"],
   },
+  purchase_branch_id: {
+    type: Schema.Types.ObjectId,
+    ref: "branchModel",
+    required: [true, "Please select purchase branch"],
+  },
   purchase_id: {
     type: Schema.Types.ObjectId,
     ref: "purchaseModel",

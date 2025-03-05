@@ -191,6 +191,14 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
     },
     {
       $lookup: {
+        from: "branches",
+        localField: "purchase_branch_id",
+        foreignField: "_id",
+        as: "purchase_branch_data",
+      },
+    },
+    {
+      $lookup: {
         from: "purchases",
         localField: "purchase_id",
         foreignField: "_id",
@@ -231,6 +239,7 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
         spare_parts_id: 1,
         spare_parts_variation_id: 1,
         branch_id: 1,
+        purchase_branch_id: 1,
         purchase_id: 1,
         sku_number: 1,
         stock_status: 1,
@@ -244,6 +253,7 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
 
         "sparepart_data.name": 1,
         "branch_data.name": 1,
+        "purchase_branch_data.name": 1,
         "spare_parts_variation_data.name": 1,
         "purchase_data.purchase_date": 1,
         "purchase_data.supplier_id": 1,
@@ -303,6 +313,14 @@ const getById = catchAsyncError(async (req, res, next) => {
     },
     {
       $lookup: {
+        from: "branches",
+        localField: "purchase_branch_id",
+        foreignField: "_id",
+        as: "purchase_branch_data",
+      },
+    },
+    {
+      $lookup: {
         from: "purchases",
         localField: "purchase_id",
         foreignField: "_id",
@@ -315,6 +333,7 @@ const getById = catchAsyncError(async (req, res, next) => {
         spare_parts_id: 1,
         spare_parts_variation_id: 1,
         branch_id: 1,
+        purchase_branch_id: 1,
         purchase_id: 1,
         sku_number: 1,
         stock_status: 1,
@@ -328,6 +347,7 @@ const getById = catchAsyncError(async (req, res, next) => {
 
         "sparepart_data.name": 1,
         "branch_data.name": 1,
+        "purchase_branch_data.name": 1,
         "sparepartvariation_data.name": 1,
         "purchase_data.purchase_date": 1,
         "purchase_data.is_sku_generated": 1,
@@ -545,13 +565,19 @@ const purchaseReturn = catchAsyncError(async (req, res, next) => {
         .json({ message: "No records found with one of skus." });
     }
     let matchedRecordForStockAdjustment = [];
-    let listForUpdateReturn = [];
+    let listOfUpdateStockStatusReturn = [];
+    let stockListOfAnotherBranch = [];
     for (const record of matchedRecords) {
       const spare_parts_variation_id =
         record.spare_parts_variation_id.toString();
       const branch_id = record.branch_id.toString();
+      const purchase_branch_id = record.purchase_branch_id.toString();
       if (record.stock_status === "Returned") {
         alreadyReturned.push(record.sku_number);
+        continue;
+      }
+      if (branch_id !== purchase_branch_id) {
+        stockListOfAnotherBranch.push(record.sku_number);
         continue;
       }
       if (record.stock_status === "Available") {
@@ -570,41 +596,108 @@ const purchaseReturn = catchAsyncError(async (req, res, next) => {
             matched: 1,
           });
         }
-
-        // await stockCounterAndLimitController.decrementStock(
-        //   branch_id,
-        //   spare_parts_variation_id,
-        //   1,
-        //   session
-        // );
       }
 
-      record.stock_status = "Returned";
-
-      record.remarks = purchase_return_data.find(
+      const remarks = purchase_return_data.find(
         (res) => res.sku_number === parseInt(record.sku_number)
       )?.remarks;
 
-      (record.updated_by = decodedData?.user?.email),
-        (record.updated_at = new Date());
-      // (data = await sparePartsStockModel.findByIdAndUpdate(
-      //   record._id,
-      //   record,
-      //   {
-      //     new: true,
-      //     runValidators: true,
-      //     useFindAndModified: false,
-      //     session,
-      //   }
-      // ));
-      listForUpdateReturn.push(record);
+      listOfUpdateStockStatusReturn.push({
+        updateOne: {
+          filter: { _id: record._id },
+          update: {
+            $set: {
+              stock_status: "Returned",
+              remarks: remarks || "", // Ensure `remarks` is not undefined
+              updated_by: decodedData?.user?.email,
+              updated_at: new Date(),
+            },
+          },
+        },
+      });
+    }
+    if (stockListOfAnotherBranch.length > 0) {
+      await session.abortTransaction(); // Cancel the session (transaction)
+      session.endSession(); // End the session
+      const message = `Stock ${stockListOfAnotherBranch.join(
+        ", "
+      )} purchased by another branch. so you can not return`;
+      return res.status(400).json({
+        success: false,
+        message: message,
+        stockListOfAnotherBranch: stockListOfAnotherBranch,
+      });
+    }
+    if (alreadyReturned.length > 0) {
+      await session.abortTransaction(); // Cancel the session (transaction)
+      session.endSession(); // End the session
+      const message = `Stock ${alreadyReturned.join(", ")} already returned.`;
+      return res.status(400).json({
+        success: false,
+        message: message,
+        alreadyReturned: alreadyReturned,
+      });
+    }
+    if (listOfUpdateStockStatusReturn.length > 0) {
+      await sparePartsStockModel.bulkWrite(listOfUpdateStockStatusReturn, {
+        session,
+      });
+    }
+    let abortTransaction = false; // Flag to track if transaction should be aborted
+    for (
+      let index = 0;
+      index < matchedRecordForStockAdjustment.length;
+      index++
+    ) {
+      const element = matchedRecordForStockAdjustment[index];
+
+      // finding for decrement stock count
+
+      const returnedStockCounter = await stockCounterAndLimitModel
+        .findOne({
+          branch_id: element?.branch_id,
+          spare_parts_variation_id: element?.spare_parts_variation_id,
+        })
+        .session(session);
+      if (!returnedStockCounter) {
+        console.error("returnedStockCounter not found:", {
+          branch_id: element?.branch_id,
+          spare_parts_variation_id: element?.spare_parts_variation_id,
+        });
+
+        abortTransaction = true; // Set flag to abort after loop
+        break;
+        // await session.abortTransaction();
+        // session.endSession();
+        // return res.status(404).json({
+        //   message: "Stock for the source branch not found or not matched.",
+        // });
+      }
+
+      console.log("from stock counter", returnedStockCounter);
+
+      await stockCounterAndLimitController.decrementStock(
+        element?.transfer_from,
+        element?.spare_parts_variation_id,
+        element.matched,
+        session
+      );
     }
 
+    // If flag is set to abort, abort transaction
+    if (abortTransaction) {
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(404).json({
+        message: "Stock for the source branch not found or not matched.",
+      });
+    }
     await session.commitTransaction();
     res.status(200).json({
       success: true,
       message: "SKU returned successfully",
-      alreadyReturnedData: alreadyReturned,
+
+      listOfUpdateStockStatusReturn: listOfUpdateStockStatusReturn,
     });
   } catch (error) {
     await session.abortTransaction();
@@ -658,9 +751,7 @@ const stockAdjustment = catchAsyncError(async (req, res, next) => {
         record.spare_parts_variation_id.toString();
       const branch_id = record.branch_id.toString();
 
-      console.log("before decrement calling============");
       if (record.stock_status == "Available" && stock_status != "Available") {
-        console.log("decrement calling============");
         await stockCounterAndLimitController.decrementStock(
           branch_id,
           spare_parts_variation_id,
