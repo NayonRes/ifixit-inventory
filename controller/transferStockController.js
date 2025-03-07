@@ -305,7 +305,8 @@ const updateData = async (req, res, next) => {
     updated_by: decodedData?.user?.email,
     updated_at: new Date(),
   };
-
+  const session = await mongoose.startSession();
+  session.startTransaction();
   if (transfer_status !== "Received") {
     let reponseData = await transferStockModel.findByIdAndUpdate(
       req.params.id,
@@ -314,8 +315,11 @@ const updateData = async (req, res, next) => {
         new: true,
         runValidators: true,
         useFindAndModified: false,
+        session
       }
     );
+    await session.commitTransaction();
+    session.endSession();
     console.log("update transfer stock status only");
     return res.status(200).json({
       data: reponseData,
@@ -325,8 +329,7 @@ const updateData = async (req, res, next) => {
   console.log("run below part");
 
   if (transfer_status === "Received" && data?.transfer_status !== "Received") {
-    const session = await mongoose.startSession();
-    session.startTransaction();
+    
 
     try {
       // Step 1: Find matching records in sparePartsStockModel
@@ -356,14 +359,25 @@ const updateData = async (req, res, next) => {
         },
         { session }
       );
-      // Step 2: Process each record to update stock counters
-
+      // Process each record to update stock counters
+      let alreadyReturned = []; // this is for if any return product has in the request than failed the request
+      let alreadyAttached = []; // this is for if any atteched product has in the request than failed the request
       let matchedRecordForStockAdjustment = [];
       for (const record of matchedRecords) {
         const spare_parts_variation_id =
           record.spare_parts_variation_id.toString();
+        const spare_parts_id = record.spare_parts_id.toString();
 
         console.log("record", record);
+
+        if (record.stock_status === "Returned") {
+          alreadyReturned.push(record.sku_number);
+          continue;
+        }
+        if (record.stock_status === "Attached") {
+          alreadyAttached.push(record.sku_number);
+          continue;
+        }
         // updating branch id of stock
 
         const matchedIncrementStock = matchedRecordForStockAdjustment.find(
@@ -372,19 +386,46 @@ const updateData = async (req, res, next) => {
             entry.transfer_to === transfer_to &&
             entry.spare_parts_variation_id === spare_parts_variation_id
         );
-
-        if (matchedIncrementStock) {
-          matchedIncrementStock.matched += 1;
-        } else {
-          matchedRecordForStockAdjustment.push({
-            transfer_from: transfer_from,
-            transfer_to: transfer_to,
-            spare_parts_variation_id,
-            matched: 1,
-          });
+        if (record.stock_status === "Available") {
+          if (matchedIncrementStock) {
+            matchedIncrementStock.matched += 1;
+          } else {
+            matchedRecordForStockAdjustment.push({
+              transfer_from: transfer_from,
+              transfer_to: transfer_to,
+              spare_parts_variation_id,
+              spare_parts_id,
+              matched: 1,
+            });
+          }
         }
       }
-      let abortTransaction = false; // Flag to track if transaction should be aborted
+
+      if (alreadyReturned.length > 0) {
+        await session.abortTransaction(); // Cancel the session (transaction)
+        session.endSession(); // End the session
+        const message = `Stock ${alreadyReturned.join(
+          ", "
+        )} already returned. So Operation failed`;
+        return res.status(400).json({
+          success: false,
+          message: message,
+          alreadyReturned: alreadyReturned,
+        });
+      }
+      if (alreadyAttached.length > 0) {
+        await session.abortTransaction(); // Cancel the session (transaction)
+        session.endSession(); // End the session
+        const message = `Stock ${alreadyAttached.join(
+          ", "
+        )} already returned. So Operation failed`;
+        return res.status(400).json({
+          success: false,
+          message: message,
+          alreadyAttached: alreadyAttached,
+        });
+      }
+      let newAbortTransaction = false; // Flag to track if transaction should be aborted
       for (
         let index = 0;
         index < matchedRecordForStockAdjustment.length;
@@ -406,14 +447,8 @@ const updateData = async (req, res, next) => {
             spare_parts_variation_id: element?.spare_parts_variation_id,
           });
 
-          abortTransaction = true; // Set flag to abort after loop
+          newAbortTransaction = true; // Set flag to abort after loop
           break; // Exit the loop if condition is met
-
-          // await session.abortTransaction();
-          // session.endSession();
-          // return res.status(404).json({
-          //   message: "Stock for the source branch not found or not matched.",
-          // });
         }
 
         console.log("from stock counter", transferFromStockCounter);
@@ -441,7 +476,7 @@ const updateData = async (req, res, next) => {
           const newStock = new stockCounterAndLimitModel({
             branch_id: element.transfer_to,
             spare_parts_variation_id: element.spare_parts_variation_id,
-            spare_parts_id: transferFromStockCounter.spare_parts_id,
+            spare_parts_id: element.spare_parts_id,
             total_stock: element.matched,
           });
 
@@ -458,7 +493,7 @@ const updateData = async (req, res, next) => {
           );
         }
       }
-      if (abortTransaction) {
+      if (newAbortTransaction) {
         await session.abortTransaction();
         session.endSession();
         return res.status(404).json({

@@ -237,8 +237,6 @@ const permissions = [
   "user_dropdown_list",
 ];
 
- 
-
 let userData = [
   {
     user_id: "u100",

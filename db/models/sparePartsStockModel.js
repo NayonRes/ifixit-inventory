@@ -65,6 +65,7 @@ const sparePartsStockSchema = mongoose.Schema({
   },
   stock_status: {
     type: String,
+    enum: ["Attached", "Returned", "Available", "Abnormal"],
     default: "Available",
   },
   remarks: {

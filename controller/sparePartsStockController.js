@@ -526,7 +526,7 @@ const updateData = catchAsyncError(async (req, res, next) => {
     childrenParentUpdate,
   });
 });
-
+// Note : decremening only when database stock data's stock_status === Avaiable
 const purchaseReturn = catchAsyncError(async (req, res, next) => {
   const { token } = req.cookies;
   const { purchase_return_data } = req.body;
@@ -539,7 +539,6 @@ const purchaseReturn = catchAsyncError(async (req, res, next) => {
     return res.status(400).json({ message: "select at least one sku" });
   }
 
-  let alreadyReturned = [];
   const session = await mongoose.startSession();
   session.startTransaction();
 
@@ -564,14 +563,16 @@ const purchaseReturn = catchAsyncError(async (req, res, next) => {
         .status(404)
         .json({ message: "No records found with one of skus." });
     }
-    let matchedRecordForStockAdjustment = [];
-    let listOfUpdateStockStatusReturn = [];
+    let alreadyReturned = [];
+    let matchedRecordForStockCounterAdjustment = [];
+    let listOfUpdateStock = [];
     let stockListOfAnotherBranch = [];
     for (const record of matchedRecords) {
       const spare_parts_variation_id =
         record.spare_parts_variation_id.toString();
       const branch_id = record.branch_id.toString();
       const purchase_branch_id = record.purchase_branch_id.toString();
+      const spare_parts_id = record.spare_parts_id.toString();
       if (record.stock_status === "Returned") {
         alreadyReturned.push(record.sku_number);
         continue;
@@ -581,7 +582,7 @@ const purchaseReturn = catchAsyncError(async (req, res, next) => {
         continue;
       }
       if (record.stock_status === "Available") {
-        const matchedStock = matchedRecordForStockAdjustment.find(
+        const matchedStock = matchedRecordForStockCounterAdjustment.find(
           (entry) =>
             entry.branch_id === branch_id &&
             entry.spare_parts_variation_id === spare_parts_variation_id
@@ -590,9 +591,10 @@ const purchaseReturn = catchAsyncError(async (req, res, next) => {
         if (matchedStock) {
           matchedStock.matched += 1;
         } else {
-          matchedRecordForStockAdjustment.push({
+          matchedRecordForStockCounterAdjustment.push({
             branch_id: branch_id,
             spare_parts_variation_id,
+            spare_parts_id,
             matched: 1,
           });
         }
@@ -602,12 +604,209 @@ const purchaseReturn = catchAsyncError(async (req, res, next) => {
         (res) => res.sku_number === parseInt(record.sku_number)
       )?.remarks;
 
-      listOfUpdateStockStatusReturn.push({
+      listOfUpdateStock.push({
         updateOne: {
           filter: { _id: record._id },
           update: {
             $set: {
               stock_status: "Returned",
+              remarks: remarks || "", // Ensure `remarks` is not undefined
+              updated_by: decodedData?.user?.email,
+              updated_at: new Date(),
+            },
+          },
+        },
+      });
+    }
+    if (stockListOfAnotherBranch.length > 0) {
+      await session.abortTransaction(); // Cancel the session (transaction)
+      session.endSession(); // End the session
+      const message = `Stock ${stockListOfAnotherBranch.join(
+        ", "
+      )} purchased by another branch. So Operation failed`;
+      return res.status(400).json({
+        success: false,
+        message: message,
+        stockListOfAnotherBranch: stockListOfAnotherBranch,
+      });
+    }
+    if (alreadyReturned.length > 0) {
+      await session.abortTransaction(); // Cancel the session (transaction)
+      session.endSession(); // End the session
+      const message = `Stock ${alreadyReturned.join(
+        ", "
+      )} already returned. So operation Failed`;
+      return res.status(400).json({
+        success: false,
+        message: message,
+        alreadyReturned: alreadyReturned,
+      });
+    }
+    if (listOfUpdateStock.length > 0) {
+      await sparePartsStockModel.bulkWrite(listOfUpdateStock, {
+        session,
+      });
+    }
+    let newAbortTransaction = false; // Flag to track if transaction should be aborted
+    for (
+      let index = 0;
+      index < matchedRecordForStockCounterAdjustment.length;
+      index++
+    ) {
+      const element = matchedRecordForStockCounterAdjustment[index];
+
+      // finding for decrement stock count
+
+      const stockCounterData = await stockCounterAndLimitModel
+        .findOne({
+          branch_id: element?.branch_id,
+          spare_parts_variation_id: element?.spare_parts_variation_id,
+        })
+        .session(session);
+      if (!stockCounterData) {
+        console.error("stockCounterData not found:", {
+          branch_id: element?.branch_id,
+          spare_parts_variation_id: element?.spare_parts_variation_id,
+        });
+
+        newAbortTransaction = true; // Set flag to abort after loop
+        break;
+      }
+
+      console.log("from stock counter", stockCounterData);
+
+      await stockCounterAndLimitController.decrementStock(
+        element?.branch_id,
+        element?.spare_parts_variation_id,
+        element.matched,
+        session
+      );
+    }
+
+    // If flag is set to abort, abort transaction
+    if (newAbortTransaction) {
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(404).json({
+        message: "Stock for the source branch not found or not matched.",
+      });
+    }
+    await session.commitTransaction();
+    res.status(200).json({
+      success: true,
+      message: "SKU returned successfully",
+
+      listOfUpdateStock: listOfUpdateStock,
+    });
+  } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
+
+    console.error("Error on return sku:", error);
+    return res.status(500).json({ message: "An error occurred.", error });
+  } finally {
+    session.endSession();
+  }
+});
+const stockAdjustment = catchAsyncError(async (req, res, next) => {
+  const { token } = req.cookies;
+  const { stockStatus, adjustment_data } = req.body;
+
+  console.log("stockStatus", stockStatus);
+  console.log("adjustment_data", adjustment_data);
+
+  if (stockStatus !== "Available" && stockStatus !== "Abnormal") {
+    return res
+      .status(400)
+      .json({ message: "Selected status is not allowed for adjustment" });
+  }
+
+  let decodedData = jwt.verify(token, process.env.JWT_SECRET);
+
+  if (!adjustment_data || adjustment_data.length === 0) {
+    return res.status(400).json({ message: "select at least one sku" });
+  }
+  const session = await mongoose.startSession();
+  session.startTransaction();
+  try {
+    let sku_numbers = adjustment_data?.map((item) => parseInt(item.sku_number));
+    console.log("sku_numbers", sku_numbers);
+   
+    const matchedRecords = await sparePartsStockModel
+      .find({
+        sku_number: { $in: sku_numbers },
+      })
+      .session(session);
+
+    console.log("match skus", matchedRecords);
+
+    if (matchedRecords.length === 0) {
+      await session.abortTransaction();
+      session.endSession();
+      return res
+        .status(404)
+        .json({ message: "No records found with one of skus." });
+    }
+    // checking matchedStatusDBData for rejecting request if stock's previous status same
+    let matchedStatusDBData = matchedRecords?.filter(
+      (item) => item?.stock_status === stockStatus
+    );
+    console.log("matchedStatusDBData", matchedStatusDBData);
+
+    if (matchedStatusDBData.length > 0) {
+      let matchedStatusList = matchedStatusDBData.map(
+        (item) => item.sku_number
+      );
+      const message = `Stock ${matchedStatusList.join(
+        ", "
+      )} status already ${stockStatus}. So Operation failed`;
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(400).json({ message: message });
+    }
+
+    let matchedRecordForStockCounterAdjustment = [];
+    let listOfUpdateStock = [];
+    let stockListOfAnotherBranch = []; // if any data requesed data is from anothe branch a abortTransaction and endSession
+    for (const record of matchedRecords) {
+      const spare_parts_variation_id =
+        record.spare_parts_variation_id.toString();
+      const branch_id = record.branch_id.toString();
+      const purchase_branch_id = record.purchase_branch_id.toString();
+      const spare_parts_id = record.spare_parts_id.toString();
+
+      if (branch_id !== purchase_branch_id) {
+        stockListOfAnotherBranch.push(record.sku_number);
+        continue;
+      }
+
+      const matchedStock = matchedRecordForStockCounterAdjustment.find(
+        (entry) =>
+          entry.branch_id === branch_id &&
+          entry.spare_parts_variation_id === spare_parts_variation_id
+      );
+
+      if (matchedStock) {
+        matchedStock.matched += 1;
+      } else {
+        matchedRecordForStockCounterAdjustment.push({
+          branch_id: branch_id,
+          spare_parts_variation_id,
+          spare_parts_id,
+          matched: 1,
+        });
+      }
+
+      const remarks = adjustment_data.find(
+        (res) => res.sku_number === parseInt(record.sku_number)
+      )?.remarks;
+
+      listOfUpdateStock.push({
+        updateOne: {
+          filter: { _id: record._id },
+          update: {
+            $set: {
+              stock_status: stockStatus,
               remarks: remarks || "", // Ensure `remarks` is not undefined
               updated_by: decodedData?.user?.email,
               updated_at: new Date(),
@@ -628,64 +827,76 @@ const purchaseReturn = catchAsyncError(async (req, res, next) => {
         stockListOfAnotherBranch: stockListOfAnotherBranch,
       });
     }
-    if (alreadyReturned.length > 0) {
-      await session.abortTransaction(); // Cancel the session (transaction)
-      session.endSession(); // End the session
-      const message = `Stock ${alreadyReturned.join(", ")} already returned.`;
-      return res.status(400).json({
-        success: false,
-        message: message,
-        alreadyReturned: alreadyReturned,
-      });
-    }
-    if (listOfUpdateStockStatusReturn.length > 0) {
-      await sparePartsStockModel.bulkWrite(listOfUpdateStockStatusReturn, {
+
+    if (listOfUpdateStock.length > 0) {
+      await sparePartsStockModel.bulkWrite(listOfUpdateStock, {
         session,
       });
     }
-    let abortTransaction = false; // Flag to track if transaction should be aborted
+    let newAbortTransaction = false; // Flag to track if transaction should be aborted
     for (
       let index = 0;
-      index < matchedRecordForStockAdjustment.length;
+      index < matchedRecordForStockCounterAdjustment.length;
       index++
     ) {
-      const element = matchedRecordForStockAdjustment[index];
+      const element = matchedRecordForStockCounterAdjustment[index];
 
-      // finding for decrement stock count
+      // finding for status abnormal decrement stock count
 
-      const returnedStockCounter = await stockCounterAndLimitModel
+      const stockCounterData = await stockCounterAndLimitModel
         .findOne({
           branch_id: element?.branch_id,
           spare_parts_variation_id: element?.spare_parts_variation_id,
         })
         .session(session);
-      if (!returnedStockCounter) {
-        console.error("returnedStockCounter not found:", {
-          branch_id: element?.branch_id,
-          spare_parts_variation_id: element?.spare_parts_variation_id,
-        });
+      if (stockStatus === "Available") {
+        if (!stockCounterData) {
+          // If stock does not exist at the destination, create a new entry
+          const newStock = new stockCounterAndLimitModel({
+            branch_id: element.branch_id,
+            spare_parts_variation_id: element.spare_parts_variation_id,
+            spare_parts_id: element.spare_parts_id,
+            total_stock: element.matched,
+          });
 
-        abortTransaction = true; // Set flag to abort after loop
-        break;
-        // await session.abortTransaction();
-        // session.endSession();
-        // return res.status(404).json({
-        //   message: "Stock for the source branch not found or not matched.",
-        // });
+          await newStock.save({ session });
+
+          console.log("newStock", newStock);
+        } else {
+          // If stock already exists at the destination, just increment it
+          await stockCounterAndLimitController.incrementStock(
+            element?.branch_id,
+            element?.spare_parts_variation_id,
+            element?.matched,
+            session
+          );
+        }
       }
 
-      console.log("from stock counter", returnedStockCounter);
+      if (stockStatus === "Abnormal") {
+        if (!stockCounterData) {
+          console.error("stockCounterData not found:", {
+            branch_id: element?.branch_id,
+            spare_parts_variation_id: element?.spare_parts_variation_id,
+          });
 
-      await stockCounterAndLimitController.decrementStock(
-        element?.transfer_from,
-        element?.spare_parts_variation_id,
-        element.matched,
-        session
-      );
+          newAbortTransaction = true; // Set flag to abort after loop
+          break;
+        }
+
+        console.log("from stock counter", stockCounterData);
+
+        await stockCounterAndLimitController.decrementStock(
+          element?.branch_id,
+          element?.spare_parts_variation_id,
+          element.matched,
+          session
+        );
+      }
     }
 
     // If flag is set to abort, abort transaction
-    if (abortTransaction) {
+    if (newAbortTransaction) {
       await session.abortTransaction();
       session.endSession();
       return res.status(404).json({
@@ -695,105 +906,9 @@ const purchaseReturn = catchAsyncError(async (req, res, next) => {
     await session.commitTransaction();
     res.status(200).json({
       success: true,
-      message: "SKU returned successfully",
+      message: "Successfully Adjusted",
 
-      listOfUpdateStockStatusReturn: listOfUpdateStockStatusReturn,
-    });
-  } catch (error) {
-    await session.abortTransaction();
-    session.endSession();
-
-    console.error("Error on return sku:", error);
-    return res.status(500).json({ message: "An error occurred.", error });
-  } finally {
-    session.endSession();
-  }
-});
-
-const stockAdjustment = catchAsyncError(async (req, res, next) => {
-  const { token } = req.cookies;
-  const adjust_skus = req.body.sku_numbers;
-  const stock_status = req.body.stock_status;
-  console.log("req body", req.body.sku_numbers);
-  console.log("stock_status", stock_status);
-
-  let decodedData = jwt.verify(token, process.env.JWT_SECRET);
-
-  if (!adjust_skus || adjust_skus.length === 0) {
-    return res.status(400).json({ message: "select at least one sku" });
-  }
-
-  const session = await mongoose.startSession();
-  session.startTransaction();
-
-  try {
-    let sku_numbers = adjust_skus?.map((item) => parseInt(item));
-    console.log("sku_numbers", sku_numbers);
-
-    const matchedRecords = await sparePartsStockModel
-      .find({
-        sku_number: { $in: sku_numbers },
-      })
-      .session(session);
-
-    console.log("match skus", matchedRecords);
-
-    if (matchedRecords.length === 0) {
-      await session.abortTransaction();
-      session.endSession();
-      return res
-        .status(404)
-        .json({ message: "No records found with one of skus." });
-    }
-
-    for (const record of matchedRecords) {
-      const spare_parts_variation_id =
-        record.spare_parts_variation_id.toString();
-      const branch_id = record.branch_id.toString();
-
-      if (record.stock_status == "Available" && stock_status != "Available") {
-        await stockCounterAndLimitController.decrementStock(
-          branch_id,
-          spare_parts_variation_id,
-          1,
-          session
-        );
-      } else if (
-        record.stock_status != "Available" &&
-        stock_status == "Available"
-      ) {
-        console.log("increment calling======");
-
-        await stockCounterAndLimitController.incrementStock(
-          branch_id,
-          spare_parts_variation_id,
-          1,
-          session
-        );
-      }
-
-      record.stock_status = stock_status;
-      record.remarks = sku_numbers.find(
-        (res) => res === parseInt(record.sku_number)
-      )?.remarks;
-      (record.updated_by = decodedData?.user?.email),
-        (record.updated_at = new Date()),
-        (data = await sparePartsStockModel.findByIdAndUpdate(
-          record._id,
-          record,
-          {
-            new: true,
-            runValidators: true,
-            useFindAndModified: false,
-            session,
-          }
-        ));
-    }
-
-    await session.commitTransaction();
-    res.status(200).json({
-      success: true,
-      message: "Stock adjusted successfully",
+      listOfUpdateStock: listOfUpdateStock,
     });
   } catch (error) {
     await session.abortTransaction();
