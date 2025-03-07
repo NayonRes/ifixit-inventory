@@ -360,8 +360,9 @@ const updateData = async (req, res, next) => {
         { session }
       );
       // Process each record to update stock counters
-      let alreadyReturned = []; // this is for if any return product has in the request than failed the request
-      let alreadyAttached = []; // this is for if any atteched product has in the request than failed the request
+      let notThisBranchProduct = []; // this is for if any other branch product exist in the request than failed the request
+      let alreadyReturned = []; // this is for if any return product exist in the request than failed the request
+      let alreadyAttached = []; // this is for if any atteched product exist in the request than failed the request
       let matchedRecordForStockAdjustment = [];
       for (const record of matchedRecords) {
         const spare_parts_variation_id =
@@ -369,7 +370,10 @@ const updateData = async (req, res, next) => {
         const spare_parts_id = record.spare_parts_id.toString();
 
         console.log("record", record);
-
+        if (branch_id !== decodedData?.user?.branch_id) {
+          notThisBranchProduct.push(record.sku_number);
+          continue;
+        }
         if (record.stock_status === "Returned") {
           alreadyReturned.push(record.sku_number);
           continue;
@@ -400,7 +404,18 @@ const updateData = async (req, res, next) => {
           }
         }
       }
-
+      if (notThisBranchProduct.length > 0) {
+        await session.abortTransaction(); // Cancel the session (transaction)
+        session.endSession(); // End the session
+        const message = `Stock ${notThisBranchProduct.join(
+          ", "
+        )} not this branch product. So operation Failed`;
+        return res.status(400).json({
+          success: false,
+          message: message,
+          notThisBranchProduct: notThisBranchProduct,
+        });
+      }
       if (alreadyReturned.length > 0) {
         await session.abortTransaction(); // Cancel the session (transaction)
         session.endSession(); // End the session
@@ -478,6 +493,7 @@ const updateData = async (req, res, next) => {
             spare_parts_variation_id: element.spare_parts_variation_id,
             spare_parts_id: element.spare_parts_id,
             total_stock: element.matched,
+            created_by: decodedData?.user?.email,
           });
 
           await newStock.save({ session });

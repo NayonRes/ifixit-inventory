@@ -473,6 +473,7 @@ const createData = catchAsyncError(async (req, res, next) => {
         spare_parts_variation_id,
         spare_parts_id,
         total_stock: quantity,
+        created_by: decodedData?.user?.email,
       };
       await stockCounterAndLimitModel.create([newDocument], { session });
     }
@@ -563,6 +564,7 @@ const purchaseReturn = catchAsyncError(async (req, res, next) => {
         .status(404)
         .json({ message: "No records found with one of skus." });
     }
+    let notThisBranchProduct = [];
     let alreadyReturned = [];
     let matchedRecordForStockCounterAdjustment = [];
     let listOfUpdateStock = [];
@@ -575,6 +577,10 @@ const purchaseReturn = catchAsyncError(async (req, res, next) => {
       const spare_parts_id = record.spare_parts_id.toString();
       if (record.stock_status === "Returned") {
         alreadyReturned.push(record.sku_number);
+        continue;
+      }
+      if (branch_id !== decodedData?.user?.branch_id) {
+        notThisBranchProduct.push(record.sku_number);
         continue;
       }
       if (branch_id !== purchase_branch_id) {
@@ -628,6 +634,18 @@ const purchaseReturn = catchAsyncError(async (req, res, next) => {
         success: false,
         message: message,
         stockListOfAnotherBranch: stockListOfAnotherBranch,
+      });
+    }
+    if (notThisBranchProduct.length > 0) {
+      await session.abortTransaction(); // Cancel the session (transaction)
+      session.endSession(); // End the session
+      const message = `Stock ${notThisBranchProduct.join(
+        ", "
+      )} not this branch product. So operation Failed`;
+      return res.status(400).json({
+        success: false,
+        message: message,
+        notThisBranchProduct: notThisBranchProduct,
       });
     }
     if (alreadyReturned.length > 0) {
@@ -731,14 +749,14 @@ const stockAdjustment = catchAsyncError(async (req, res, next) => {
   try {
     let sku_numbers = adjustment_data?.map((item) => parseInt(item.sku_number));
     console.log("sku_numbers", sku_numbers);
-   
+
     const matchedRecords = await sparePartsStockModel
       .find({
         sku_number: { $in: sku_numbers },
       })
       .session(session);
 
-    console.log("match skus", matchedRecords);
+    console.log("matchedRecords", matchedRecords);
 
     if (matchedRecords.length === 0) {
       await session.abortTransaction();
@@ -759,15 +777,15 @@ const stockAdjustment = catchAsyncError(async (req, res, next) => {
       );
       const message = `Stock ${matchedStatusList.join(
         ", "
-      )} status already ${stockStatus}. So Operation failed`;
+      )} status already ${stockStatus}. So operation failed`;
       await session.abortTransaction();
       session.endSession();
       return res.status(400).json({ message: message });
     }
-
+    let notThisBranchProduct = [];
     let matchedRecordForStockCounterAdjustment = [];
     let listOfUpdateStock = [];
-    let stockListOfAnotherBranch = []; // if any data requesed data is from anothe branch a abortTransaction and endSession
+    // let stockListOfAnotherBranch = []; // if any data requesed data is from anothe branch a abortTransaction and endSession
     for (const record of matchedRecords) {
       const spare_parts_variation_id =
         record.spare_parts_variation_id.toString();
@@ -775,26 +793,44 @@ const stockAdjustment = catchAsyncError(async (req, res, next) => {
       const purchase_branch_id = record.purchase_branch_id.toString();
       const spare_parts_id = record.spare_parts_id.toString();
 
-      if (branch_id !== purchase_branch_id) {
-        stockListOfAnotherBranch.push(record.sku_number);
+      // if (branch_id !== purchase_branch_id) {
+      //   stockListOfAnotherBranch.push(record.sku_number);
+      //   continue;
+      // }
+      if (branch_id !== decodedData?.user?.branch_id) {
+        notThisBranchProduct.push(record.sku_number);
         continue;
       }
-
       const matchedStock = matchedRecordForStockCounterAdjustment.find(
         (entry) =>
           entry.branch_id === branch_id &&
           entry.spare_parts_variation_id === spare_parts_variation_id
       );
-
-      if (matchedStock) {
-        matchedStock.matched += 1;
-      } else {
-        matchedRecordForStockCounterAdjustment.push({
-          branch_id: branch_id,
-          spare_parts_variation_id,
-          spare_parts_id,
-          matched: 1,
-        });
+      if (stockStatus === "Available" && record.stock_status !== "Available") {
+        if (matchedStock) {
+          matchedStock.matched += 1;
+        } else {
+          matchedRecordForStockCounterAdjustment.push({
+            branch_id: branch_id,
+            spare_parts_variation_id,
+            spare_parts_id,
+            matched: 1,
+          });
+        }
+      } else if (
+        stockStatus === "Abnormal" &&
+        record.stock_status === "Available"
+      ) {
+        if (matchedStock) {
+          matchedStock.matched += 1;
+        } else {
+          matchedRecordForStockCounterAdjustment.push({
+            branch_id: branch_id,
+            spare_parts_variation_id,
+            spare_parts_id,
+            matched: 1,
+          });
+        }
       }
 
       const remarks = adjustment_data.find(
@@ -815,18 +851,31 @@ const stockAdjustment = catchAsyncError(async (req, res, next) => {
         },
       });
     }
-    if (stockListOfAnotherBranch.length > 0) {
+
+    if (notThisBranchProduct.length > 0) {
       await session.abortTransaction(); // Cancel the session (transaction)
       session.endSession(); // End the session
-      const message = `Stock ${stockListOfAnotherBranch.join(
+      const message = `Stock ${notThisBranchProduct.join(
         ", "
-      )} purchased by another branch. so you can not return`;
+      )} not this branch product. So operation Failed`;
       return res.status(400).json({
         success: false,
         message: message,
-        stockListOfAnotherBranch: stockListOfAnotherBranch,
+        notThisBranchProduct: notThisBranchProduct,
       });
     }
+    // if (stockListOfAnotherBranch.length > 0) {
+    //   await session.abortTransaction(); // Cancel the session (transaction)
+    //   session.endSession(); // End the session
+    //   const message = `Stock ${stockListOfAnotherBranch.join(
+    //     ", "
+    //   )} purchased by another branch. so you can not return. So operation failed`;
+    //   return res.status(400).json({
+    //     success: false,
+    //     message: message,
+    //     stockListOfAnotherBranch: stockListOfAnotherBranch,
+    //   });
+    // }
 
     if (listOfUpdateStock.length > 0) {
       await sparePartsStockModel.bulkWrite(listOfUpdateStock, {
@@ -857,6 +906,7 @@ const stockAdjustment = catchAsyncError(async (req, res, next) => {
             spare_parts_variation_id: element.spare_parts_variation_id,
             spare_parts_id: element.spare_parts_id,
             total_stock: element.matched,
+            created_by: decodedData?.user?.email,
           });
 
           await newStock.save({ session });
