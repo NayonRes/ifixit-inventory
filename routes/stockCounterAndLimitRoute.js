@@ -5,12 +5,12 @@ const {
   createData,
   createLimit,
   updateData,
-  deleteData,
+  getBrnachLimit,
 } = require("../controller/stockCounterAndLimitController");
 const { isAuthenticatedUser, authorizeRoles } = require("../middleware/auth");
 
 var router = express.Router();
-
+router.route("/branch-limit").get(isAuthenticatedUser, getBrnachLimit);
 router
   .route("/")
   .get(

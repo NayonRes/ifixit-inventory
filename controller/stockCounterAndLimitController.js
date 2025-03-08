@@ -5,6 +5,43 @@ const catchAsyncError = require("../middleware/catchAsyncError");
 const jwt = require("jsonwebtoken");
 const counterModel = require("../db/models/counterModel");
 
+const getBrnachLimit = catchAsyncError(async (req, res, next) => {
+  const page = parseInt(req.query.page) || 1;
+  console.log("===========req.query.page", req.query.page);
+  const limit = parseInt(req.query.limit) || 100;
+  const startIndex = (page - 1) * limit;
+  const endIndex = page * limit;
+  var query = {};
+
+  if (req.query.spare_parts_variation_id) {
+    query.spare_parts_variation_id = new mongoose.Types.ObjectId(
+      req.query.spare_parts_variation_id
+    );
+  }
+
+ 
+
+  const totalData = await stockCounterAndLimitModel.countDocuments(query);
+  // let totalData = await stockCounterAndLimitModel.countDocuments(query);
+
+  console.log("totalData=================================", totalData);
+  //const data = await stockCounterAndLimitModel.find(query).skip(startIndex).limit(limit);
+
+  const data = await stockCounterAndLimitModel
+    .find(query)
+    .sort({ created_at: -1 })
+    .skip(startIndex)
+    .limit(limit);
+  console.log("data", data);
+  res.status(200).json({
+    success: true,
+    message: "successful",
+    data: data,
+    totalData: totalData?.length > 0 ? totalData[0]?.total : 0,
+    pageNo: page,
+    limit: limit,
+  });
+});
 const getDataWithPagination = catchAsyncError(async (req, res, next) => {
   const page = parseInt(req.query.page) || 1;
   console.log("===========req.query.page", req.query.page);
@@ -425,4 +462,5 @@ module.exports = {
   deleteData,
   incrementStock,
   decrementStock,
+  getBrnachLimit,
 };
