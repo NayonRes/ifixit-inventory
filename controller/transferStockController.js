@@ -24,7 +24,11 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
   }
 
   if (req.query.branch_id) {
-    query.branch_id = new mongoose.Types.ObjectId(req.query.branch_id);
+    const branchObjectId = new mongoose.Types.ObjectId(req.query.branch_id);
+    query.$or = [
+      { transfer_from: branchObjectId },
+      { transfer_to: branchObjectId },
+    ];
   }
 
   let totalData = await transferStockModel.countDocuments(query);
@@ -315,7 +319,7 @@ const updateData = async (req, res, next) => {
         new: true,
         runValidators: true,
         useFindAndModified: false,
-        session
+        session,
       }
     );
     await session.commitTransaction();
@@ -329,8 +333,6 @@ const updateData = async (req, res, next) => {
   console.log("run below part");
 
   if (transfer_status === "Received" && data?.transfer_status !== "Received") {
-    
-
     try {
       // Step 1: Find matching records in sparePartsStockModel
       const matchedRecords = await sparePartsStockModel
@@ -367,10 +369,13 @@ const updateData = async (req, res, next) => {
       for (const record of matchedRecords) {
         const spare_parts_variation_id =
           record.spare_parts_variation_id.toString();
+        const branch_id = record.branch_id.toString();
         const spare_parts_id = record.spare_parts_id.toString();
 
         console.log("record", record);
-        if (branch_id !== decodedData?.user?.branch_id) {
+
+        //checking any product of the same branch is not receiving. means if by any mistake or any how transfer own product to own branch
+        if (branch_id === decodedData?.user?.branch_id) {
           notThisBranchProduct.push(record.sku_number);
           continue;
         }

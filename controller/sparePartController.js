@@ -120,6 +120,7 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
         as: "variation_data",
       },
     },
+
     {
       $project: {
         _id: 1,
