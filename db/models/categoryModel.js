@@ -20,7 +20,7 @@ const categorySchema = mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "category",
     default: null,
-    // required: [true, "Please enter Spare part Id"],
+    // required: [true, "Please enter product Id"],
   },
   remarks: {
     type: String,

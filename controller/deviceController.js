@@ -103,7 +103,7 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
     },
     {
       $lookup: {
-        from: "device-brands",
+        from: "device_brands",
         localField: "device_brand_id",
         foreignField: "_id",
         as: "device_brand_data",

@@ -2,15 +2,15 @@ const mongoose = require("mongoose");
 const { Schema } = mongoose;
 
 const sparePartsStockSchema = mongoose.Schema({
-  spare_parts_id: {
+  product_id: {
     type: Schema.Types.ObjectId,
-    ref: "sparePartsModel",
-    required: [true, "Please select spare parts"],
+    ref: "productModel",
+    required: [true, "Please select product"],
   },
-  spare_parts_variation_id: {
+  product_variation_id: {
     type: Schema.Types.ObjectId,
-    ref: "sparePartsVariationModel",
-    required: [true, "Please select spare parts variation"],
+    ref: "productVariationModel",
+    required: [true, "Please select product variation"],
   },
   branch_id: {
     type: Schema.Types.ObjectId,
@@ -89,10 +89,7 @@ const sparePartsStockSchema = mongoose.Schema({
   updated_at: { type: Date, default: Date.now },
 });
 sparePartsStockSchema.index({ sku_number: 1 });
-sparePartsStockSchema.index({ spare_parts_id: 1 });
-const sparePartsStockModel = mongoose.model(
-  "spare_Parts_stock",
-  sparePartsStockSchema
-);
+sparePartsStockSchema.index({ product_id: 1 });
+const stockModel = mongoose.model("stock", sparePartsStockSchema);
 
-module.exports = sparePartsStockModel;
+module.exports = stockModel;

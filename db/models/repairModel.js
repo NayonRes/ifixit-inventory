@@ -78,15 +78,15 @@ const repairSchema = mongoose.Schema({
   ],
   spare_parts: [
     {
-      spare_parts_id: {
+      product_id: {
         type: Schema.Types.ObjectId,
-        ref: "sparePartVariationModel",
-        required: [true, "Please enter Spare part Id"],
+        ref: "productModel",
+        required: [true, "Please enter product Id"],
       },
-      spare_parts_variation_id: {
+      product_variation_id: {
         type: Schema.Types.ObjectId,
-        ref: "sparePartVariationModel",
-        required: [true, "Please enter Spare part Id"],
+        ref: "productVariationModel",
+        required: [true, "Please enter product Id"],
       },
       name: {
         type: String,

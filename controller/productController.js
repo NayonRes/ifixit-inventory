@@ -5,56 +5,42 @@ const imageUpload = require("../utils/imageUpload");
 const imageDelete = require("../utils/imageDelete");
 const catchAsyncError = require("../middleware/catchAsyncError");
 const jwt = require("jsonwebtoken");
+const mongoose = require("mongoose");
 
-const getAll = catchAsyncError(async (req, res, next) => {
-  const data = await productModel.find();
-  res.status(200).json({
-    success: true,
-    message: "successful",
-    data: data,
-  });
-});
-const getDataByProductIds = catchAsyncError(async (req, res, next) => {
-  console.log("req.body 111111111111111", req.body);
-  let productIds = req.body.productIds;
-  console.log("productIds", productIds);
-  let data = [];
-  if (productIds.length > 0) {
-    data = await productModel.find({
-      product_id: { $in: productIds },
-    });
-  }
-
-  console.log("data", data);
-  res.status(200).json({
-    success: true,
-    message: "successful",
-    data: data,
-  });
-});
 const getDataWithPagination = catchAsyncError(async (req, res, next) => {
   const page = parseInt(req.query.page) || 1;
-  console.log("===========req.query.page", req.query.page);
+  console.log("===========req.query================", req.query);
   const limit = parseInt(req.query.limit) || 10;
   const startIndex = (page - 1) * limit;
   const endIndex = page * limit;
+
   const minPrice = req.query.minPrice;
   const maxPrice = req.query.maxPrice;
   const startDate = req.query.startDate;
   const endDate = req.query.endDate;
   var query = {};
+  // if (req.query.name) {
+  //   query.name = new RegExp(`^${req.query.name}$`, "i");
+  // }
+
   if (req.query.name) {
-    query.name = new RegExp(`^${req.query.name}$`, "i");
+    query.name = { $regex: req.query.name, $options: "i" };
   }
   if (req.query.status) {
     query.status = req.query.status;
   }
 
-  if (req.query.sku) {
-    query.sku = new RegExp(`^${req.query.sku}$`, "i");
-  }
   if (req.query.category_id) {
-    query.category_id = new RegExp(`^${req.query.category_id}$`, "i");
+    query.category_id = new mongoose.Types.ObjectId(req.query.category_id);
+  }
+  if (req.query.brand_id) {
+    query.brand_id = new mongoose.Types.ObjectId(req.query.brand_id);
+  }
+  if (req.query.device_id) {
+    query.device_id = new mongoose.Types.ObjectId(req.query.device_id);
+  }
+  if (req.query.model_id) {
+    query.model_id = new mongoose.Types.ObjectId(req.query.model_id);
   }
   if (parseInt(minPrice) && parseInt(maxPrice)) {
     query.price = {
@@ -85,10 +71,11 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
       $lte: new Date(`${endDate}T23:59:59.999Z`),
     };
   }
+
   let totalData = await productModel.countDocuments(query);
   console.log("totalData=================================", totalData);
+  // const data = await productModel.find(query).skip(startIndex).limit(limit);
 
-  // -------------------------start-------------------------------------------
   const data = await productModel.aggregate([
     {
       $match: query,
@@ -97,48 +84,71 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
       $lookup: {
         from: "categories",
         localField: "category_id",
-        foreignField: "category_id",
+        foreignField: "_id",
         as: "category_data",
       },
     },
     {
       $lookup: {
-        from: "filters",
-        localField: "filter_id",
-        foreignField: "filter_id",
-        as: "filter_data",
+        from: "brands",
+        localField: "brand_id",
+        foreignField: "_id",
+        as: "brand_data",
+      },
+    },
+    {
+      $lookup: {
+        from: "devices",
+        localField: "device_id",
+        foreignField: "_id",
+        as: "device_data",
+      },
+    },
+    {
+      $lookup: {
+        from: "models",
+        localField: "model_id",
+        foreignField: "_id",
+        as: "model_data",
+      },
+    },
+    {
+      $lookup: {
+        from: "product_variations",
+        localField: "_id",
+        foreignField: "product_id",
+        as: "variation_data",
       },
     },
 
     {
       $project: {
         _id: 1,
-        product_id: 1,
         name: 1,
         description: 1,
-        price: 1,
-        discount_price: 1,
-        rating: 1,
-        viewed: 1,
-        stock_unit: 1,
-        sku: 1,
-        images: 1,
-        filter_id: 1,
-        store_id: 1,
+        brand_id: 1,
         category_id: 1,
-        location_id: 1,
+        device_id: 1,
+        model_id: 1,
+        product_id: 1,
+        warranty: 1,
+        price: 1,
+        images: 1,
+        description: 1,
+        remarks: 1,
+
         status: 1,
         created_by: 1,
         created_at: 1,
         updated_by: 1,
         updated_at: 1,
-        "category_data._id": 1,
+        // "category_data._id": 1,
         "category_data.name": 1,
-        "category_data.category_id": 1,
-        "filter_data._id": 1,
-        "filter_data.parent_name": 1,
-        "filter_data.name": 1,
-        "filter_data.filter_id": 1,
+        // "brand_data._id": 1,
+        "brand_data.name": 1,
+        "device_data.name": 1,
+        "model_data.name": 1,
+        variation_data: 1,
       },
     },
     {
@@ -152,8 +162,7 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
       $limit: limit,
     },
   ]);
-  // -------------------------end-------------------------------------------
-  // const data = await productModel.find(query).skip(startIndex).limit(limit);
+
   console.log("data", data);
   res.status(200).json({
     success: true,
@@ -164,24 +173,132 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
     limit: limit,
   });
 });
+
+const lightSearchWithPagination = catchAsyncError(async (req, res, next) => {
+  const page = parseInt(req.query.page) || 1;
+  console.log("===========req.query.page", req.query.page);
+  const limit = parseInt(req.query.limit) || 10;
+  const startIndex = (page - 1) * limit;
+  const endIndex = page * limit;
+
+  var query = {};
+  if (req.query.name) {
+    query.name = { $regex: req.query.name, $options: "i" };
+  }
+
+  let totalData = await productModel.countDocuments(query);
+  console.log("totalData=================================", totalData);
+  const data = await productModel
+    .find(query)
+    .select("_id product_id name price images")
+    .skip(startIndex)
+    .limit(limit);
+
+  console.log("data", data);
+  res.status(200).json({
+    success: true,
+    message: "successful",
+    data: data,
+    totalData: totalData,
+    pageNo: page,
+    limit: limit,
+  });
+});
+
 const getById = catchAsyncError(async (req, res, next) => {
-  let data = await productModel.findById(req.params.id);
-  if (!data) {
+  const id = req.params.id;
+
+  const data = await productModel.aggregate([
+    {
+      $match: { _id: mongoose.Types.ObjectId(id) },
+    },
+    {
+      $lookup: {
+        from: "categories",
+        localField: "category_id",
+        foreignField: "_id",
+        as: "category_data",
+      },
+    },
+    {
+      $lookup: {
+        from: "brands",
+        localField: "brand_id",
+        foreignField: "_id",
+        as: "brand_data",
+      },
+    },
+    {
+      $lookup: {
+        from: "devices",
+        localField: "device_id",
+        foreignField: "_id",
+        as: "device_data",
+      },
+    },
+    {
+      $lookup: {
+        from: "models",
+        localField: "model_id",
+        foreignField: "_id",
+        as: "model_data",
+      },
+    },
+    {
+      $lookup: {
+        from: "product_variations",
+        localField: "_id",
+        foreignField: "product_id",
+        as: "variation_data",
+      },
+    },
+    {
+      $project: {
+        _id: 1,
+        name: 1,
+        description: 1,
+        brand_id: 1,
+        category_id: 1,
+        device_id: 1,
+        model_id: 1,
+        product_id: 1,
+        warranty: 1,
+        price: 1,
+        images: 1,
+        remarks: 1,
+        status: 1,
+        created_by: 1,
+        created_at: 1,
+        updated_by: 1,
+        updated_at: 1,
+        "category_data.name": 1,
+        "brand_data.name": 1,
+        "device_data.name": 1,
+        "model_data.name": 1,
+        variation_data: 1,
+      },
+    },
+  ]);
+
+  if (!data || data.length === 0) {
     return next(new ErrorHander("No data found", 404));
   }
+
   res.status(200).json({
     success: true,
     message: "success",
-    data: data,
+    data: data[0], // Access the first (and only) document in the array
   });
 });
+
 const createData = catchAsyncError(async (req, res, next) => {
-  console.log("req.files", req.files);
-  console.log("req.body", req.body);
+  console.log("req.files--------", req.files);
+  console.log("req.body------------", req.body);
+
   const { token } = req.cookies;
   let imageData = [];
   if (req.files) {
-    imageData = await imageUpload(req.files.images, "products", next);
+    imageData = await imageUpload(req.files.images, "spareParts", next);
   }
   console.log("imageData", imageData);
 
@@ -209,6 +326,8 @@ const createData = catchAsyncError(async (req, res, next) => {
 });
 
 const updateData = async (req, res, next) => {
+  console.log("asdasdfasdfasdfasdfs====================updateData");
+
   try {
     const { token } = req.cookies;
     let data = await productModel.findById(req.params.id);
@@ -225,16 +344,19 @@ const updateData = async (req, res, next) => {
         await imageDelete(element.public_id, next);
       }
     }
+
     //uploading new images
     let imageData = [];
     let newData = req.body;
     if (req.files) {
-      imageData = await imageUpload(req.files.images, "products", next);
+      imageData = await imageUpload(req.files.images, "spareParts", next);
     }
+
     console.log("imageData", imageData);
     if (imageData.length > 0) {
       newData = { ...req.body, images: imageData };
     }
+
     let decodedData = jwt.verify(token, process.env.JWT_SECRET);
 
     newData = {
@@ -262,9 +384,7 @@ const updateData = async (req, res, next) => {
     res.send({ message: "error", status: 400, error: error });
   }
 };
-const patchData = async (req, res, next) => {
-  console.log("patchData function is working");
-};
+
 const deleteData = catchAsyncError(async (req, res, next) => {
   console.log("deleteData function is working");
   let data = await productModel.findById(req.params.id);
@@ -288,12 +408,10 @@ const deleteData = catchAsyncError(async (req, res, next) => {
   });
 });
 module.exports = {
-  getAll,
-  getDataByProductIds,
   getDataWithPagination,
+  lightSearchWithPagination,
   getById,
   createData,
   updateData,
-  patchData,
   deleteData,
 };

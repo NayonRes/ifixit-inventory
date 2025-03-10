@@ -1,5 +1,5 @@
 const transferStockModel = require("../db/models/transferStockModel");
-const sparePartsStockModel = require("../db/models/sparePartsStockModel");
+const stockModel = require("../db/models/stockModel");
 const stockCounterAndLimitModel = require("../db/models/stockCounterAndLimitModel");
 const ErrorHander = require("../utils/errorHandler");
 const catchAsyncError = require("../middleware/catchAsyncError");
@@ -146,7 +146,7 @@ const getById = catchAsyncError(async (req, res, next) => {
     {
       $lookup: {
         from: "spareparts",
-        localField: "sku_details.spare_parts_id",
+        localField: "sku_details.product_id",
         foreignField: "_id",
         as: "spare_parts_details",
       },
@@ -159,8 +159,8 @@ const getById = catchAsyncError(async (req, res, next) => {
     },
     {
       $lookup: {
-        from: "sparepartvariations",
-        localField: "sku_details.spare_parts_variation_id",
+        from: "product_variations",
+        localField: "sku_details.product_variation_id",
         foreignField: "_id",
         as: "spare_parts_variation_details",
       },
@@ -189,7 +189,7 @@ const getById = catchAsyncError(async (req, res, next) => {
     // Join with the purchase_products collection
     {
       $lookup: {
-        from: "purchaseproducts",
+        from: "purchase_products",
         localField: "sku_details.purchase_product_id",
         foreignField: "_id",
         as: "purchase_product_details",
@@ -334,8 +334,8 @@ const updateData = async (req, res, next) => {
 
   if (transfer_status === "Received" && data?.transfer_status !== "Received") {
     try {
-      // Step 1: Find matching records in sparePartsStockModel
-      const matchedRecords = await sparePartsStockModel
+      // Step 1: Find matching records in stockModel
+      const matchedRecords = await stockModel
         .find({
           sku_number: { $in: transfer_stocks_sku },
         })
@@ -350,7 +350,7 @@ const updateData = async (req, res, next) => {
 
       // updating treansfer sku's branch id
 
-      await sparePartsStockModel.updateMany(
+      await stockModel.updateMany(
         { sku_number: { $in: transfer_stocks_sku } },
         {
           $set: {
@@ -367,10 +367,9 @@ const updateData = async (req, res, next) => {
       let alreadyAttached = []; // this is for if any atteched product exist in the request than failed the request
       let matchedRecordForStockAdjustment = [];
       for (const record of matchedRecords) {
-        const spare_parts_variation_id =
-          record.spare_parts_variation_id.toString();
+        const product_variation_id = record.product_variation_id.toString();
         const branch_id = record.branch_id.toString();
-        const spare_parts_id = record.spare_parts_id.toString();
+        const product_id = record.product_id.toString();
 
         console.log("record", record);
 
@@ -393,7 +392,7 @@ const updateData = async (req, res, next) => {
           (entry) =>
             entry.transfer_from === transfer_from &&
             entry.transfer_to === transfer_to &&
-            entry.spare_parts_variation_id === spare_parts_variation_id
+            entry.product_variation_id === product_variation_id
         );
         if (record.stock_status === "Available") {
           if (matchedIncrementStock) {
@@ -402,8 +401,8 @@ const updateData = async (req, res, next) => {
             matchedRecordForStockAdjustment.push({
               transfer_from: transfer_from,
               transfer_to: transfer_to,
-              spare_parts_variation_id,
-              spare_parts_id,
+              product_variation_id,
+              product_id,
               matched: 1,
             });
           }
@@ -458,13 +457,13 @@ const updateData = async (req, res, next) => {
         const transferFromStockCounter = await stockCounterAndLimitModel
           .findOne({
             branch_id: element?.transfer_from,
-            spare_parts_variation_id: element?.spare_parts_variation_id,
+            product_variation_id: element?.product_variation_id,
           })
           .session(session);
         if (!transferFromStockCounter) {
           console.error("transferFromStockCounter not found:", {
             branch_id: element?.transfer_from,
-            spare_parts_variation_id: element?.spare_parts_variation_id,
+            product_variation_id: element?.product_variation_id,
           });
 
           newAbortTransaction = true; // Set flag to abort after loop
@@ -475,7 +474,7 @@ const updateData = async (req, res, next) => {
 
         await stockCounterAndLimitController.decrementStock(
           element?.transfer_from,
-          element?.spare_parts_variation_id,
+          element?.product_variation_id,
           element.matched,
           session
         );
@@ -485,7 +484,7 @@ const updateData = async (req, res, next) => {
         let transferToStockCounter = await stockCounterAndLimitModel
           .findOne({
             branch_id: element?.transfer_to,
-            spare_parts_variation_id: element?.spare_parts_variation_id,
+            product_variation_id: element?.product_variation_id,
           })
           .session(session);
 
@@ -495,8 +494,8 @@ const updateData = async (req, res, next) => {
           // If stock does not exist at the destination, create a new entry
           const newStock = new stockCounterAndLimitModel({
             branch_id: element.transfer_to,
-            spare_parts_variation_id: element.spare_parts_variation_id,
-            spare_parts_id: element.spare_parts_id,
+            product_variation_id: element.product_variation_id,
+            product_id: element.product_id,
             total_stock: element.matched,
             created_by: decodedData?.user?.email,
           });
@@ -508,7 +507,7 @@ const updateData = async (req, res, next) => {
           // If stock already exists at the destination, just increment it
           await stockCounterAndLimitController.incrementStock(
             element?.transfer_to,
-            element?.spare_parts_variation_id,
+            element?.product_variation_id,
             element.matched,
             session
           );

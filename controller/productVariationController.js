@@ -1,4 +1,4 @@
-const sparePartVariationModel = require("../db/models/sparePartVariationModel");
+const productVariationModel = require("../db/models/productVariationModel");
 const sizeOf = require("image-size");
 const ErrorHander = require("../utils/errorHandler");
 const imageUpload = require("../utils/imageUpload");
@@ -18,9 +18,9 @@ const lightSearchWithPagination = catchAsyncError(async (req, res, next) => {
     query.name = { $regex: req.query.name, $options: "i" };
   }
 
-  let totalData = await sparePartVariationModel.countDocuments(query);
+  let totalData = await productVariationModel.countDocuments(query);
   console.log("totalData=================================", totalData);
-  const data = await sparePartVariationModel
+  const data = await productVariationModel
     .find(query)
     .select("_id sparePartVariation_id name price images")
     .skip(startIndex)
@@ -54,28 +54,26 @@ const branchStock = catchAsyncError(async (req, res, next) => {
   // if (req.query.branch_id) {
   //   query.branch_id = new mongoose.Types.ObjectId(req.query.branch_id);
   // }
-  if (req.query.spare_parts_id) {
-    query.spare_parts_id = new mongoose.Types.ObjectId(
-      req.query.spare_parts_id
-    );
+  if (req.query.product_id) {
+    query.product_id = new mongoose.Types.ObjectId(req.query.product_id);
   }
-  if (req.query.spare_parts_variation_id) {
-    query._id = new mongoose.Types.ObjectId(req.query.spare_parts_variation_id);
+  if (req.query.product_variation_id) {
+    query._id = new mongoose.Types.ObjectId(req.query.product_variation_id);
   }
   if (req.query.status) {
     query.status = req.query.status;
   }
 
-  const totalData = await sparePartVariationModel.countDocuments(query);
+  const totalData = await productVariationModel.countDocuments(query);
 
-  const data = await sparePartVariationModel.aggregate([
+  const data = await productVariationModel.aggregate([
     { $match: query },
 
     // Lookup sparepart data
     {
       $lookup: {
         from: "spareparts",
-        localField: "spare_parts_id",
+        localField: "product_id",
         foreignField: "_id",
         as: "sparepart_data",
       },
@@ -88,13 +86,13 @@ const branchStock = catchAsyncError(async (req, res, next) => {
         let: {
           variationId: "$_id",
           branchId: new mongoose.Types.ObjectId(req.query.branch_id),
-        }, // Store spare_parts_variation_id and branch_id
+        }, // Store product_variation_id and branch_id
         pipeline: [
           {
             $match: {
               $expr: {
                 $and: [
-                  { $eq: ["$spare_parts_variation_id", "$$variationId"] }, // Match variation ID
+                  { $eq: ["$product_variation_id", "$$variationId"] }, // Match variation ID
                   { $eq: ["$branch_id", "$$branchId"] },
                 ],
               },
@@ -156,28 +154,26 @@ const allBranchStock = catchAsyncError(async (req, res, next) => {
   // if (req.query.branch_id) {
   //   query.branch_id = new mongoose.Types.ObjectId(req.query.branch_id);
   // }
-  if (req.query.spare_parts_id) {
-    query.spare_parts_id = new mongoose.Types.ObjectId(
-      req.query.spare_parts_id
-    );
+  if (req.query.product_id) {
+    query.product_id = new mongoose.Types.ObjectId(req.query.product_id);
   }
-  if (req.query.spare_parts_variation_id) {
-    query._id = new mongoose.Types.ObjectId(req.query.spare_parts_variation_id);
+  if (req.query.product_variation_id) {
+    query._id = new mongoose.Types.ObjectId(req.query.product_variation_id);
   }
   if (req.query.status) {
     query.status = req.query.status;
   }
 
-  const totalData = await sparePartVariationModel.countDocuments(query);
+  const totalData = await productVariationModel.countDocuments(query);
 
-  const data = await sparePartVariationModel.aggregate([
+  const data = await productVariationModel.aggregate([
     { $match: query },
 
     // Lookup sparepart data
     {
       $lookup: {
         from: "spareparts",
-        localField: "spare_parts_id",
+        localField: "product_id",
         foreignField: "_id",
         as: "sparepart_data",
       },
@@ -187,12 +183,12 @@ const allBranchStock = catchAsyncError(async (req, res, next) => {
     {
       $lookup: {
         from: "stock_counter_and_limits",
-        let: { variationId: "$_id" }, // Store spare_parts_variation_id
+        let: { variationId: "$_id" }, // Store product_variation_id
         pipeline: [
           {
             $match: {
               $expr: {
-                $eq: ["$spare_parts_variation_id", "$$variationId"], // Match variation ID
+                $eq: ["$product_variation_id", "$$variationId"], // Match variation ID
               },
             },
           },
@@ -225,7 +221,7 @@ const allBranchStock = catchAsyncError(async (req, res, next) => {
                   cond: {
                     $and: [
                       { $eq: ["$$stock.branch_id", "$$branch"] }, // Match branch_id
-                      { $eq: ["$$stock.spare_parts_variation_id", "$_id"] }, // Match spare_parts_variation_id
+                      { $eq: ["$$stock.product_variation_id", "$_id"] }, // Match product_variation_id
                     ],
                   },
                 },
@@ -288,19 +284,19 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
     query.status = req.query.status;
   }
 
-  let totalData = await sparePartVariationModel.countDocuments(query);
+  let totalData = await productVariationModel.countDocuments(query);
   console.log("totalData=================================", totalData);
-  // const data = await sparePartVariationModel
+  // const data = await productVariationModel
   //   .find(query)
   //   .skip(startIndex)
   //   .limit(limit);
 
-  const data = await sparePartVariationModel.aggregate([
+  const data = await productVariationModel.aggregate([
     { $match: query },
     {
       $lookup: {
         from: "spareparts",
-        localField: "spare_parts_id",
+        localField: "product_id",
         foreignField: "_id",
         as: "sparepart_data",
       },
@@ -340,7 +336,7 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
 });
 
 const getById = catchAsyncError(async (req, res, next) => {
-  let data = await sparePartVariationModel.findById(req.params.id);
+  let data = await productVariationModel.findById(req.params.id);
   if (!data) {
     return next(new ErrorHander("No data found", 404));
   }
@@ -368,14 +364,14 @@ const createData = catchAsyncError(async (req, res, next) => {
     created_by: decodedData?.user?.email,
   };
   console.log("newData", newData);
-  const data = await sparePartVariationModel.create(newData);
+  const data = await productVariationModel.create(newData);
   res.send({ message: "success", status: 201, data: data });
 });
 
 const updateData = async (req, res, next) => {
   try {
     const { token } = req.cookies;
-    let data = await sparePartVariationModel.findById(req.params.id);
+    let data = await productVariationModel.findById(req.params.id);
 
     if (!data) {
       console.log("if");
@@ -411,7 +407,7 @@ const updateData = async (req, res, next) => {
       updated_at: new Date(),
     };
     console.log("newData", newData);
-    let updateData = await sparePartVariationModel.findByIdAndUpdate(
+    let updateData = await productVariationModel.findByIdAndUpdate(
       req.params.id,
       newData,
       {
@@ -433,7 +429,7 @@ const updateData = async (req, res, next) => {
 
 const deleteData = catchAsyncError(async (req, res, next) => {
   console.log("deleteData function is working");
-  let data = await sparePartVariationModel.findById(req.params.id);
+  let data = await productVariationModel.findById(req.params.id);
   console.log("data", data.images);
   if (!data) {
     console.log("if");

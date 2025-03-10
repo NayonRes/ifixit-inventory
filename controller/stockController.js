@@ -1,4 +1,4 @@
-const sparePartsStockModel = require("../db/models/sparePartsStockModel");
+const stockModel = require("../db/models/stockModel");
 const counterModel = require("../db/models/counterModel");
 const ErrorHander = require("../utils/errorHandler");
 const mongoose = require("mongoose");
@@ -17,14 +17,12 @@ const getAllStock = catchAsyncError(async (req, res, next) => {
   if (req.query.stock_status) {
     query.stock_status = new RegExp(`^${req.query.stock_status}$`, "i");
   }
-  if (req.query.spare_parts_id) {
-    query.spare_parts_id = new mongoose.Types.ObjectId(
-      req.query.spare_parts_id
-    );
+  if (req.query.product_id) {
+    query.product_id = new mongoose.Types.ObjectId(req.query.product_id);
   }
-  if (req.query.spare_parts_variation_id) {
-    query.spare_parts_variation_id = new mongoose.Types.ObjectId(
-      req.query.spare_parts_variation_id
+  if (req.query.product_variation_id) {
+    query.product_variation_id = new mongoose.Types.ObjectId(
+      req.query.product_variation_id
     );
   }
   if (req.query.branch_id) {
@@ -39,26 +37,26 @@ const getAllStock = catchAsyncError(async (req, res, next) => {
     );
   }
 
-  let totalData = await sparePartsStockModel.countDocuments(query);
+  let totalData = await stockModel.countDocuments(query);
   console.log("totalData=================================", totalData);
-  const data = await sparePartsStockModel.find(query);
+  const data = await stockModel.find(query);
 
-  // const data = await sparePartsStockModel.aggregate([
+  // const data = await stockModel.aggregate([
   //   {
   //     $match: query,
   //   },
   //   {
   //     $lookup: {
   //       from: "spareparts",
-  //       localField: "spare_parts_id",
+  //       localField: "product_id",
   //       foreignField: "_id",
   //       as: "sparepart_data",
   //     },
   //   },
   //   {
   //     $lookup: {
-  //       from: "sparepartvariations",
-  //       localField: "spare_parts_variation_id",
+  //       from: "product_variations",
+  //       localField: "product_variation_id",
   //       foreignField: "_id",
   //       as: "sparepartvariation_data",
   //     },
@@ -82,13 +80,13 @@ const getAllStock = catchAsyncError(async (req, res, next) => {
   //   {
   //     $project: {
   //       _id: 1,
-  //       spare_parts_id: 1,
-  //       spare_parts_variation_id: 1,
+  //       product_id: 1,
+  //       product_variation_id: 1,
   //       branch_id: 1,
   //       purchase_id: 1,
   //       sku_number: 1,
   //       stock_status: 1,
-  //       sparePart_id: 1,
+  //       product_id: 1,
   //       remarks: 1,
   //       status: 1,
   //       created_by: 1,
@@ -128,14 +126,12 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
   //   query.sku_number = new RegExp(`^${req.query.sku_number}$`, "i");
   // }
 
-  if (req.query.spare_parts_id) {
-    query.spare_parts_id = new mongoose.Types.ObjectId(
-      req.query.spare_parts_id
-    );
+  if (req.query.product_id) {
+    query.product_id = new mongoose.Types.ObjectId(req.query.product_id);
   }
-  if (req.query.spare_parts_variation_id) {
-    query.spare_parts_variation_id = new mongoose.Types.ObjectId(
-      req.query.spare_parts_variation_id
+  if (req.query.product_variation_id) {
+    query.product_variation_id = new mongoose.Types.ObjectId(
+      req.query.product_variation_id
     );
   }
   if (req.query.branch_id) {
@@ -157,26 +153,26 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
     });
   }
 
-  let totalData = await sparePartsStockModel.countDocuments(query);
+  let totalData = await stockModel.countDocuments(query);
   console.log("totalData=================================", totalData);
-  //const data = await sparePartsStockModel.find(query).skip(startIndex).limit(limit);
+  //const data = await stockModel.find(query).skip(startIndex).limit(limit);
 
-  const data = await sparePartsStockModel.aggregate([
+  const data = await stockModel.aggregate([
     {
       $match: query,
     },
     {
       $lookup: {
         from: "spareparts",
-        localField: "spare_parts_id",
+        localField: "product_id",
         foreignField: "_id",
         as: "sparepart_data",
       },
     },
     {
       $lookup: {
-        from: "sparepartvariations",
-        localField: "spare_parts_variation_id",
+        from: "product_variations",
+        localField: "product_variation_id",
         foreignField: "_id",
         as: "spare_parts_variation_data",
       },
@@ -208,10 +204,10 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
 
     {
       $lookup: {
-        from: "purchaseproducts",
+        from: "purchase_products",
         let: {
           purchase_id: "$purchase_id",
-          spare_parts_variation_id: "$spare_parts_variation_id",
+          product_variation_id: "$product_variation_id",
         },
         pipeline: [
           {
@@ -220,10 +216,7 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
                 $and: [
                   { $eq: ["$purchase_id", "$$purchase_id"] },
                   {
-                    $eq: [
-                      "$spare_parts_variation_id",
-                      "$$spare_parts_variation_id",
-                    ],
+                    $eq: ["$product_variation_id", "$$product_variation_id"],
                   },
                 ],
               },
@@ -236,14 +229,14 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
     {
       $project: {
         _id: 1,
-        spare_parts_id: 1,
-        spare_parts_variation_id: 1,
+        product_id: 1,
+        product_variation_id: 1,
         branch_id: 1,
         purchase_branch_id: 1,
         purchase_id: 1,
         sku_number: 1,
         stock_status: 1,
-        sparePart_id: 1,
+        product_id: 1,
         remarks: 1,
         status: 1,
         created_by: 1,
@@ -283,22 +276,22 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
 });
 const getById = catchAsyncError(async (req, res, next) => {
   const id = req.params.id;
-  const data = await sparePartsStockModel.aggregate([
+  const data = await stockModel.aggregate([
     {
       $match: { _id: mongoose.Types.ObjectId(id) },
     },
     {
       $lookup: {
         from: "spareparts",
-        localField: "spare_parts_id",
+        localField: "product_id",
         foreignField: "_id",
         as: "sparepart_data",
       },
     },
     {
       $lookup: {
-        from: "sparepartvariations",
-        localField: "spare_parts_variation_id",
+        from: "product_variations",
+        localField: "product_variation_id",
         foreignField: "_id",
         as: "sparepartvariation_data",
       },
@@ -330,14 +323,14 @@ const getById = catchAsyncError(async (req, res, next) => {
     {
       $project: {
         _id: 1,
-        spare_parts_id: 1,
-        spare_parts_variation_id: 1,
+        product_id: 1,
+        product_variation_id: 1,
         branch_id: 1,
         purchase_branch_id: 1,
         purchase_id: 1,
         sku_number: 1,
         stock_status: 1,
-        sparePart_id: 1,
+        product_id: 1,
         remarks: 1,
         status: 1,
         created_by: 1,
@@ -428,7 +421,7 @@ const createData = catchAsyncError(async (req, res, next) => {
 
     console.log("decodedData", decodedData);
 
-    // Prepare new spare parts data
+    // Prepare new product data
     const newSpareParts = Array.from({ length: quantity }, (_, i) => ({
       ...req.body,
       sku_number: startSerial + i, // Generate SKU numbers
@@ -436,8 +429,8 @@ const createData = catchAsyncError(async (req, res, next) => {
     }));
     console.log("newSpareParts", newSpareParts);
 
-    // Insert the new spare parts
-    const data = await sparePartsStockModel.insertMany(newSpareParts, {
+    // Insert the new product
+    const data = await stockModel.insertMany(newSpareParts, {
       session,
     });
 
@@ -450,11 +443,11 @@ const createData = catchAsyncError(async (req, res, next) => {
 
     //stock counter
 
-    const { branch_id, spare_parts_variation_id, spare_parts_id } = req.body;
+    const { branch_id, product_variation_id, product_id } = req.body;
     const filter = {
       branch_id,
-      spare_parts_variation_id,
-      spare_parts_id,
+      product_variation_id,
+      product_id,
     };
 
     const existingDocument = await stockCounterAndLimitModel
@@ -470,8 +463,8 @@ const createData = catchAsyncError(async (req, res, next) => {
     } else {
       const newDocument = {
         branch_id,
-        spare_parts_variation_id,
-        spare_parts_id,
+        product_variation_id,
+        product_id,
         total_stock: quantity,
         created_by: decodedData?.user?.email,
       };
@@ -499,7 +492,7 @@ const updateData = catchAsyncError(async (req, res, next) => {
   const { token } = req.cookies;
   const { name } = req.body;
 
-  let data = await sparePartsStockModel.findById(req.params.id);
+  let data = await stockModel.findById(req.params.id);
   let oldParentName = data.name;
 
   if (!data) {
@@ -514,7 +507,7 @@ const updateData = catchAsyncError(async (req, res, next) => {
     updated_at: new Date(),
   };
 
-  data = await sparePartsStockModel.findByIdAndUpdate(req.params.id, newData, {
+  data = await stockModel.findByIdAndUpdate(req.params.id, newData, {
     new: true,
     runValidators: true,
     useFindAndModified: false,
@@ -549,7 +542,7 @@ const purchaseReturn = catchAsyncError(async (req, res, next) => {
     );
     console.log("sku_numbers", sku_numbers);
 
-    const matchedRecords = await sparePartsStockModel
+    const matchedRecords = await stockModel
       .find({
         sku_number: { $in: sku_numbers },
       })
@@ -570,11 +563,10 @@ const purchaseReturn = catchAsyncError(async (req, res, next) => {
     let listOfUpdateStock = [];
     let stockListOfAnotherBranch = [];
     for (const record of matchedRecords) {
-      const spare_parts_variation_id =
-        record.spare_parts_variation_id.toString();
+      const product_variation_id = record.product_variation_id.toString();
       const branch_id = record.branch_id.toString();
       const purchase_branch_id = record.purchase_branch_id.toString();
-      const spare_parts_id = record.spare_parts_id.toString();
+      const product_id = record.product_id.toString();
       if (record.stock_status === "Returned") {
         alreadyReturned.push(record.sku_number);
         continue;
@@ -591,7 +583,7 @@ const purchaseReturn = catchAsyncError(async (req, res, next) => {
         const matchedStock = matchedRecordForStockCounterAdjustment.find(
           (entry) =>
             entry.branch_id === branch_id &&
-            entry.spare_parts_variation_id === spare_parts_variation_id
+            entry.product_variation_id === product_variation_id
         );
 
         if (matchedStock) {
@@ -599,8 +591,8 @@ const purchaseReturn = catchAsyncError(async (req, res, next) => {
         } else {
           matchedRecordForStockCounterAdjustment.push({
             branch_id: branch_id,
-            spare_parts_variation_id,
-            spare_parts_id,
+            product_variation_id,
+            product_id,
             matched: 1,
           });
         }
@@ -661,7 +653,7 @@ const purchaseReturn = catchAsyncError(async (req, res, next) => {
       });
     }
     if (listOfUpdateStock.length > 0) {
-      await sparePartsStockModel.bulkWrite(listOfUpdateStock, {
+      await stockModel.bulkWrite(listOfUpdateStock, {
         session,
       });
     }
@@ -678,13 +670,13 @@ const purchaseReturn = catchAsyncError(async (req, res, next) => {
       const stockCounterData = await stockCounterAndLimitModel
         .findOne({
           branch_id: element?.branch_id,
-          spare_parts_variation_id: element?.spare_parts_variation_id,
+          product_variation_id: element?.product_variation_id,
         })
         .session(session);
       if (!stockCounterData) {
         console.error("stockCounterData not found:", {
           branch_id: element?.branch_id,
-          spare_parts_variation_id: element?.spare_parts_variation_id,
+          product_variation_id: element?.product_variation_id,
         });
 
         newAbortTransaction = true; // Set flag to abort after loop
@@ -695,7 +687,7 @@ const purchaseReturn = catchAsyncError(async (req, res, next) => {
 
       await stockCounterAndLimitController.decrementStock(
         element?.branch_id,
-        element?.spare_parts_variation_id,
+        element?.product_variation_id,
         element.matched,
         session
       );
@@ -750,7 +742,7 @@ const stockAdjustment = catchAsyncError(async (req, res, next) => {
     let sku_numbers = adjustment_data?.map((item) => parseInt(item.sku_number));
     console.log("sku_numbers", sku_numbers);
 
-    const matchedRecords = await sparePartsStockModel
+    const matchedRecords = await stockModel
       .find({
         sku_number: { $in: sku_numbers },
       })
@@ -787,11 +779,10 @@ const stockAdjustment = catchAsyncError(async (req, res, next) => {
     let listOfUpdateStock = [];
     // let stockListOfAnotherBranch = []; // if any data requesed data is from anothe branch a abortTransaction and endSession
     for (const record of matchedRecords) {
-      const spare_parts_variation_id =
-        record.spare_parts_variation_id.toString();
+      const product_variation_id = record.product_variation_id.toString();
       const branch_id = record.branch_id.toString();
       const purchase_branch_id = record.purchase_branch_id.toString();
-      const spare_parts_id = record.spare_parts_id.toString();
+      const product_id = record.product_id.toString();
 
       // if (branch_id !== purchase_branch_id) {
       //   stockListOfAnotherBranch.push(record.sku_number);
@@ -804,7 +795,7 @@ const stockAdjustment = catchAsyncError(async (req, res, next) => {
       const matchedStock = matchedRecordForStockCounterAdjustment.find(
         (entry) =>
           entry.branch_id === branch_id &&
-          entry.spare_parts_variation_id === spare_parts_variation_id
+          entry.product_variation_id === product_variation_id
       );
       if (stockStatus === "Available" && record.stock_status !== "Available") {
         if (matchedStock) {
@@ -812,8 +803,8 @@ const stockAdjustment = catchAsyncError(async (req, res, next) => {
         } else {
           matchedRecordForStockCounterAdjustment.push({
             branch_id: branch_id,
-            spare_parts_variation_id,
-            spare_parts_id,
+            product_variation_id,
+            product_id,
             matched: 1,
           });
         }
@@ -826,8 +817,8 @@ const stockAdjustment = catchAsyncError(async (req, res, next) => {
         } else {
           matchedRecordForStockCounterAdjustment.push({
             branch_id: branch_id,
-            spare_parts_variation_id,
-            spare_parts_id,
+            product_variation_id,
+            product_id,
             matched: 1,
           });
         }
@@ -878,7 +869,7 @@ const stockAdjustment = catchAsyncError(async (req, res, next) => {
     // }
 
     if (listOfUpdateStock.length > 0) {
-      await sparePartsStockModel.bulkWrite(listOfUpdateStock, {
+      await stockModel.bulkWrite(listOfUpdateStock, {
         session,
       });
     }
@@ -895,7 +886,7 @@ const stockAdjustment = catchAsyncError(async (req, res, next) => {
       const stockCounterData = await stockCounterAndLimitModel
         .findOne({
           branch_id: element?.branch_id,
-          spare_parts_variation_id: element?.spare_parts_variation_id,
+          product_variation_id: element?.product_variation_id,
         })
         .session(session);
       if (stockStatus === "Available") {
@@ -903,8 +894,8 @@ const stockAdjustment = catchAsyncError(async (req, res, next) => {
           // If stock does not exist at the destination, create a new entry
           const newStock = new stockCounterAndLimitModel({
             branch_id: element.branch_id,
-            spare_parts_variation_id: element.spare_parts_variation_id,
-            spare_parts_id: element.spare_parts_id,
+            product_variation_id: element.product_variation_id,
+            product_id: element.product_id,
             total_stock: element.matched,
             created_by: decodedData?.user?.email,
           });
@@ -916,7 +907,7 @@ const stockAdjustment = catchAsyncError(async (req, res, next) => {
           // If stock already exists at the destination, just increment it
           await stockCounterAndLimitController.incrementStock(
             element?.branch_id,
-            element?.spare_parts_variation_id,
+            element?.product_variation_id,
             element?.matched,
             session
           );
@@ -927,7 +918,7 @@ const stockAdjustment = catchAsyncError(async (req, res, next) => {
         if (!stockCounterData) {
           console.error("stockCounterData not found:", {
             branch_id: element?.branch_id,
-            spare_parts_variation_id: element?.spare_parts_variation_id,
+            product_variation_id: element?.product_variation_id,
           });
 
           newAbortTransaction = true; // Set flag to abort after loop
@@ -938,7 +929,7 @@ const stockAdjustment = catchAsyncError(async (req, res, next) => {
 
         await stockCounterAndLimitController.decrementStock(
           element?.branch_id,
-          element?.spare_parts_variation_id,
+          element?.product_variation_id,
           element.matched,
           session
         );
@@ -973,7 +964,7 @@ const stockAdjustment = catchAsyncError(async (req, res, next) => {
 
 const deleteData = catchAsyncError(async (req, res, next) => {
   console.log("deleteData function is working");
-  let data = await sparePartsStockModel.findById(req.params.id);
+  let data = await stockModel.findById(req.params.id);
   console.log("data", data);
   if (!data) {
     console.log("if");

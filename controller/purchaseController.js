@@ -105,7 +105,7 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
     },
     {
       $lookup: {
-        from: "purchaseproducts",
+        from: "purchase_products",
         localField: "_id",
         foreignField: "purchase_id",
         as: "purchase_products_data",
@@ -195,7 +195,7 @@ const getById = catchAsyncError(async (req, res, next) => {
     },
     {
       $lookup: {
-        from: "purchaseproducts",
+        from: "purchase_products",
         localField: "_id",
         foreignField: "purchase_id",
         as: "purchase_products_data",
@@ -261,7 +261,7 @@ const getById = catchAsyncError(async (req, res, next) => {
     },
     {
       $lookup: {
-        from: "purchaseproducts",
+        from: "purchase_products",
         localField: "_id",
         foreignField: "purchase_id",
         as: "purchase_products_data",
@@ -277,15 +277,15 @@ const getById = catchAsyncError(async (req, res, next) => {
     {
       $lookup: {
         from: "spareparts",
-        localField: "purchase_products_data.spare_parts_id",
+        localField: "purchase_products_data.product_id",
         foreignField: "_id",
         as: "purchase_products_data.spare_part_details",
       },
     },
     {
       $lookup: {
-        from: "sparepartvariations",
-        localField: "purchase_products_data.spare_parts_variation_id",
+        from: "product_variations",
+        localField: "purchase_products_data.product_variation_id",
         foreignField: "_id",
         as: "purchase_products_data.spare_part_variation_details",
       },
@@ -387,8 +387,8 @@ const createData = catchAsyncError(async (req, res, next) => {
 
       let newElement = {
         purchase_id: data?._id,
-        spare_parts_id: element.spare_parts_id,
-        spare_parts_variation_id: element.spare_parts_variation_id,
+        product_id: element.product_id,
+        product_variation_id: element.product_variation_id,
         quantity: element.quantity,
         unit_price: element.unit_price,
         purchase_product_status: element.purchase_product_status,

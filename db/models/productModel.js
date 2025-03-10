@@ -1,103 +1,68 @@
 const mongoose = require("mongoose");
+const { Schema } = mongoose;
 
 const productSchema = mongoose.Schema({
   product_id: {
     type: String,
-    required: [true, "Please enter product id"],
+    required: [true, "Please enter the product id"],
+    trim: true,
   },
   name: {
     type: String,
-    required: [true, "Please enter the product name"],
+    required: [true, "Please enter the name"],
     trim: true,
-    maxLength: [60, "Name can not exceed 60 character"],
+    unique: true,
+  },
+  brand_id: {
+    type: Schema.Types.ObjectId,
+    ref: "brandModel", // Reference to the brandModel
+    required: [true, "Please enter select brand"],
+  },
+  category_id: {
+    type: Schema.Types.ObjectId,
+    ref: "categoryModel",
+    required: [true, "Please enter select category"],
+  },
+  device_id: {
+    type: Schema.Types.ObjectId,
+    ref: "deviceModel",
+    required: [true, "Please enter select device"],
+  },
+  model_id: {
+    type: Schema.Types.ObjectId,
+    ref: "modelModel",
+    required: [true, "Please enter select model"],
+  },
+
+  price: {
+    type: Number,
+    // required: [true, "Please enter the product name"],
+
+    default: 0,
+  },
+
+  warranty: {
+    type: Number,
+    // required: [true, "Please enter the product price"],
+    min: [0, "warranty can not less than 0"],
+    default: null,
   },
   description: {
     type: String,
-    // required: [true, "Please enter the product description"],
+    default: null,
     // trim: true,
     // maxLength: [3000, "Name can not exceed 3000 character"],
-  },
-  price: {
-    type: Number,
-    // required: [true, "Please enter the product price"],
-    min: [0, "Price can not less than 0"],
-    maxLength: [16, "Price can not exceed 10 character"],
-  },
-  discount_price: {
-    type: Number,
-    // required: [true, "Please enter the product price"],
-    maxLength: [16, "Price can not exceed 10 character"],
-  },
-
-  rating: [
-    {
-      total_user: {
-        type: String,
-        default: 5,
-        // required: true,
-      },
-      total_rating_no: {
-        type: Number,
-        default: 23,
-        // required: true,
-      },
-    },
-  ],
-  viewed: {
-    type: Number,
-    default: 0,
-  },
-  stock_unit: {
-    type: Number,
-    default: 100,
-    min: [0, "Sorry! required stock is not available"],
-  },
-  total_sales: {
-    type: Number,
-    default: 0,
-    min: [0, "Sorry! sales can't be less than 0"],
-  },
-  sku: {
-    type: String,
-    // required: [true, "Please enter the product name"],
-    trim: true,
-    maxLength: [20, "Name can not exceed 20 character"],
   },
   images: [
     {
       public_id: {
         type: String,
-        // default: "N/A",
-        // required: true,
       },
       url: {
         type: String,
-        // required: true,
-        // default: "N/A",
       },
     },
   ],
-  filter_id: {
-    type: Array,
-  },
-  store_id: {
-    type: String,
-    default: "N/A",
-    // required: [true, "Please enter the product category"],
-  },
-  vaucher_id: {
-    type: String,
-    default: "N/A",
-    // required: [true, "Please enter the product category"],
-  },
-  category_id: {
-    type: String,
-    // required: [true, "Please enter the product category"],
-  },
-  location_id: {
-    type: String,
-    // required: [true, "Please enter the product location"],
-  },
   remarks: {
     type: String,
   },
@@ -119,4 +84,15 @@ const productSchema = mongoose.Schema({
   updated_at: { type: Date, default: Date.now },
 });
 
-module.exports = mongoose.model("product", productSchema);
+productSchema.index({
+  category_id: 1,
+  brand_id: 1,
+  device_id: 1,
+  model_id: 1,
+});
+productSchema.index({ name: 1 });
+productSchema.index({ price: 1 });
+productSchema.index({ created_at: -1 });
+const productModel = mongoose.model("product", productSchema);
+
+module.exports = productModel;
