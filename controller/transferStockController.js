@@ -145,7 +145,7 @@ const getById = catchAsyncError(async (req, res, next) => {
     },
     {
       $lookup: {
-        from: "spareparts",
+        from: "products",
         localField: "sku_details.product_id",
         foreignField: "_id",
         as: "spare_parts_details",

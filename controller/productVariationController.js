@@ -22,7 +22,7 @@ const lightSearchWithPagination = catchAsyncError(async (req, res, next) => {
   console.log("totalData=================================", totalData);
   const data = await productVariationModel
     .find(query)
-    .select("_id sparePartVariation_id name price images")
+    .select("_id name price images")
     .skip(startIndex)
     .limit(limit);
 
@@ -69,13 +69,13 @@ const branchStock = catchAsyncError(async (req, res, next) => {
   const data = await productVariationModel.aggregate([
     { $match: query },
 
-    // Lookup sparepart data
+    // Lookup product data
     {
       $lookup: {
-        from: "spareparts",
+        from: "products",
         localField: "product_id",
         foreignField: "_id",
-        as: "sparepart_data",
+        as: "product_data",
       },
     },
 
@@ -117,8 +117,8 @@ const branchStock = catchAsyncError(async (req, res, next) => {
         created_at: 1,
         updated_by: 1,
         updated_at: 1,
-        "sparepart_data._id": 1,
-        "sparepart_data.name": 1,
+        "product_data._id": 1,
+        "product_data.name": 1,
         stock_data: 1, // Include structured stock data per branch
       },
     },
@@ -169,13 +169,13 @@ const allBranchStock = catchAsyncError(async (req, res, next) => {
   const data = await productVariationModel.aggregate([
     { $match: query },
 
-    // Lookup sparepart data
+    // Lookup product data
     {
       $lookup: {
-        from: "spareparts",
+        from: "products",
         localField: "product_id",
         foreignField: "_id",
-        as: "sparepart_data",
+        as: "product_data",
       },
     },
 
@@ -244,8 +244,8 @@ const allBranchStock = catchAsyncError(async (req, res, next) => {
         created_at: 1,
         updated_by: 1,
         updated_at: 1,
-        "sparepart_data._id": 1,
-        "sparepart_data.name": 1,
+        "product_data._id": 1,
+        "product_data.name": 1,
         stock_data: 1, // Include structured stock data per branch
       },
     },
@@ -295,10 +295,10 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
     { $match: query },
     {
       $lookup: {
-        from: "spareparts",
+        from: "products",
         localField: "product_id",
         foreignField: "_id",
-        as: "sparepart_data",
+        as: "product_data",
       },
     },
     {
@@ -314,8 +314,8 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
         updated_by: 1,
         updated_at: 1,
 
-        "sparepart_data._id": 1,
-        "sparepart_data.name": 1,
+        "product_data._id": 1,
+        "product_data.name": 1,
       },
     },
     // { $unwind: "$role" }, // Unwind the array if you expect only one related role per user
@@ -353,7 +353,7 @@ const createData = catchAsyncError(async (req, res, next) => {
   const { token } = req.cookies;
   let imageData = [];
   if (req.files) {
-    imageData = await imageUpload(req.files.image, "sparePartVariations", next);
+    imageData = await imageUpload(req.files.image, "product", next);
   }
   console.log("imageData", imageData);
 
@@ -391,7 +391,7 @@ const updateData = async (req, res, next) => {
     if (req.files) {
       imageData = await imageUpload(
         req.files.images,
-        "sparePartVariations",
+        "product",
         next
       );
     }

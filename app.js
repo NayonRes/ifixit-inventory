@@ -97,7 +97,7 @@ app.use("/api/v1/stock", stockRouter);
 // app.use("/api/v1/purchaseReturn", purchaseReturnRouter);
 app.use("/api/v1/stockCounterAndLimit", stockCounterAndLimitRouter);
 app.use("/api/v1/transferStock", transferStockRouter);
-app.use("/api/v1/purchase_product", purchaseProductRouter);
+app.use("/api/v1/purchaseProduct", purchaseProductRouter);
 app.use("/api/v1/repair", repairRouter);
 app.use("/api/v1/repairStatusHistory", repairStatusHistoryRouter);
 app.use("/api/v1/service", serviceRouter);

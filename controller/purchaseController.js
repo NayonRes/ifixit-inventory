@@ -267,7 +267,7 @@ const getById = catchAsyncError(async (req, res, next) => {
         as: "purchase_products_data",
       },
     },
-    // Lookup for spare_part_variations
+    // Lookup for product_variations
     {
       $unwind: {
         path: "$purchase_products_data",
@@ -276,10 +276,10 @@ const getById = catchAsyncError(async (req, res, next) => {
     },
     {
       $lookup: {
-        from: "spareparts",
+        from: "products",
         localField: "purchase_products_data.product_id",
         foreignField: "_id",
-        as: "purchase_products_data.spare_part_details",
+        as: "purchase_products_data.product_details",
       },
     },
     {
@@ -287,7 +287,7 @@ const getById = catchAsyncError(async (req, res, next) => {
         from: "product_variations",
         localField: "purchase_products_data.product_variation_id",
         foreignField: "_id",
-        as: "purchase_products_data.spare_part_variation_details",
+        as: "purchase_products_data.product_variation_details",
       },
     },
     {

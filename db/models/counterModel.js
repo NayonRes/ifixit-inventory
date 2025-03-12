@@ -19,7 +19,7 @@ const saveData = async () => {
   console.log("totalData 123456", totalData);
   if (totalData < 1) {
     const counterDoc = new counterModel({
-      key: "sparePartsSku",
+      key: "productSku",
       counter: 100000,
     });
     await counterDoc.save();

@@ -298,7 +298,7 @@ const createData = catchAsyncError(async (req, res, next) => {
   const { token } = req.cookies;
   let imageData = [];
   if (req.files) {
-    imageData = await imageUpload(req.files.images, "spareParts", next);
+    imageData = await imageUpload(req.files.images, "product", next);
   }
   console.log("imageData", imageData);
 
@@ -349,7 +349,7 @@ const updateData = async (req, res, next) => {
     let imageData = [];
     let newData = req.body;
     if (req.files) {
-      imageData = await imageUpload(req.files.images, "spareParts", next);
+      imageData = await imageUpload(req.files.images, "product", next);
     }
 
     console.log("imageData", imageData);

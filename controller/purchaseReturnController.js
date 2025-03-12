@@ -44,10 +44,10 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
     },
     {
       $lookup: {
-        from: "spareparts",
+        from: "products",
         localField: "product_id",
         foreignField: "_id",
-        as: "sparepart_data",
+        as: "product_data",
       },
     },
     {
@@ -98,7 +98,7 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
         updated_by: 1,
         updated_at: 1,
 
-        "sparepart_data.name": 1,
+        "product_data.name": 1,
         "branch_data.name": 1,
         "sparepartvariation_data.name": 1,
         "purchaseProduct_data.unit_price": 1,
@@ -130,10 +130,10 @@ const getById = catchAsyncError(async (req, res, next) => {
     },
     {
       $lookup: {
-        from: "spareparts",
+        from: "products",
         localField: "product_id",
         foreignField: "_id",
-        as: "sparepart_data",
+        as: "product_data",
       },
     },
     {
@@ -184,7 +184,7 @@ const getById = catchAsyncError(async (req, res, next) => {
         updated_by: 1,
         updated_at: 1,
 
-        "sparepart_data.name": 1,
+        "product_data.name": 1,
         "branch_data.name": 1,
         "sparepartvariation_data.name": 1,
         "purchaseProduct_data.unit_price": 1,

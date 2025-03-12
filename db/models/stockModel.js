@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 const { Schema } = mongoose;
 
-const sparePartsStockSchema = mongoose.Schema({
+const stockSchema = mongoose.Schema({
   product_id: {
     type: Schema.Types.ObjectId,
     ref: "productModel",
@@ -88,8 +88,8 @@ const sparePartsStockSchema = mongoose.Schema({
   },
   updated_at: { type: Date, default: Date.now },
 });
-sparePartsStockSchema.index({ sku_number: 1 });
-sparePartsStockSchema.index({ product_id: 1 });
-const stockModel = mongoose.model("stock", sparePartsStockSchema);
+stockSchema.index({ sku_number: 1 });
+stockSchema.index({ product_id: 1 });
+const stockModel = mongoose.model("stock", stockSchema);
 
 module.exports = stockModel;
