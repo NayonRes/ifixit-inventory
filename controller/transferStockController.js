@@ -131,7 +131,7 @@ const getById = catchAsyncError(async (req, res, next) => {
     },
     {
       $lookup: {
-        from: "spare_parts_stocks",
+        from: "stocks",
         localField: "transfer_stocks_sku",
         foreignField: "sku_number",
         as: "sku_details",
@@ -148,12 +148,12 @@ const getById = catchAsyncError(async (req, res, next) => {
         from: "products",
         localField: "sku_details.product_id",
         foreignField: "_id",
-        as: "spare_parts_details",
+        as: "product_details",
       },
     },
     {
       $unwind: {
-        path: "$spare_parts_details",
+        path: "$product_details",
         preserveNullAndEmptyArrays: true,
       },
     },
@@ -162,12 +162,12 @@ const getById = catchAsyncError(async (req, res, next) => {
         from: "product_variations",
         localField: "sku_details.product_variation_id",
         foreignField: "_id",
-        as: "spare_parts_variation_details",
+        as: "product_variation_details",
       },
     },
     {
       $unwind: {
-        path: "$spare_parts_variation_details",
+        path: "$product_variation_details",
         preserveNullAndEmptyArrays: true,
       },
     },
@@ -218,9 +218,9 @@ const getById = catchAsyncError(async (req, res, next) => {
         transfer_from_data: { $first: "$transfer_from_data" },
         transfer_to_data: { $first: "$transfer_to_data" },
         sku_details: { $push: "$sku_details" },
-        spare_parts_details: { $push: "$spare_parts_details" },
-        spare_parts_variation_details: {
-          $push: "$spare_parts_variation_details",
+        product_details: { $push: "$product_details" },
+        product_variation_details: {
+          $push: "$product_variation_details",
         },
         purchase_details: { $push: "$purchase_details" },
         purchase_product_details: { $push: "$purchase_product_details" },
@@ -243,8 +243,8 @@ const getById = catchAsyncError(async (req, res, next) => {
         transfer_from_data: 1,
         transfer_to_data: 1,
         sku_details: 1,
-        spare_parts_details: 1,
-        spare_parts_variation_details: 1,
+        product_details: 1,
+        product_variation_details: 1,
         purchase_details: 1,
         purchase_product_details: 1,
       },
@@ -375,6 +375,12 @@ const updateData = async (req, res, next) => {
 
         //checking any product of the same branch is not receiving. means if by any mistake or any how transfer own product to own branch
         if (branch_id === decodedData?.user?.branch_id) {
+          console.log("branch_id", branch_id);
+          console.log(
+            "decodedData?.user?.branch_id",
+            decodedData?.user?.branch_id
+          );
+
           notThisBranchProduct.push(record.sku_number);
           continue;
         }
