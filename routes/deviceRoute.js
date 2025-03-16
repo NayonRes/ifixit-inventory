@@ -10,6 +10,7 @@ const {
   deleteData,
   getDeviceWiseFilterList,
   getListGroupByParent,
+  getByDeviceBrand
 } = require("../controller/deviceController");
 const { isAuthenticatedUser, authorizeRoles } = require("../middleware/auth");
 const deviceModel = require("../db/models/deviceModel");
@@ -33,6 +34,13 @@ router
     isAuthenticatedUser,
     authorizeRoles("device_dropdown_list"),
     getParentDropdown
+  );
+router
+  .route("/dropdownlist")
+  .get(
+    isAuthenticatedUser,
+    authorizeRoles("device_dropdown_list"),
+    getByDeviceBrand
   );
 router
   .route("/leaf-dropdown")

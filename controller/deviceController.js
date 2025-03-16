@@ -183,6 +183,22 @@ const getByParent = catchAsyncError(async (req, res, next) => {
     data: data,
   });
 });
+const getByDeviceBrand = catchAsyncError(async (req, res, next) => {
+  let data = await deviceModel
+    .find({
+      device_brand_id: new mongoose.Types.ObjectId(req.query.device_brand_id),
+    })
+    .select("_id name");
+
+  if (data.length === 0) {
+    return res.status(404).send({ message: "No data found" });
+  }
+  res.status(200).send({
+    message: "success",
+    status: 200,
+    data: data,
+  });
+});
 
 const createData = catchAsyncError(async (req, res, next) => {
   console.log("req.files", req.files);
@@ -456,4 +472,5 @@ module.exports = {
   deleteData,
   getDeviceWiseFilterList,
   getListGroupByParent,
+  getByDeviceBrand
 };
