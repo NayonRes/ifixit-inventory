@@ -2,7 +2,7 @@ var express = require("express");
 const {
   getParentDropdown,
   getLeafDeviceList,
-  getDataWithPagination, 
+  getDataWithPagination,
   getById,
   getByParent,
   createData,
@@ -10,7 +10,6 @@ const {
   deleteData,
   getDeviceWiseFilterList,
   getListGroupByParent,
-  getByDeviceBrand
 } = require("../controller/deviceController");
 const { isAuthenticatedUser, authorizeRoles } = require("../middleware/auth");
 const deviceModel = require("../db/models/deviceModel");
@@ -35,13 +34,7 @@ router
     authorizeRoles("device_dropdown_list"),
     getParentDropdown
   );
-router
-  .route("/dropdownlist")
-  .get(
-    isAuthenticatedUser,
-    authorizeRoles("device_dropdown_list"),
-    getByDeviceBrand
-  );
+
 router
   .route("/leaf-dropdown")
   .get(
@@ -64,7 +57,7 @@ router
     authorizeRoles("device_list"),
     getDataWithPagination
   );
- 
+
 router
   .route("/get-by-parent")
   .get(
