@@ -8,11 +8,13 @@ const repairSchema = mongoose.Schema({
   },
   serial: {
     type: String,
-    required: [true, "Please enter serial"],
+    // required: [true, "Please enter serial"],
+    default: null,
   },
   pass_code: {
     type: String,
-    required: [true, "Please enter pass code"],
+    // required: [true, "Please enter pass code"],
+    default: null,
   },
   // it is originally  device_id. For repair module device under primary device list is product brand list
   brand_id: {
@@ -76,7 +78,7 @@ const repairSchema = mongoose.Schema({
       },
     },
   ],
-  spare_parts: [
+  product_details: [
     {
       product_id: {
         type: Schema.Types.ObjectId,

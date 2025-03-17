@@ -19,6 +19,10 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
   if (req.query.status) {
     query.status = req.query.status;
   }
+
+  if (req.query.serial) {
+    query.serial = new RegExp(`^${req.query.serial}$`, "i");
+  }
   if (req.query.repair_status) {
     query.repair_status = {
       $regex: `^${req.query.repair_status}$`,
@@ -175,7 +179,7 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
         repair_by: 1,
         repair_status: 1,
         issues: 1,
-        spare_parts: 1,
+        product_details: 1,
         delivery_status: 1,
         repair_checklist: 1,
         payment_info: 1,
@@ -334,7 +338,7 @@ const getById = catchAsyncError(async (req, res, next) => {
         repair_by: 1,
         repair_status: 1,
         issues: 1,
-        spare_parts: 1,
+        product_details: 1,
         delivery_status: 1,
         repair_checklist: 1,
         payment_info: 1,
@@ -425,7 +429,7 @@ const getById = catchAsyncError(async (req, res, next) => {
   //       repair_by: 1,
   //       repair_status: 1,
   //       issues: 1,
-  //       spare_parts: 1,
+  //       product_details: 1,
   //       delivery_status: 1,
   //       repair_checklist: 1,
   //       payment_info: 1,

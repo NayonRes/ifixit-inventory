@@ -43,17 +43,20 @@ const getListGroupByParent = catchAsyncError(async (req, res, next) => {
 const getParentDropdown = catchAsyncError(async (req, res, next) => {
   // const data = await deviceModel.find().lean();
   let query = {};
-  if (req.query.parent_name) {
-    query.parent_name = new RegExp(`^${req.query.parent_name}$`, "i");
-  }
+  // if (req.query.parent_name) {
+  //   query.parent_name = new RegExp(`^${req.query.parent_name}$`, "i");
+  // }
 
   if (req.query.device_brand_id) {
     query.device_brand_id = new mongoose.Types.ObjectId(
       req.query.device_brand_id
     );
   }
+  if (req.query.parent_id) {
+    query.parent_id = new mongoose.Types.ObjectId(req.query.parent_id);
+  }
   const data = await deviceModel
-    .find(query, "name device_id parent_name")
+    .find(query, "name device_id parent_id image")
     .sort({ order_no: -1 })
     .lean();
 
