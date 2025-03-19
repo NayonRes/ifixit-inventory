@@ -56,7 +56,7 @@ const getParentDropdown = catchAsyncError(async (req, res, next) => {
     query.parent_id = new mongoose.Types.ObjectId(req.query.parent_id);
   }
   const data = await deviceModel
-    .find(query, "name device_id parent_id image")
+    .find(query, { name: 1, device_id: 1, parent_id: 1, image: 1 })
     .sort({ order_no: -1 })
     .lean();
 

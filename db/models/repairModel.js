@@ -110,7 +110,12 @@ const repairSchema = mongoose.Schema({
     note: {
       type: String,
     },
-    checklist: [String],
+    checklist: [
+      {
+        name: { type: String }, // Ensure 'key' is a string and required
+        status: { type: String }, // Ensure 'isFunctional' is a boolean and required
+      },
+    ],
   },
   payment_info: [
     {
