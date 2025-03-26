@@ -99,6 +99,9 @@ const repairSchema = mongoose.Schema({
       },
     },
   ],
+  stock_sku: {
+    type: Array,
+  },
   repair_checklist: {
     has_power: {
       type: Boolean,
