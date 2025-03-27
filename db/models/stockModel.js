@@ -65,7 +65,7 @@ const stockSchema = mongoose.Schema({
   },
   stock_status: {
     type: String,
-    enum: ["Attached", "Returned", "Available", "Abnormal", "Attached"],
+    enum: ["Attached", "Returned", "Available", "Abnormal", "Sold"],
     default: "Available",
   },
   remarks: {
