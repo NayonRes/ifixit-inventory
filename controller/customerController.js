@@ -32,7 +32,7 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
     query.name = { $regex: req.query.name, $options: "i" };
   }
   if (req.query.status) {
-    query.status = req.query.status;
+    query.status = req.query.status === "true";
   }
   if (req.query.mobile) {
     query.mobile = new RegExp(`^${req.query.mobile}$`, "i");
@@ -72,7 +72,11 @@ const searchCustomer = catchAsyncError(async (req, res, next) => {
   }
   let totalData = await customerModel.countDocuments(query);
   console.log("totalData=================================", totalData);
-  const data = await customerModel.find(query).select('_id mobile image').skip(startIndex).limit(limit);
+  const data = await customerModel
+    .find(query)
+    .select("_id mobile image")
+    .skip(startIndex)
+    .limit(limit);
   console.log("data", data);
   res.status(200).json({
     success: true,
@@ -141,10 +145,10 @@ const updateData = catchAsyncError(async (req, res, next) => {
     useFindAndModified: false,
   });
 
-//   const childrenParentUpdate = await customerModel.updateMany(
-//     { parent_name: oldParentName },
-//     { $set: { parent_name: name } }
-//   );
+  //   const childrenParentUpdate = await customerModel.updateMany(
+  //     { parent_name: oldParentName },
+  //     { $set: { parent_name: name } }
+  //   );
   res.status(200).json({
     success: true,
     message: "Update successfully",

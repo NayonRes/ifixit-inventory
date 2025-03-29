@@ -12,7 +12,7 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
   const endIndex = page * limit;
   var query = {};
   if (req.query.status) {
-    query.status = req.query.status;
+    query.status = req.query.status === "true";
   }
   if (req.query.product_id) {
     query.product_id = new mongoose.Types.ObjectId(req.query.product_id);

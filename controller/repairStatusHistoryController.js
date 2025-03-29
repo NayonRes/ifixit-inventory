@@ -27,7 +27,7 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
     query.updated_by = new RegExp(`^${req.query.updated_by}$`, "i");
   }
   if (req.query.status) {
-    query.status = req.query.status;
+    query.status = req.query.status === "true";
   }
   let totalData = await repairStatusHistoryModel.countDocuments(query);
   console.log("totalData=================================", totalData);

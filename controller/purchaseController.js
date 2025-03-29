@@ -40,7 +40,7 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
   // }
 
   if (req.query.status) {
-    query.status = req.query.status;
+    query.status = req.query.status === "true";
   }
 
   if (req.query.supplier_id) {

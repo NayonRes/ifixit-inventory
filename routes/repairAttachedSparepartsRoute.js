@@ -1,46 +1,38 @@
 var express = require("express");
 const {
   getDataWithPagination,
-  getAllStock,
+
   getById,
   createData,
-  updateData,
-  purchaseReturn,
-  stockAdjustment,
-  deleteData,
+
+  removeStockAdjustment,
 } = require("../controller/repairAttachedSparepartsController");
 const { isAuthenticatedUser, authorizeRoles } = require("../middleware/auth");
 
 var router = express.Router();
 
+// note : using update_repair permission because for doing any thing in this route it related with repair update user need update_repair permission
 router
   .route("/")
   .get(
     isAuthenticatedUser,
-    authorizeRoles("stock_list"),
+    authorizeRoles("update_repair"),
     getDataWithPagination
   );
-router
-  .route("/stock-skus-details")
-  .get(isAuthenticatedUser, authorizeRoles("stock_list"), getAllStock);
-router
-  .route("/:id")
-  .get(isAuthenticatedUser, authorizeRoles("view_stock_details"), getById);
-router
-  .route("/create")
-  .post(isAuthenticatedUser, authorizeRoles("add_stock"), createData);
 
 router
-  .route("/update/:id")
-  .put(isAuthenticatedUser, authorizeRoles("update_stock"), updateData);
+  .route("/:id")
+  .get(isAuthenticatedUser, authorizeRoles("update_repair"), getById);
 router
-  .route("/purchase-return")
-  .post(isAuthenticatedUser, authorizeRoles("update_stock"), purchaseReturn);
+  .route("/create")
+  .post(isAuthenticatedUser, authorizeRoles("update_repair"), createData);
+
 router
-  .route("/stock-adjustment")
-  .post(isAuthenticatedUser, authorizeRoles("update_stock"), stockAdjustment);
-// router
-//   .route("/delete/:id")
-//   .delete(isAuthenticatedUser, authorizeRoles("dashboard"), deleteData);
+  .route("/remove-stock-adjustment")
+  .post(
+    isAuthenticatedUser,
+    authorizeRoles("update_repair"),
+    removeStockAdjustment
+  );
 
 module.exports = router;

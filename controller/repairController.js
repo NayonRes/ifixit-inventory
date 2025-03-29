@@ -17,7 +17,7 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
   var query = {};
 
   if (req.query.status) {
-    query.status = req.query.status;
+    query.status = req.query.status === "true";
   }
 
   if (req.query.serial) {

@@ -66,7 +66,7 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
     query.name = new RegExp(`^${req.query.name}$`, "i");
   }
   if (req.query.status) {
-    query.status = req.query.status;
+    query.status = req.query.status === "true";
   }
   let totalData = await purchaseProductModel.countDocuments(query);
   console.log("totalData=================================", totalData);

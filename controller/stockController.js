@@ -559,6 +559,9 @@ const purchaseReturn = catchAsyncError(async (req, res, next) => {
     }
     let notThisBranchProduct = [];
     let alreadyReturned = [];
+    let attachedProducts = [];
+    let soldProducts = [];
+
     let matchedRecordForStockCounterAdjustment = [];
     let listOfUpdateStock = [];
     let stockListOfAnotherBranch = [];
@@ -569,6 +572,14 @@ const purchaseReturn = catchAsyncError(async (req, res, next) => {
       const product_id = record.product_id.toString();
       if (record.stock_status === "Returned") {
         alreadyReturned.push(record.sku_number);
+        continue;
+      }
+      if (record.stock_status === "Attached") {
+        attachedProducts.push(record.sku_number);
+        continue;
+      }
+      if (record.stock_status === "Sold") {
+        soldProducts.push(record.sku_number);
         continue;
       }
       if (branch_id !== decodedData?.user?.branch_id) {
@@ -652,6 +663,31 @@ const purchaseReturn = catchAsyncError(async (req, res, next) => {
         alreadyReturned: alreadyReturned,
       });
     }
+    if (attachedProducts.length > 0) {
+      await session.abortTransaction(); // Cancel the session (transaction)
+      session.endSession(); // End the session
+      const message = `Stock ${attachedProducts.join(
+        ", "
+      )} already attached. So operation Failed`;
+      return res.status(400).json({
+        success: false,
+        message: message,
+        attachedProducts: attachedProducts,
+      });
+    }
+    if (soldProducts.length > 0) {
+      await session.abortTransaction(); // Cancel the session (transaction)
+      session.endSession(); // End the session
+      const message = `Stock ${soldProducts.join(
+        ", "
+      )} already sold. So operation Failed`;
+      return res.status(400).json({
+        success: false,
+        message: message,
+        soldProducts: soldProducts,
+      });
+    }
+
     if (listOfUpdateStock.length > 0) {
       await stockModel.bulkWrite(listOfUpdateStock, {
         session,

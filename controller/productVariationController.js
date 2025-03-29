@@ -61,7 +61,7 @@ const branchStock = catchAsyncError(async (req, res, next) => {
     query._id = new mongoose.Types.ObjectId(req.query.product_variation_id);
   }
   if (req.query.status) {
-    query.status = req.query.status;
+    query.status = req.query.status === "true";
   }
 
   const totalData = await productVariationModel.countDocuments(query);
@@ -161,7 +161,7 @@ const allBranchStock = catchAsyncError(async (req, res, next) => {
     query._id = new mongoose.Types.ObjectId(req.query.product_variation_id);
   }
   if (req.query.status) {
-    query.status = req.query.status;
+    query.status = req.query.status === "true";
   }
 
   const totalData = await productVariationModel.countDocuments(query);
@@ -281,7 +281,7 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
     query.name = new RegExp(`^${req.query.name}$`, "i");
   }
   if (req.query.status) {
-    query.status = req.query.status;
+    query.status = req.query.status === "true";
   }
 
   let totalData = await productVariationModel.countDocuments(query);
@@ -389,11 +389,7 @@ const updateData = async (req, res, next) => {
     let imageData = [];
     let newData = req.body;
     if (req.files) {
-      imageData = await imageUpload(
-        req.files.images,
-        "product",
-        next
-      );
+      imageData = await imageUpload(req.files.images, "product", next);
     }
     console.log("imageData", imageData);
     if (imageData.length > 0) {
