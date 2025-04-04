@@ -174,7 +174,7 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
         from: "product_variations",
         localField: "product_variation_id",
         foreignField: "_id",
-        as: "spare_parts_variation_data",
+        as: "product_variation_data",
       },
     },
     {
@@ -245,9 +245,10 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
         updated_at: 1,
 
         "product_data.name": 1,
+        "product_data.warranty": 1,
         "branch_data.name": 1,
         "purchase_branch_data.name": 1,
-        "spare_parts_variation_data.name": 1,
+        "product_variation_data.name": 1,
         "purchase_data.purchase_date": 1,
         "purchase_data.supplier_id": 1,
         purchase_products_data: 1,

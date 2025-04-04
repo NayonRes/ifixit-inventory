@@ -103,7 +103,7 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
         from: "product_variations",
         localField: "product_variation_id",
         foreignField: "_id",
-        as: "spare_parts_variation_data",
+        as: "product_variation_data",
       },
     },
     {
@@ -135,9 +135,9 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
         "product_data.price": 1,
         "branch_data.name": 1,
         "branch_data.parent_name": 1,
-        "spare_parts_variation_data.name": 1,
-        "spare_parts_variation_data.price": 1,
-        "spare_parts_variation_data.images": 1,
+        "product_variation_data.name": 1,
+        "product_variation_data.price": 1,
+        "product_variation_data.images": 1,
       },
     },
     {
@@ -180,7 +180,7 @@ const getById = catchAsyncError(async (req, res, next) => {
         from: "product_variations",
         localField: "product_variation_id",
         foreignField: "_id",
-        as: "spare_parts_variation_data",
+        as: "product_variation_data",
       },
     },
     {
@@ -221,9 +221,9 @@ const getById = catchAsyncError(async (req, res, next) => {
         "product_data.price": 1,
         "branch_data.name": 1,
         "branch_data.parent_name": 1,
-        "spare_parts_variation_data.name": 1,
-        "spare_parts_variation_data.price": 1,
-        "spare_parts_variation_data.images": 1,
+        "product_variation_data.name": 1,
+        "product_variation_data.price": 1,
+        "product_variation_data.images": 1,
       },
     },
   ]);

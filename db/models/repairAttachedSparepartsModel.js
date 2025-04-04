@@ -20,6 +20,10 @@ const stockSchema = mongoose.Schema({
     type: Boolean,
     default: true,
   },
+  is_warranty_claimed_sku: {
+    type: Boolean,
+    default: false,
+  },
   created_by: {
     type: String,
     trim: true,
