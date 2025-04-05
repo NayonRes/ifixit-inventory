@@ -33,8 +33,8 @@ var repairStatusHistoryRouter = require("./routes/repairStatusHistoryRoute");
 var serviceRouter = require("./routes/serviceRoute");
 // var purchaseReturnRouter = require("./routes/purchaseReturnRoute");
 var orderRouter = require("./routes/orderRoute");
-var roleRouter = require("./routes/roleRoute");
 var permissionRouter = require("./routes/permissionRoute");
+var warrantyRouter = require("./routes/warrantyRoute");
 
 const errorMiddleware = require("./middleware/error");
 // Database connection
@@ -104,8 +104,8 @@ app.use("/api/v1/repairAttachedSpareparts", repairAttachedSparepartsRouter);
 app.use("/api/v1/repairStatusHistory", repairStatusHistoryRouter);
 app.use("/api/v1/service", serviceRouter);
 app.use("/api/v1/order", orderRouter);
-app.use("/api/v1/role", roleRouter);
 app.use("/api/v1/permission", permissionRouter);
+app.use("/api/v1/warranty", warrantyRouter);
 
 // catch 404 and forward to error handler
 app.use(errorMiddleware);

@@ -131,7 +131,7 @@ const getById = catchAsyncError(async (req, res, next) => {
 
 const createData = catchAsyncError(async (req, res, next) => {
   const { token } = req.cookies;
-  const { repair_id, sku_numbers } = req.body;
+  const { repair_id, sku_numbers ,is_warranty_claimed_sku} = req.body;
 
   console.log("repair_id", repair_id);
   console.log("sku_numbers", sku_numbers);
@@ -148,7 +148,7 @@ const createData = catchAsyncError(async (req, res, next) => {
   try {
     let newAttachedCollectionData = sku_numbers.map((sku_number) => ({
       repair_id: repair_id,
-      is_warranty_claimed_sku: false,
+      is_warranty_claimed_sku: is_warranty_claimed_sku,
       sku_number: sku_number,
       created_by: decodedData?.user?.email,
     }));
