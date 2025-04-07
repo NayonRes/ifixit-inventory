@@ -60,6 +60,6 @@ const deviceBrandSchema = mongoose.Schema({
   updated_at: { type: Date, default: Date.now },
 });
 deviceBrandSchema.index({ order_no: 1 });
-const deviceBrandModel = mongoose.model("device-brand", deviceBrandSchema);
+const deviceBrandModel = mongoose.model("device_brand", deviceBrandSchema);
 
 module.exports = deviceBrandModel;

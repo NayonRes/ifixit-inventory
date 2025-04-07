@@ -8,14 +8,18 @@ const {
   purchaseReturn,
   stockAdjustment,
   deleteData,
-} = require("../controller/sparePartsStockController");
+} = require("../controller/stockController");
 const { isAuthenticatedUser, authorizeRoles } = require("../middleware/auth");
 
 var router = express.Router();
 
 router
   .route("/")
-  .get(isAuthenticatedUser, authorizeRoles("stock_list"), getDataWithPagination);
+  .get(
+    isAuthenticatedUser,
+    authorizeRoles("stock_list"),
+    getDataWithPagination
+  );
 router
   .route("/stock-skus-details")
   .get(isAuthenticatedUser, authorizeRoles("stock_list"), getAllStock);

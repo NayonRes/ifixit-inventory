@@ -11,10 +11,10 @@ const getLastPurchaseItem = catchAsyncError(async (req, res, next) => {
 
   var query = {};
 
-  // If spare_parts_variation_id is provided, use it in the query
-  if (req.query.spare_parts_variation_id) {
-    query.spare_parts_variation_id = new mongoose.Types.ObjectId(
-      req.query.spare_parts_variation_id
+  // If product_variation_id is provided, use it in the query
+  if (req.query.product_variation_id) {
+    query.product_variation_id = new mongoose.Types.ObjectId(
+      req.query.product_variation_id
     );
   }
 
@@ -23,12 +23,12 @@ const getLastPurchaseItem = catchAsyncError(async (req, res, next) => {
     .find(query) // Apply the query
     .sort({ created_at: -1 }) // Sort by created_at in descending order (latest first)
     .select(
-      "spare_parts_variation_id unit_price purchase_product_status created_at"
+      "product_variation_id unit_price purchase_product_status created_at"
     ) // Select specific fields
     .limit(1) // Limit to the latest document
     .lean(); // Convert to plain JavaScript object
 
-  console.log("purchaseProduct list----------------", data);
+  console.log("purchase_product list----------------", data);
 
   res.status(200).json({
     success: true,
@@ -47,7 +47,7 @@ const getParentDropdown = catchAsyncError(async (req, res, next) => {
     .find({}, "name purchaseProduct_id")
     .lean();
 
-  console.log("purchaseProduct list----------------", data);
+  console.log("purchase_product list----------------", data);
 
   res.status(200).json({
     success: true,
@@ -66,7 +66,7 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
     query.name = new RegExp(`^${req.query.name}$`, "i");
   }
   if (req.query.status) {
-    query.status = req.query.status;
+    query.status = req.query.status === "true";
   }
   let totalData = await purchaseProductModel.countDocuments(query);
   console.log("totalData=================================", totalData);

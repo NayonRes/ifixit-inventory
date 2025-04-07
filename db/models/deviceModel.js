@@ -26,7 +26,7 @@ const deviceSchema = mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "device",
     default: null,
-    // required: [true, "Please enter Spare part Id"],
+    // required: [true, "Please enter product Id"],
   },
   image: {
     public_id: {

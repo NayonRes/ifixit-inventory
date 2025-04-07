@@ -16,6 +16,7 @@ var router = express.Router();
 
 //Must be maintain the serial of declaring router.route according to less middleware use
 router.route("/").get(getDataWithPagination);
+router.route("/:id").get(getById);
 router
   .route("/create")
   .post(isAuthenticatedUser, authorizeRoles("add_branch"), createData);
@@ -40,10 +41,6 @@ router
     authorizeRoles("branch_dropdown_list"),
     getBranchWiseFilterList
   );
-
-router
-  .route("/:id")
-  .get(isAuthenticatedUser, authorizeRoles("view_branch_details"), getById);
 
 router
   .route("/update/:id")

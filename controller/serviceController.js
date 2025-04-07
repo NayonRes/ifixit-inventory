@@ -24,7 +24,7 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
     query.model_id = new mongoose.Types.ObjectId(req.query.model_id);
   }
   if (req.query.status) {
-    query.status = req.query.status;
+    query.status = req.query.status === "true";
   }
   if (req.query.device_id) {
     query.device_id = new mongoose.Types.ObjectId(req.query.device_id);

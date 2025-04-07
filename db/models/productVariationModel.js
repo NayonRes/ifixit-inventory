@@ -1,17 +1,17 @@
 const mongoose = require("mongoose");
 const { Schema } = mongoose;
 
-const sparePartVariationSchema = mongoose.Schema({
+const productVariationSchema = mongoose.Schema({
   name: {
     type: String,
-    required: [true, "Please enter sparePartVariation name"],
+    required: [true, "Please enter productVariationModel name"],
     trim: true,
     // unique: true,
   },
-  spare_parts_id: {
+  product_id: {
     type: Schema.Types.ObjectId,
-    ref: "sparePartModel",
-    required: [true, "Please enter Spare part Id"],
+    ref: "productModel",
+    required: [true, "Please enter product Id"],
   },
   price: {
     type: Number,
@@ -47,18 +47,18 @@ const sparePartVariationSchema = mongoose.Schema({
   },
   updated_at: { type: Date, default: Date.now },
 });
-sparePartVariationSchema.index({ name: 1 });
-sparePartVariationSchema.index({ spare_parts_variation_id: 1 });
-sparePartVariationModel = mongoose.model(
-  "sparePartVariation",
-  sparePartVariationSchema
+productVariationSchema.index({ name: 1 });
+productVariationSchema.index({ product_variation_id: 1 });
+productVariationModel = mongoose.model(
+  "product_variation",
+  productVariationSchema
 );
 
 const saveData = async () => {
-  let totalData = await sparePartVariationModel.countDocuments();
+  let totalData = await productVariationModel.countDocuments();
   console.log("totalData 123456", totalData);
   if (totalData < 1) {
-    const sparePartVariationDoc = new sparePartVariationModel({
+    const sparePartVariationDoc = new productVariationModel({
       name: "Primary",
     });
     await sparePartVariationDoc.save();
@@ -66,4 +66,4 @@ const saveData = async () => {
 };
 // saveData();
 
-module.exports = sparePartVariationModel;
+module.exports = productVariationModel;

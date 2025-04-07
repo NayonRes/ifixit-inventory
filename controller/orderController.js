@@ -33,7 +33,7 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
     query.customer_phone = new RegExp(`^${req.query.customerPhone}$`, "i");
   }
   if (req.query.status) {
-    query.status = req.query.status;
+    query.status = req.query.status === "true";
   }
 
   let totalData = await orderModel.countDocuments(query);
@@ -313,7 +313,7 @@ const createData = catchAsyncError(async (req, res, next) => {
     total_amount,
     newTotal
   );
- 
+
   const data = await orderModel.create(newData);
   res.status(201).json({ message: "success", data: data });
 });

@@ -8,11 +8,13 @@ const repairSchema = mongoose.Schema({
   },
   serial: {
     type: String,
-    required: [true, "Please enter serial"],
+    // required: [true, "Please enter serial"],
+    default: null,
   },
   pass_code: {
     type: String,
-    required: [true, "Please enter pass code"],
+    // required: [true, "Please enter pass code"],
+    default: null,
   },
   // it is originally  device_id. For repair module device under primary device list is product brand list
   brand_id: {
@@ -76,17 +78,17 @@ const repairSchema = mongoose.Schema({
       },
     },
   ],
-  spare_parts: [
+  product_details: [
     {
-      spare_parts_id: {
+      product_id: {
         type: Schema.Types.ObjectId,
-        ref: "sparePartVariationModel",
-        required: [true, "Please enter Spare part Id"],
+        ref: "productModel",
+        required: [true, "Please enter product Id"],
       },
-      spare_parts_variation_id: {
+      product_variation_id: {
         type: Schema.Types.ObjectId,
-        ref: "sparePartVariationModel",
-        required: [true, "Please enter Spare part Id"],
+        ref: "productVariationModel",
+        required: [true, "Please enter product Id"],
       },
       name: {
         type: String,
@@ -97,6 +99,9 @@ const repairSchema = mongoose.Schema({
       },
     },
   ],
+  stock_sku: {
+    type: Array,
+  },
   repair_checklist: {
     has_power: {
       type: Boolean,
@@ -108,7 +113,12 @@ const repairSchema = mongoose.Schema({
     note: {
       type: String,
     },
-    checklist: [String],
+    checklist: [
+      {
+        name: { type: String }, // Ensure 'key' is a string and required
+        status: { type: String }, // Ensure 'isFunctional' is a boolean and required
+      },
+    ],
   },
   payment_info: [
     {

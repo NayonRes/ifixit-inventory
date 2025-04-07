@@ -8,7 +8,7 @@ const {
   deleteData,
   allBranchStock,
   branchStock,
-} = require("../controller/sparePartVariationController");
+} = require("../controller/productVariationController");
 
 const { isAuthenticatedUser, authorizeRoles } = require("../middleware/auth");
 
@@ -23,7 +23,11 @@ router
   );
 router
   .route("/all-branch-stock")
-  .get(isAuthenticatedUser, authorizeRoles("all_branch_stock_list"), allBranchStock);
+  .get(
+    isAuthenticatedUser,
+    authorizeRoles("all_branch_stock_list"),
+    allBranchStock
+  );
 router
   .route("/branch-stock")
   .get(isAuthenticatedUser, authorizeRoles("branch_stock_list"), branchStock);

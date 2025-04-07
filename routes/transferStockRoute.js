@@ -7,15 +7,17 @@ const {
   deleteData,
 } = require("../controller/transferStockController");
 const { isAuthenticatedUser, authorizeRoles } = require("../middleware/auth");
+const branchAccessMiddleware = require("../middleware/branchAccessMiddleware");
 
 var router = express.Router();
 
 router
-  .route("/")
-  .get(isAuthenticatedUser, authorizeRoles("stock_transfer_list"), getDataWithPagination);
-router
   .route("/:id")
-  .get(isAuthenticatedUser, authorizeRoles("view_stock_transfer_details"), getById);
+  .get(
+    isAuthenticatedUser,
+    authorizeRoles("view_stock_transfer_details"),
+    getById
+  );
 
 router
   .route("/create")
@@ -23,7 +25,20 @@ router
 
 router
   .route("/update/:id")
-  .put(isAuthenticatedUser, authorizeRoles("update_stock_transfer"), updateData);
+  .put(
+    isAuthenticatedUser,
+    authorizeRoles("update_stock_transfer"),
+    updateData
+  );
+
+router
+  .route("/")
+  .get(
+    isAuthenticatedUser,
+    authorizeRoles("stock_transfer_list"),
+    branchAccessMiddleware,
+    getDataWithPagination
+  );
 
 // router
 //   .route("/delete/:id")

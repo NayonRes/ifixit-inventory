@@ -2,15 +2,15 @@ const mongoose = require("mongoose");
 const { Schema } = mongoose;
 
 const stockCounterAndLimitSchema = mongoose.Schema({
-  spare_parts_id: {
+  product_id: {
     type: Schema.Types.ObjectId,
-    ref: "sparePartsModel",
-    required: [true, "Please select spare parts"],
+    ref: "productModel",
+    required: [true, "Please select product"],
   },
-  spare_parts_variation_id: {
+  product_variation_id: {
     type: Schema.Types.ObjectId,
-    ref: "sparePartsVariationModel",
-    required: [true, "Please select spare parts variation"],
+    ref: "productVariationModel",
+    required: [true, "Please select product variation"],
   },
   branch_id: {
     type: Schema.Types.ObjectId,

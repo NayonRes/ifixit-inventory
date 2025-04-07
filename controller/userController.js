@@ -130,7 +130,7 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
     query.designation = new RegExp(`^${req.query.designation}$`, "i");
   }
   if (req.query.status) {
-    query.status = req.query.status;
+    query.status = req.query.status === "true";
   }
 
   let totalData = await userModel.countDocuments(query);

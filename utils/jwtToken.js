@@ -35,6 +35,8 @@ const sendToken = (user, branchInfo, statusCode, res) => {
     image: user.image || null,
     branch_id: user.branch_id || null,
     is_main_branch: branchInfo?.is_main_branch || null,
+    branchInfo: branchInfo || null,
+
     permission: user.permission || [],
     status: user.status,
   };

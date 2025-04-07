@@ -4,18 +4,18 @@ const { Schema } = mongoose;
 const purchaseProductSchema = mongoose.Schema({
   // name: {
   //   type: String,
-  //   required: [true, "Please enter purchaseProduct name"],
+  //   required: [true, "Please enter purchase_product name"],
   //   trim: true,
   // },
-  spare_parts_id: {
+  product_id: {
     type: Schema.Types.ObjectId,
-    ref: "sparePartVariationModel",
-    required: [true, "Please enter Spare part Id"],
+    ref: "productModel",
+    required: [true, "Please enter product Id"],
   },
-  spare_parts_variation_id: {
+  product_variation_id: {
     type: Schema.Types.ObjectId,
-    ref: "sparePartVariationModel",
-    required: [true, "Please enter Spare part Id"],
+    ref: "productVariationModel",
+    required: [true, "Please enter product Id"],
   },
 
   purchase_id: {
@@ -61,7 +61,7 @@ const purchaseProductSchema = mongoose.Schema({
 });
 purchaseProductSchema.index({ name: 1 });
 const purchaseProductModel = mongoose.model(
-  "purchaseProduct",
+  "purchase_product",
   purchaseProductSchema
 );
 

@@ -1,41 +1,41 @@
 var express = require("express");
 const {
-  getAll,
-  getDataByProductIds,
   getDataWithPagination,
+  lightSearchWithPagination,
   getById,
-  getFilterItems,
   createData,
   updateData,
-  patchData,
   deleteData,
 } = require("../controller/productController");
 
 const { isAuthenticatedUser, authorizeRoles } = require("../middleware/auth");
-const productModel = require("../db/models/productModel");
 
 var router = express.Router();
 
-//Must be maintain the serial of declaring router.route accordimg to less middleware use
-router.route("/product-list-by-ids").post(isAuthenticatedUser, authorizeRoles("product_list"), getDataByProductIds);
-// router.route("/:filters").get(getFilterItems);
-
 router
   .route("/")
-  .get(isAuthenticatedUser, authorizeRoles("product_list"), getDataWithPagination);
+  .get(
+    isAuthenticatedUser,
+    authorizeRoles("spare_parts_list"),
+    getDataWithPagination
+  );
+// router
+//   .route("/lightSearch")
+//   .get(isAuthenticatedUser, authorizeRoles("per123"), lightSearchWithPagination);
 router
   .route("/:id")
-  .get(isAuthenticatedUser, authorizeRoles("view_product_details"), getById);
+  .get(
+    isAuthenticatedUser,
+    authorizeRoles("view_spare_parts_details"),
+    getById
+  );
 
 router
   .route("/create")
-  .post(isAuthenticatedUser, authorizeRoles("add_product"), createData);
+  .post(isAuthenticatedUser, authorizeRoles("add_spare_parts"), createData);
 router
   .route("/update/:id")
-  .put(isAuthenticatedUser, authorizeRoles("update_product"), updateData);
-// router
-//   .route("/patch/:id")
-//   .patch(isAuthenticatedUser, authorizeRoles("update_product"), patchData);
+  .put(isAuthenticatedUser, authorizeRoles("update_spare_parts"), updateData);
 // router
 //   .route("/delete/:id")
 //   .delete(isAuthenticatedUser, authorizeRoles("dashboard"), deleteData);

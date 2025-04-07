@@ -2,7 +2,7 @@ var express = require("express");
 const {
   getParentDropdown,
   getLeafDeviceList,
-  getDataWithPagination, 
+  getDataWithPagination,
   getById,
   getByParent,
   createData,
@@ -34,6 +34,7 @@ router
     authorizeRoles("device_dropdown_list"),
     getParentDropdown
   );
+
 router
   .route("/leaf-dropdown")
   .get(
@@ -56,7 +57,7 @@ router
     authorizeRoles("device_list"),
     getDataWithPagination
   );
- 
+
 router
   .route("/get-by-parent")
   .get(

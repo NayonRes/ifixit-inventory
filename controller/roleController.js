@@ -54,7 +54,7 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
   }
 
   if (req.query.status) {
-    query.status = req.query.status;
+    query.status = req.query.status === "true";
   }
 
   let totalData = await roleModel.countDocuments(query);

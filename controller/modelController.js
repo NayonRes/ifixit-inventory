@@ -64,7 +64,7 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
     query.name = new RegExp(`^${req.query.name}$`, "i");
   }
   if (req.query.status) {
-    query.status = req.query.status;
+    query.status = req.query.status === "true";
   }
   if (req.query.parent_name) {
     query.parent_name = new RegExp(`^${req.query.parent_name}$`, "i");

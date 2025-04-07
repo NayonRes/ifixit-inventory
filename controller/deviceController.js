@@ -41,17 +41,22 @@ const getListGroupByParent = catchAsyncError(async (req, res, next) => {
   });
 });
 const getParentDropdown = catchAsyncError(async (req, res, next) => {
-  console.log(
-    "getParentDropdown===================================================="
-  );
-
   // const data = await deviceModel.find().lean();
   let query = {};
-  if (req.query.parent_name) {
-    query.parent_name = new RegExp(`^${req.query.parent_name}$`, "i");
+  // if (req.query.parent_name) {
+  //   query.parent_name = new RegExp(`^${req.query.parent_name}$`, "i");
+  // }
+
+  if (req.query.device_brand_id) {
+    query.device_brand_id = new mongoose.Types.ObjectId(
+      req.query.device_brand_id
+    );
+  }
+  if (req.query.parent_id) {
+    query.parent_id = new mongoose.Types.ObjectId(req.query.parent_id);
   }
   const data = await deviceModel
-    .find(query, "name device_id parent_name")
+    .find(query, { name: 1, device_id: 1, parent_id: 1, image: 1 })
     .sort({ order_no: -1 })
     .lean();
 
@@ -78,7 +83,7 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
     query.name = new RegExp(`^${req.query.name}$`, "i");
   }
   if (req.query.status) {
-    query.status = req.query.status;
+    query.status = req.query.status === "true";
   }
   // if (req.query.parent_name) {
   //   query.parent_name = new RegExp(`^${req.query.parent_name}$`, "i");
@@ -103,7 +108,7 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
     },
     {
       $lookup: {
-        from: "device-brands",
+        from: "device_brands",
         localField: "device_brand_id",
         foreignField: "_id",
         as: "device_brand_data",
