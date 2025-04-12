@@ -23,6 +23,9 @@ const branchSchema = mongoose.Schema({
   remarks: {
     type: String,
   },
+  map_url: {
+    type: String,
+  },
   is_main_branch: {
     type: Boolean,
     default: false,

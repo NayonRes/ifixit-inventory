@@ -14,12 +14,6 @@ const branchModel = require("../db/models/branchModel");
 
 var router = express.Router();
 
-//Must be maintain the serial of declaring router.route according to less middleware use
-router.route("/").get(getDataWithPagination);
-router.route("/:id").get(getById);
-router
-  .route("/create")
-  .post(isAuthenticatedUser, authorizeRoles("add_branch"), createData);
 router
   .route("/dropdownlist")
   .get(
@@ -42,6 +36,12 @@ router
     getBranchWiseFilterList
   );
 
+router
+  .route("/create")
+  .post(isAuthenticatedUser, authorizeRoles("add_branch"), createData);
+router.route("/").get(getDataWithPagination);
+
+router.route("/:id").get(getById);
 router
   .route("/update/:id")
   .put(isAuthenticatedUser, authorizeRoles("update_branch"), updateData);
