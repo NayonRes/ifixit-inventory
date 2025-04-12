@@ -69,6 +69,10 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
   if (req.query.parent_name) {
     query.parent_name = new RegExp(`^${req.query.parent_name}$`, "i");
   }
+
+  if (req.query.device_id) {
+    query.device_id = new mongoose.Types.ObjectId(req.query.device_id);
+  }
   if (req.query.order_no && !isNaN(req.query.order_no)) {
     query.order_no = parseInt(req.query.order_no);
   }
