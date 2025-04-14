@@ -57,7 +57,7 @@ const getParentDropdown = catchAsyncError(async (req, res, next) => {
   }
   const data = await deviceModel
     .find(query, { name: 1, device_id: 1, parent_id: 1, image: 1 })
-    .sort({ order_no: -1 })
+    .sort({ order_no: 1 })
     .lean();
 
   console.log("device list----------------", data);
@@ -127,7 +127,7 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
       $project: {
         _id: 1,
         name: 1,
-        images: 1,
+        image: 1,
         device_brand_id: 1,
         parent_id: 1,
         order_no: 1,

@@ -105,6 +105,7 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
     {
       $project: {
         _id: 1,
+        title: 1,
         device_id: 1,
         model_id: 1,
         branch_id: 1,
@@ -203,6 +204,7 @@ const getById = catchAsyncError(async (req, res, next) => {
     {
       $project: {
         _id: 1,
+        title: 1,
         device_id: 1,
         model_id: 1,
         branch_id: 1,
@@ -240,7 +242,13 @@ const getById = catchAsyncError(async (req, res, next) => {
 
 const createData = catchAsyncError(async (req, res, next) => {
   const { token } = req.cookies;
+  console.log("req?.image", req?.body?.image);
 
+  let imageData = [];
+  if (req?.body?.image) {
+    imageData = await base64ImageUpload(req?.body?.image, "service", next);
+  }
+ 
   const updatedSteps = await Promise.all(
     req.body.steps?.map(async (step) => {
       console.log("step", step);
@@ -294,6 +302,7 @@ const createData = catchAsyncError(async (req, res, next) => {
   let decodedData = jwt.verify(token, process.env.JWT_SECRET);
   let newData = {
     ...req.body,
+    image: imageData[0],
     steps: updatedSteps,
     repair_info: updatedRepairInfo,
     created_by: decodedData?.user?.email,
@@ -366,6 +375,7 @@ const updateData = catchAsyncError(async (req, res, next) => {
 
   let newData = {
     ...req.body,
+
     steps: updatedSteps,
     repair_info: updatedRepairInfo,
     updated_by: decodedData?.user?.email,
@@ -389,6 +399,21 @@ const updateData = catchAsyncError(async (req, res, next) => {
     }
   }
 
+  let imageData = [];
+
+  console.log("body======", newData);
+  if (req?.body?.image) {
+    imageData = await base64ImageUpload(req?.body?.image, "service", next);
+  }
+  console.log("image data =========", imageData);
+  if (imageData.length > 0) {
+    newData = { ...req.body, image: imageData[0] };
+  }
+  if (data.image.public_id) {
+    console.log("previous model image delete 111111");
+
+    await imageDelete(data.image.public_id, next);
+  }
   newData = {
     ...newData,
     updated_by: decodedData?.user?.email,

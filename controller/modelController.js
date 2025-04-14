@@ -69,6 +69,10 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
   if (req.query.parent_name) {
     query.parent_name = new RegExp(`^${req.query.parent_name}$`, "i");
   }
+
+  if (req.query.device_id) {
+    query.device_id = new mongoose.Types.ObjectId(req.query.device_id);
+  }
   if (req.query.order_no && !isNaN(req.query.order_no)) {
     query.order_no = parseInt(req.query.order_no);
   }
@@ -102,7 +106,8 @@ const getByDeviceId = catchAsyncError(async (req, res, next) => {
     .find({
       device_id: req.query.device_id,
     })
-    .select("_id name image");
+    .select("_id name image")
+    .sort({ order_no: -1 });
 
   if (!data) {
     return res.status(404).send({ message: "No data found" });
