@@ -106,7 +106,8 @@ const getByDeviceId = catchAsyncError(async (req, res, next) => {
     .find({
       device_id: req.query.device_id,
     })
-    .select("_id name image");
+    .select("_id name image")
+    .sort({ order_no: -1 });
 
   if (!data) {
     return res.status(404).send({ message: "No data found" });

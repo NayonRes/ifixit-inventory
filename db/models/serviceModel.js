@@ -2,6 +2,19 @@ const mongoose = require("mongoose");
 const { Schema } = mongoose;
 
 const serviceSchema = mongoose.Schema({
+  title: {
+    type: String,
+    required: [true, "Please enter title"],
+  },
+
+  image: {
+    public_id: {
+      type: String,
+    },
+    url: {
+      type: String,
+    },
+  },
   model_id: {
     type: Schema.Types.ObjectId,
     ref: "modelModel",
