@@ -106,6 +106,7 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
       $project: {
         _id: 1,
         title: 1,
+        image: 1,
         device_id: 1,
         model_id: 1,
         branch_id: 1,
@@ -205,6 +206,7 @@ const getById = catchAsyncError(async (req, res, next) => {
       $project: {
         _id: 1,
         title: 1,
+        image: 1,
         device_id: 1,
         model_id: 1,
         branch_id: 1,
@@ -248,7 +250,7 @@ const createData = catchAsyncError(async (req, res, next) => {
   if (req?.body?.image) {
     imageData = await base64ImageUpload(req?.body?.image, "service", next);
   }
- 
+
   const updatedSteps = await Promise.all(
     req.body.steps?.map(async (step) => {
       console.log("step", step);
@@ -402,7 +404,7 @@ const updateData = catchAsyncError(async (req, res, next) => {
   let imageData = [];
 
   console.log("body======", newData);
-  if (req?.body?.image) {
+  if (req?.body?.image && req?.body?.image?.length > 0) {
     imageData = await base64ImageUpload(req?.body?.image, "service", next);
   }
   console.log("image data =========", imageData);
