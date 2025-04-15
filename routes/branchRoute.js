@@ -41,10 +41,10 @@ router
   .post(isAuthenticatedUser, authorizeRoles("add_branch"), createData);
 router.route("/").get(getDataWithPagination);
 
-router.route("/:id").get(getById);
 router
   .route("/update/:id")
   .put(isAuthenticatedUser, authorizeRoles("update_branch"), updateData);
+router.route("/:id").get(getById);
 // router
 //   .route("/delete/:id")
 //   .delete(isAuthenticatedUser, authorizeRoles("dashboard"), deleteData);
