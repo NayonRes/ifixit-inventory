@@ -44,7 +44,10 @@ router.route("/").get(getDataWithPagination);
 router
   .route("/update/:id")
   .put(isAuthenticatedUser, authorizeRoles("update_branch"), updateData);
-router.route("/:id").get(getById);
+router.route("public/:id").get(getById);
+router
+  .route("/:id")
+  .get(isAuthenticatedUser, authorizeRoles("view_branch_details"), getById);
 // router
 //   .route("/delete/:id")
 //   .delete(isAuthenticatedUser, authorizeRoles("dashboard"), deleteData);
