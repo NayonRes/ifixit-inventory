@@ -56,6 +56,7 @@ router
     authorizeRoles("model_list"),
     getDataWithPagination
   );
+router.route("/public/get-by-device").get(getByDeviceId);
 router
   .route("/get-by-device/")
   .get(

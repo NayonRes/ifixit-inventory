@@ -20,6 +20,7 @@ var router = express.Router();
 // router
 //   .route("/create")
 //   .post(createData);
+
 router
   .route("/parent-child-list")
   .get(
@@ -27,6 +28,7 @@ router
     authorizeRoles("device_dropdown_list"),
     getListGroupByParent
   );
+router.route("/public/list").get(getParentDropdown);
 router
   .route("/dropdownlist")
   .get(
@@ -42,6 +44,7 @@ router
     authorizeRoles("device_dropdown_list"),
     getLeafDeviceList
   );
+
 router
   .route("/device-filter-list")
   .post(
@@ -65,9 +68,6 @@ router
     authorizeRoles("device_dropdown_list"),
     getByParent
   );
-router
-  .route("/:id")
-  .get(isAuthenticatedUser, authorizeRoles("view_device_details"), getById);
 
 router
   .route("/create")
@@ -76,6 +76,9 @@ router
 router
   .route("/update/:id")
   .put(isAuthenticatedUser, authorizeRoles("update_device"), updateData);
+router
+  .route("/:id")
+  .get(isAuthenticatedUser, authorizeRoles("view_device_details"), getById);
 // router
 //   .route("/delete/:id")
 //   .delete(isAuthenticatedUser, authorizeRoles("dashboard"), deleteData);

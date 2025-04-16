@@ -26,6 +26,7 @@ router
   .route("/update/:id")
   .put(isAuthenticatedUser, authorizeRoles("update_service"), updateData);
 
+router.route("/public/:id").get(getById);
 router
   .route("/:id")
   .get(isAuthenticatedUser, authorizeRoles("view_service_details"), getById);
