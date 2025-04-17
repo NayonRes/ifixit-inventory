@@ -102,10 +102,15 @@ const getById = catchAsyncError(async (req, res, next) => {
 });
 
 const getByDeviceId = catchAsyncError(async (req, res, next) => {
+  var query = {};
+  if (req.query.status) {
+    query.status = req.query.status === "true";
+  }
+  if (req.query.device_id) {
+    query.device_id = new mongoose.Types.ObjectId(req.query.device_id);
+  }
   let data = await modelModel
-    .find({
-      device_id: req.query.device_id,
-    })
+    .find(query)
     .select("_id name image")
     .sort({ order_no: -1 });
 
