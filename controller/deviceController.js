@@ -52,8 +52,18 @@ const getParentDropdown = catchAsyncError(async (req, res, next) => {
       req.query.device_brand_id
     );
   }
-  if (req.query.parent_id) {
+  // if (req.query.parent_id) {
+  //   query.parent_id = new mongoose.Types.ObjectId(req.query.parent_id);
+  // }
+
+  if (req.query.parent_id === "null") {
+    query.parent_id = null;
+  } else if (mongoose.Types.ObjectId.isValid(req.query.parent_id)) {
     query.parent_id = new mongoose.Types.ObjectId(req.query.parent_id);
+  }
+
+  if (req.query.status) {
+    query.status = req.query.status === "true";
   }
   const data = await deviceModel
     .find(query, { name: 1, device_id: 1, parent_id: 1, image: 1 })
