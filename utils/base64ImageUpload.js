@@ -16,7 +16,9 @@ const base64ImageUpload = async (base64Images, folderName, next) => {
 
     try {
       // Validate and extract Base64 image data
-      const matches = base64String.match(/^data:image\/([a-zA-Z]+);base64,(.+)$/);
+      const matches = base64String.match(
+        /^data:image\/([a-zA-Z]+);base64,(.+)$/
+      );
       if (!matches || matches.length !== 3) {
         return next(new ErrorHander("Invalid Base64 image data", 400));
       }
@@ -24,22 +26,19 @@ const base64ImageUpload = async (base64Images, folderName, next) => {
       const buffer = Buffer.from(matches[2], "base64"); // Convert Base64 to Buffer
 
       // Resize the image using Sharp
-      const resizedBuffer = await sharp(buffer).resize(800, 600).toBuffer();
+      // const resizedBuffer = await sharp(buffer).resize(800, 600).toBuffer();
 
       // Upload the resized image to Cloudinary
       const result = await new Promise((resolve, reject) => {
         cloudinary.uploader
-          .upload_stream(
-            { folder: folderName },
-            (err, result) => {
-              if (err) {
-                reject(err);
-              } else {
-                resolve(result);
-              }
+          .upload_stream({ folder: folderName }, (err, result) => {
+            if (err) {
+              reject(err);
+            } else {
+              resolve(result);
             }
-          )
-          .end(resizedBuffer);
+          })
+          .end(buffer);
       });
 
       // Collect the uploaded image data

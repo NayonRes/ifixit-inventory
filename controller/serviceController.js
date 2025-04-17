@@ -409,7 +409,7 @@ const updateData = catchAsyncError(async (req, res, next) => {
   }
   console.log("image data =========", imageData);
   if (imageData.length > 0) {
-    newData = { ...req.body, image: imageData[0] };
+    newData.image = imageData[0];
   }
   if (data.image.public_id) {
     console.log("previous model image delete 111111");
