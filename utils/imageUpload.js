@@ -1,64 +1,79 @@
-const sizeOf = require("image-size");
-const ErrorHander = require("../utils/errorHandler");
-const cloudinary = require("../utils/cloudinary");
+const fs = require("fs/promises");
+const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
+const { v4: uuidv4 } = require("uuid");
 const sharp = require("sharp");
+const ErrorHandler = require("../utils/errorHandler");
+
+// 🔧 AWS S3 setup
+const s3 = new S3Client({
+  region: process.env.AWS_REGION,
+  credentials: {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+  },
+});
+
+const ALLOWED_EXTENSIONS = [".svg", ".png", ".jpg", ".jpeg"];
+
 const imageUpload = async (images, folderName, next) => {
-  console.log("images", images);
-  let myFiles = [];
-  let imageData = [];
-  if (images.constructor === Array) {
-    console.log("if---------------------------------------");
-    myFiles = images;
-  } else if (typeof images === "object") {
-    console.log("else if---------------------------------------");
-    myFiles.push(images);
-  }
-  if (myFiles.length > 5) {
-    return next(new ErrorHander("max 5 images can be uploded", 400));
-  }
-  console.log("myFiles", myFiles);
-  for (let index = 0; index < myFiles.length; index++) {
-    console.log("for ------------------------------------");
-    const element = myFiles[index];
-    const dimensions = sizeOf(element?.tempFilePath);
-    console.log("dimensions", dimensions);
-    console.log(dimensions?.width, dimensions?.height, dimensions?.type);
-    if (!["svg", "png", "jpg", "jpeg"].includes(dimensions.type)) {
-      return next(new ErrorHander("image type must be svg/png/jpg/jpeg", 400));
+  try {
+    let myFiles = [];
+
+    if (Array.isArray(images)) {
+      myFiles = images;
+    } else if (typeof images === "object") {
+      myFiles = [images];
     }
 
-    try {
-      const buffer = await sharp(element.tempFilePath)
-        // .resize(800, 600)
-        .toBuffer();
-      console.log("buffer", buffer);
-      const result = await new Promise((resolve, reject) => {
-        cloudinary.uploader
-          .upload_stream(
-            {
-              folder: folderName,
-            },
-            (err, result) => {
-              if (err) {
-                console.error(err);
-                reject(err);
-              } else {
-                console.log(result);
-                resolve(result);
-              }
-            }
-          )
-          .end(buffer);
-      });
-      console.log(result);
-      imageData.push({
-        public_id: result.public_id,
-        url: result.secure_url,
-      });
-    } catch (error) {
-      console.error(error);
+    if (myFiles.length > 5) {
+      return next(new ErrorHandler("Max 5 images can be uploaded", 400));
     }
+
+    const imageData = [];
+
+    for (const file of myFiles) {
+      const fileExt = file.mimetype.split("/")[1].toLowerCase();
+      if (!ALLOWED_EXTENSIONS.includes(`.${fileExt}`)) {
+        return next(
+          new ErrorHandler("Image type must be svg, png, jpg, or jpeg", 400)
+        );
+      }
+
+      // 🧾 Read the temp file into a buffer
+      const rawBuffer = await fs.readFile(file.tempFilePath);
+
+      // 🧪 Process with sharp
+      const buffer = await sharp(rawBuffer).toBuffer();
+
+      const uniqueId = uuidv4();
+      const fileName = `${folderName}/${uniqueId}.${fileExt}`;
+
+      const params = {
+        Bucket: process.env.AWS_BUCKET_NAME,
+        Key: fileName,
+        Body: buffer,
+        ContentType: file.mimetype,
+        // ACL: "public-read",
+      };
+
+      await s3.send(new PutObjectCommand(params));
+
+      imageData.push({
+        public_id: fileName, // Public ID (S3 Key)
+        url: `https://${process.env.AWS_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${fileName}`,
+      });
+
+      // 🧹 Clean up temp file
+      fs.unlink(file.tempFilePath).catch((err) =>
+        console.error("Failed to delete temp file:", err)
+      );
+    }
+
+    return imageData;
+  } catch (error) {
+    console.error("S3 Upload Error:", error);
+    return next(new ErrorHandler("Image upload failed", 500));
   }
-  return imageData;
 };
+
 module.exports = imageUpload;
