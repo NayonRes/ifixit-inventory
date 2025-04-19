@@ -13,10 +13,7 @@
 /build
 /tmp
 
-# Ignore configuration files with sensitive data
-.env
-*.key
-*.pem
+ 
 
 # misc
 .DS_Store
