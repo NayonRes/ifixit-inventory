@@ -14,7 +14,7 @@
 /tmp
 
 # Ignore configuration files with sensitive data
-config/.env
+.env
 *.key
 *.pem
 
