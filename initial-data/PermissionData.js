@@ -30,12 +30,12 @@ const PermissionData = [
     permission_name: "view_blog_details",
     module_name: "Blog",
   },
-  {
-    order_no: 5,
-    name: "Blog Dropdown List",
-    permission_name: "blog_dropdown_list",
-    module_name: "Blog",
-  },
+  // {
+  //   order_no: 5,
+  //   name: "Blog Dropdown List",
+  //   permission_name: "blog_dropdown_list",
+  //   module_name: "Blog",
+  // },
   // Branch
   {
     order_no: 1,

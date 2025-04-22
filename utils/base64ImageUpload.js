@@ -1,12 +1,14 @@
 const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
 const { v4: uuidv4 } = require("uuid");
 const ErrorHandler = require("../utils/errorHandler");
+const { fromIni } = require("@aws-sdk/credential-providers");
+const { fromNodeProviderChain } = require("@aws-sdk/credential-providers");
 
 /**
  * Configure AWS S3 instance (v3)
  */
 const s3 = new S3Client({
-  region: process.env.AWS_REGION
+  region: process.env.AWS_REGION,
 });
 
 // Allowed image extensions
