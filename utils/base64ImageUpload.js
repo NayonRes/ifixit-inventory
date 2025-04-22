@@ -7,10 +7,6 @@ const ErrorHandler = require("../utils/errorHandler");
  */
 const s3 = new S3Client({
   region: process.env.AWS_REGION,
-  credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-  },
 });
 
 // Allowed image extensions
@@ -50,7 +46,9 @@ const base64ImageUpload = async (base64Images, folderName, next) => {
       // 🔐 Validate file extension (based on MIME type)
       const fileExt = matches[1].toLowerCase();
       if (!ALLOWED_EXTENSIONS.includes(`.${fileExt}`)) {
-        return next(new ErrorHandler("Image type must be svg, png, jpg, or jpeg", 400));
+        return next(
+          new ErrorHandler("Image type must be svg, png, jpg, or jpeg", 400)
+        );
       }
 
       // 🆔 Generate unique file name using UUID
