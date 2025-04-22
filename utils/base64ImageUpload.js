@@ -6,7 +6,7 @@ const ErrorHandler = require("../utils/errorHandler");
  * Configure AWS S3 instance (v3)
  */
 const s3 = new S3Client({
-  region: process.env.AWS_REGION,
+  region: process.env.AWS_REGION
 });
 
 // Allowed image extensions
