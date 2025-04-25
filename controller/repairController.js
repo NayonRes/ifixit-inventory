@@ -4,6 +4,7 @@ const ErrorHander = require("../utils/errorHandler");
 const catchAsyncError = require("../middleware/catchAsyncError");
 const jwt = require("jsonwebtoken");
 const mongoose = require("mongoose");
+const customerModel = require("../db/models/customerModel");
 
 const getDataWithPagination = catchAsyncError(async (req, res, next) => {
   const page = parseInt(req.query.page) || 1;
@@ -15,6 +16,34 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
   const startDate = req.query.startDate;
   const endDate = req.query.endDate;
   var query = {};
+  let customerId = "";
+
+  if (req.query.customerNo?.trim()) {
+    const customerData = await customerModel.find({
+      mobile: new RegExp(`^${req.query.customerNo}$`, "i"),
+    });
+    console.log("Customer data:", customerData);
+
+    if (customerData?.length > 0) {
+      customerId = customerData[0]?._id;
+    } else {
+      // return res.status(404).json({
+      //   success: false,
+      //   message: "Customer not found with this mobile number.",
+      // });
+
+      return res.status(200).json({
+        success: true,
+        message: "successful",
+        data: [],
+        totalData: 0,
+        pageNo: page,
+        limit: limit,
+      });
+    }
+  }
+
+  console.log("executint this ***********************");
 
   if (req.query.status) {
     query.status = req.query.status === "true";
@@ -47,9 +76,12 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
   if (req.query.branch_id) {
     query.branch_id = new mongoose.Types.ObjectId(req.query.branch_id);
   }
-  if (req.query.customer_id) {
-    query.customer_id = new mongoose.Types.ObjectId(req.query.customer_id);
+  if (customerId) {
+    query.customer_id = new mongoose.Types.ObjectId(customerId);
   }
+  // if (req.query.customer_id) {
+  //   query.customer_id = new mongoose.Types.ObjectId(req.query.customer_id);
+  // }
   // it is originally  device_id. For repair module device under primary device list is product brand list
   if (req.query.brand_id) {
     query.brand_id = new mongoose.Types.ObjectId(req.query.brand_id);
