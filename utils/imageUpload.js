@@ -3,10 +3,11 @@ const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
 const { v4: uuidv4 } = require("uuid");
 const sharp = require("sharp");
 const ErrorHandler = require("../utils/errorHandler");
+const { fromIni } = require("@aws-sdk/credential-providers");
 
 // 🔧 AWS S3 setup
 const s3 = new S3Client({
-  region: process.env.AWS_REGION
+  region: process.env.AWS_REGION,
 });
 
 const ALLOWED_EXTENSIONS = [".svg", ".png", ".jpg", ".jpeg"];
