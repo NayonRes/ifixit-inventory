@@ -28,9 +28,32 @@ const getDropdown = catchAsyncError(async (req, res, next) => {
   }
 
   // const data = await branchModel.find().lean();
-  const data = await userModel
-    .find(query, "name designation permission image")
-    .lean();
+  // const data = await userModel
+  //   .find(query, "name designation permission image")
+  //   .lean();
+
+  const data = await userModel.aggregate([
+    { $match: query },
+    {
+      $lookup: {
+        from: "branches",
+        localField: "branch_id",
+        foreignField: "_id",
+        as: "branch_data",
+      },
+    },
+
+    {
+      $project: {
+        name: 1,
+        designation: 1,
+        permission: 1,
+        image: 1,
+        "branch_data._id": 1,
+        "branch_data.name": 1,
+      },
+    },
+  ]);
 
   console.log("user list----------------", data);
 
@@ -60,7 +83,7 @@ const createData = catchAsyncError(async (req, res, next) => {
   const user = await userModel.findOne({ email });
 
   if (user) {
-    return next(new ErrorHander("Email already exists", 401));
+    return next(new ErrorHander("Email already exists", 404));
   }
 
   let imageData = [];
