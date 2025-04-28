@@ -60,85 +60,7 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
 });
 
 const getById = catchAsyncError(async (req, res, next) => {
-  const id = req.params.id;
-  const data = await blogModel.aggregate([
-    {
-      $match: { _id: mongoose.Types.ObjectId(id) },
-    },
-    {
-      $lookup: {
-        from: "devices",
-        localField: "device_id",
-        foreignField: "_id",
-        as: "device_data",
-      },
-    },
-    {
-      $lookup: {
-        from: "brands",
-        localField: "brand_id",
-        foreignField: "_id",
-        as: "brand_data",
-      },
-    },
-    {
-      $lookup: {
-        from: "branches",
-        localField: "branch_id",
-        foreignField: "_id",
-        as: "branch_data",
-      },
-    },
-    {
-      $lookup: {
-        from: "models",
-        localField: "model_id",
-        foreignField: "_id",
-        as: "model_data",
-      },
-    },
-    // {
-    //   $lookup: {
-    //     from: "customers",
-    //     localField: "customer_id",
-    //     foreignField: "_id",
-    //     as: "customer_data",
-    //   },
-    // },
-    {
-      $project: {
-        _id: 1,
-        title: 1,
-        image: 1,
-        device_id: 1,
-        model_id: 1,
-        branch_id: 1,
-        brand_id: 1,
-        //customer_id: 1,
-        description: 1,
-        repair_by: 1,
-        steps: 1,
-        body_info: 1,
-        remarks: 1,
-        status: 1,
-        created_by: 1,
-        created_at: 1,
-        updated_by: 1,
-        updated_at: 1,
-        "device_data.name": 1,
-        "device_data.image": 1,
-        "model_data.name": 1,
-        "model_data.image": 1,
-        "brand_data.name": 1,
-        "branch_data.name": 1,
-        "branch_data._id": 1,
-        "branch_data.is_main_branch": 1,
-        "branch_data.address": 1,
-        //"customer_data.name": 1,
-      },
-    },
-  ]);
-
+  let data = await blogModel.findById(req.params.id);
   if (!data) {
     return res.send({ message: "No data found", status: 404 });
   }
@@ -154,7 +76,7 @@ const createData = catchAsyncError(async (req, res, next) => {
     imageData = await base64ImageUpload(req?.body?.image, "blog", next);
   }
 
-  const updatedRepairInfo = await Promise.all(
+  const updatedBlogBodyInfo = await Promise.all(
     req.body.body_info?.map(async (item) => {
       console.log("item", item);
 
@@ -173,14 +95,14 @@ const createData = catchAsyncError(async (req, res, next) => {
     })
   );
 
-  console.log("Updated body_info with images:", updatedRepairInfo);
+  console.log("Updated body_info with images:", updatedBlogBodyInfo);
 
   let decodedData = jwt.verify(token, process.env.JWT_SECRET);
   let newData = {
     ...req.body,
     image: imageData[0],
 
-    body_info: updatedRepairInfo,
+    body_info: updatedBlogBodyInfo,
     created_by: decodedData?.user?.email,
   };
 
@@ -193,7 +115,6 @@ const updateData = catchAsyncError(async (req, res, next) => {
   const { name } = req.body;
 
   let data = await blogModel.findById(req.params.id);
-  let oldParentName = data.name;
 
   if (!data) {
     console.log("if");
@@ -201,7 +122,7 @@ const updateData = catchAsyncError(async (req, res, next) => {
   }
   let decodedData = jwt.verify(token, process.env.JWT_SECRET);
 
-  const updatedRepairInfo = await Promise.all(
+  const updatedBlogBodyInfo = await Promise.all(
     req.body.body_info?.map(async (item, index) => {
       console.log("item", item);
 
@@ -219,32 +140,14 @@ const updateData = catchAsyncError(async (req, res, next) => {
     })
   );
 
-  console.log("Updated body_info with images:", updatedRepairInfo);
+  console.log("Updated body_info with images:", updatedBlogBodyInfo);
 
   let newData = {
     ...req.body,
 
-    body_info: updatedRepairInfo,
+    body_info: updatedBlogBodyInfo,
     updated_by: decodedData?.user?.email,
   };
-
-  if (data.steps && data.steps.length > 0) {
-    for (let step of data.steps) {
-      if (step.step_image?.public_id) {
-        console.log("Deleting old step image");
-        await imageDelete(step.step_image.public_id, next);
-      }
-    }
-  }
-
-  // if (data.body_info && data.body_info.length > 0) {
-  //   for (let repair of data.body_info) {
-  //     if (repair.image?.public_id) {
-  //       console.log("Deleting old body_info image");
-  //       await imageDelete(repair.image.public_id, next);
-  //     }
-  //   }
-  // }
 
   let imageData = [];
 
