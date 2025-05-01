@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const { Schema } = mongoose;
+ 
 
 const blogSchema = mongoose.Schema({
   title: {
@@ -72,6 +73,7 @@ const blogSchema = mongoose.Schema({
   },
   updated_at: { type: Date, default: Date.now },
 });
+ 
 const blogModel = mongoose.model("blog", blogSchema);
 
 module.exports = blogModel;
