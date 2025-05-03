@@ -5,14 +5,18 @@ const {
   createData,
   updateData,
   deleteData,
-} = require("../controller/sellController");
-const { isAuthenticatedUser, authorizeRoles } = require("../middleware/auth"); 
+} = require("../controller/saleController");
+const { isAuthenticatedUser, authorizeRoles } = require("../middleware/auth");
 
 var router = express.Router();
 
 router
   .route("/")
-  .get(isAuthenticatedUser, authorizeRoles("repair_list"), getDataWithPagination);
+  .get(
+    isAuthenticatedUser,
+    authorizeRoles("repair_list"),
+    getDataWithPagination
+  );
 router
   .route("/:id")
   .get(isAuthenticatedUser, authorizeRoles("view_repair_details"), getById);

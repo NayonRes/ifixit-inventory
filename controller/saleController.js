@@ -1,4 +1,4 @@
-const sellModel = require("../db/models/sellModel");
+const saleModel = require("../db/models/saleModel");
 const repairStatusHistoryModel = require("../db/models/repairStatusHistoryModel");
 const ErrorHander = require("../utils/errorHandler");
 const catchAsyncError = require("../middleware/catchAsyncError");
@@ -64,9 +64,9 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
       $options: "i",
     };
   }
-  if (req.query.sell_id) {
-    query.sell_id = {
-      $regex: `^${req.query.sell_id}$`,
+  if (req.query.sale_id) {
+    query.sale_id = {
+      $regex: `^${req.query.sale_id}$`,
       $options: "i",
     };
   }
@@ -103,11 +103,11 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
     };
   }
 
-  let totalData = await sellModel.countDocuments(query);
+  let totalData = await saleModel.countDocuments(query);
   console.log("totalData=================================", totalData);
-  // const data = await sellModel.find(query).skip(startIndex).limit(limit);
+  // const data = await saleModel.find(query).skip(startIndex).limit(limit);
 
-  const data = await sellModel.aggregate([
+  const data = await saleModel.aggregate([
     {
       $match: query,
     },
@@ -140,7 +140,7 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
         customer_id: 1,
         due_amount: 1,
         discount_amount: 1,
-        sell_id: 1,
+        sale_id: 1,
         product_details: 1,
         delivery_status: 1,
         repair_checklist: 1,
@@ -179,7 +179,7 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
 const getById = catchAsyncError(async (req, res, next) => {
   const id = req.params.id;
 
-  const data = await sellModel.aggregate([
+  const data = await saleModel.aggregate([
     {
       $match: { _id: mongoose.Types.ObjectId(id) },
     },
@@ -211,7 +211,7 @@ const getById = catchAsyncError(async (req, res, next) => {
         branch_id: 1,
         due_amount: 1,
         discount_amount: 1,
-        sell_id: 1,
+        sale_id: 1,
 
         product_details: 1,
         payment_info: 1,
@@ -244,11 +244,11 @@ const createData = catchAsyncError(async (req, res, next) => {
   let newIdserial;
   let newIdNo;
   let newId;
-  const lastDoc = await sellModel.find().sort({ _id: -1 });
+  const lastDoc = await saleModel.find().sort({ _id: -1 });
 
   if (lastDoc.length > 0) {
-    newIdserial = lastDoc[0].sell_id.slice(0, 2);
-    newIdNo = parseInt(lastDoc[0].sell_id.slice(2)) + 1;
+    newIdserial = lastDoc[0].sale_id.slice(0, 2);
+    newIdNo = parseInt(lastDoc[0].sale_id.slice(2)) + 1;
     newId = newIdserial.concat(newIdNo);
   } else {
     newId = "SL10000";
@@ -259,10 +259,10 @@ const createData = catchAsyncError(async (req, res, next) => {
 
   let newData = {
     ...req.body,
-    sell_id: newId,
+    sale_id: newId,
     created_by: decodedData?.user?.email,
   };
-  const data = await sellModel.create(newData);
+  const data = await saleModel.create(newData);
 
   console.log("data *************************", data._id);
   console.log("data *************************", data);
@@ -277,7 +277,7 @@ const createData = catchAsyncError(async (req, res, next) => {
 const updateData = async (req, res, next) => {
   try {
     const { token } = req.cookies;
-    let data = await sellModel.findById(req.params.id);
+    let data = await saleModel.findById(req.params.id);
 
     if (!data) {
       console.log("if");
@@ -292,15 +292,11 @@ const updateData = async (req, res, next) => {
       updated_at: new Date(),
     };
     console.log("newData", newData);
-    let updateData = await sellModel.findByIdAndUpdate(
-      req.params.id,
-      newData,
-      {
-        new: true,
-        runValidators: true,
-        useFindAndModified: false,
-      }
-    );
+    let updateData = await saleModel.findByIdAndUpdate(req.params.id, newData, {
+      new: true,
+      runValidators: true,
+      useFindAndModified: false,
+    });
 
     res.status(200).json({
       success: true,
@@ -314,7 +310,7 @@ const updateData = async (req, res, next) => {
 };
 
 const deleteData = catchAsyncError(async (req, res, next) => {
-  let data = await sellModel.findById(req.params.id);
+  let data = await saleModel.findById(req.params.id);
   console.log("data", data.images);
   if (!data) {
     console.log("if");

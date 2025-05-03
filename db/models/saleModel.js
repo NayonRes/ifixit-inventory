@@ -1,8 +1,8 @@
 const mongoose = require("mongoose");
 const { Schema } = mongoose;
 
-const sellSchema = mongoose.Schema({
-  sell_id: {
+const saleSchema = mongoose.Schema({
+  sale_id: {
     type: String,
     required: [true, "Please enter serial"],
   },
@@ -88,6 +88,6 @@ const sellSchema = mongoose.Schema({
   },
   updated_at: { type: Date, default: Date.now },
 });
-const sellModel = mongoose.model("sell", sellSchema);
+const saleModel = mongoose.model("sale", saleSchema);
 
-module.exports = sellModel;
+module.exports = saleModel;
