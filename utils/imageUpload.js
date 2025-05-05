@@ -10,7 +10,7 @@ const s3 = new S3Client({
   region: process.env.AWS_REGION,
 });
 
-const ALLOWED_EXTENSIONS = [".svg", ".png", ".jpg", ".jpeg"];
+const ALLOWED_EXTENSIONS = [".svg", ".png", ".jpg", ".jpeg", ".webp"];
 
 const imageUpload = async (images, folderName, next) => {
   try {
@@ -32,7 +32,7 @@ const imageUpload = async (images, folderName, next) => {
       const fileExt = file.mimetype.split("/")[1].toLowerCase();
       if (!ALLOWED_EXTENSIONS.includes(`.${fileExt}`)) {
         return next(
-          new ErrorHandler("Image type must be svg, png, jpg, or jpeg", 400)
+          new ErrorHandler("Image type must be svg, png, jpg, jpeg, or webp", 400)
         );
       }
 

@@ -12,7 +12,7 @@ const s3 = new S3Client({
 });
 
 // Allowed image extensions
-const ALLOWED_EXTENSIONS = [".svg", ".png", ".jpg", ".jpeg"];
+const ALLOWED_EXTENSIONS = [".svg", ".png", ".jpg", ".jpeg", ".webp"];
 
 /**
  * Uploads base64 image(s) to AWS S3
@@ -49,7 +49,10 @@ const base64ImageUpload = async (base64Images, folderName, next) => {
       const fileExt = matches[1].toLowerCase();
       if (!ALLOWED_EXTENSIONS.includes(`.${fileExt}`)) {
         return next(
-          new ErrorHandler("Image type must be svg, png, jpg, or jpeg", 400)
+          new ErrorHandler(
+            "Image type must be svg, png, jpg, jpeg, or webp",
+            400
+          )
         );
       }
 

@@ -26,10 +26,7 @@ const saleSchema = mongoose.Schema({
     type: Number,
     default: 0,
   },
-  payment_status: {
-    type: String,
-    // required: [true, "Please enter payment status"],
-  },
+ 
 
   product_details: [
     {
@@ -43,7 +40,7 @@ const saleSchema = mongoose.Schema({
         ref: "productVariationModel",
         required: [true, "Please enter product Id"],
       },
-      name: {
+      product_name: {
         type: String,
       },
       price: {

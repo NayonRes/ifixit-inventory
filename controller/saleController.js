@@ -152,6 +152,8 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
         updated_by: 1,
         updated_at: 1,
         customer_data: 1,
+        "branch_data.name": 1,
+        "branch_data._id": 1,
       },
     },
     {
@@ -222,6 +224,8 @@ const getById = catchAsyncError(async (req, res, next) => {
         updated_by: 1,
         updated_at: 1,
         customer_data: 1,
+        "branch_data.name": 1,
+        "branch_data._id": 1,
       },
     },
   ]);
