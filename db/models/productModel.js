@@ -40,7 +40,7 @@ const productSchema = mongoose.Schema({
 
     default: 0,
   },
-
+   
   warranty: {
     type: Number,
     // required: [true, "Please enter the product price"],

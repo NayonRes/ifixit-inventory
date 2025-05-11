@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 const { Schema } = mongoose;
 
-const repairAttachedSparepartsSchema = mongoose.Schema({
+const saleAttachedProducSchema = mongoose.Schema({
   sale_id: {
     type: Schema.Types.ObjectId,
     ref: "repairModel",
@@ -38,10 +38,10 @@ const repairAttachedSparepartsSchema = mongoose.Schema({
   updated_at: { type: Date, default: Date.now },
 });
 
-repairAttachedSparepartsSchema.index({ repair_id: 1 });
-const repairAttachedSparepartsModel = mongoose.model(
-  "repair_attached_sparepart",
-  repairAttachedSparepartsSchema
+saleAttachedProducSchema.index({ repair_id: 1 });
+const saleAttachedProductModel = mongoose.model(
+  "sale_attached_product",
+  saleAttachedProducSchema
 );
 
-module.exports = repairAttachedSparepartsModel;
+module.exports = saleAttachedProductModel;

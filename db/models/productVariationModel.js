@@ -4,8 +4,13 @@ const { Schema } = mongoose;
 const productVariationSchema = mongoose.Schema({
   name: {
     type: String,
-    required: [true, "Please enter productVariationModel name"],
+    required: [true, "Please enter product variation name"],
     trim: true,
+    // unique: true,
+  },
+  quality: {
+    type: String,
+
     // unique: true,
   },
   product_id: {
@@ -15,6 +20,11 @@ const productVariationSchema = mongoose.Schema({
   },
   price: {
     type: Number,
+    default: 0,
+  },
+  base_price: {
+    type: Number,
+    // required: [true, "Please enter the product name"],
     default: 0,
   },
   images: [

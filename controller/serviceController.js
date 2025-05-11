@@ -37,6 +37,9 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
       $in: [new mongoose.Types.ObjectId(req.query.branch_id)],
     };
   }
+  if (req.query.order_no && !isNaN(req.query.order_no)) {
+    query.order_no = parseInt(req.query.order_no);
+  }
   // if (req.query.customer_id) {
   //   query.customer_id = new RegExp(`^${req.query.customer_id}$`, "i");
   // }
@@ -111,6 +114,7 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
         model_id: 1,
         branch_id: 1,
         brand_id: 1,
+        order_no: 1,
         //customer_id: 1,
         description: 1,
         repair_by: 1,
@@ -135,7 +139,7 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
       },
     },
     {
-      $sort: { created_at: -1 },
+      $sort: { order_no: 1 },
     },
     {
       $skip: startIndex,
@@ -211,6 +215,7 @@ const getById = catchAsyncError(async (req, res, next) => {
         model_id: 1,
         branch_id: 1,
         brand_id: 1,
+        order_no: 1,
         //customer_id: 1,
         description: 1,
         repair_by: 1,

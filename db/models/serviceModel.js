@@ -6,7 +6,11 @@ const serviceSchema = mongoose.Schema({
     type: String,
     required: [true, "Please enter title"],
   },
-
+  order_no: {
+    type: Number,
+    required: [true, "Please enter device order no"],
+    unique: true,
+  },
   image: {
     public_id: {
       type: String,
@@ -92,6 +96,14 @@ const serviceSchema = mongoose.Schema({
       },
       warranty: {
         type: String,
+      },
+      product_id: {
+        type: Schema.Types.ObjectId,
+        ref: "productModel",
+      },
+      product_variation_id: {
+        type: Schema.Types.ObjectId,
+        ref: "productVariationModel",
       },
     },
   ],

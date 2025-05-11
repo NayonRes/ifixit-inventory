@@ -22,7 +22,7 @@ const lightSearchWithPagination = catchAsyncError(async (req, res, next) => {
   console.log("totalData=================================", totalData);
   const data = await productVariationModel
     .find(query)
-    .select("_id name price images")
+    .select("_id name price base_price images")
     .skip(startIndex)
     .limit(limit);
 
@@ -110,7 +110,9 @@ const branchStock = catchAsyncError(async (req, res, next) => {
       $project: {
         _id: 1,
         name: 1,
+        quality: 1,
         price: 1,
+        base_price: 1,
         image: 1,
         status: 1,
         created_by: 1,
@@ -237,7 +239,9 @@ const allBranchStock = catchAsyncError(async (req, res, next) => {
       $project: {
         _id: 1,
         name: 1,
+        quality: 1,
         price: 1,
+        base_price: 1,
         image: 1,
         status: 1,
         created_by: 1,
@@ -305,7 +309,9 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
       $project: {
         _id: 1,
         name: 1,
+        quality: 1,
         price: 1,
+        base_price: 1,
 
         image: 1,
         status: 1,
