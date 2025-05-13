@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 const { Schema } = mongoose;
 
 const repairAttachedSparepartsSchema = mongoose.Schema({
-  sale_id: {
+  repair_id: {
     type: Schema.Types.ObjectId,
     ref: "repairModel",
     required: [true, "Please select repair id"],

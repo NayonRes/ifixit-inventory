@@ -131,7 +131,7 @@ const getById = catchAsyncError(async (req, res, next) => {
 
 const createData = catchAsyncError(async (req, res, next) => {
   const { token } = req.cookies;
-  const { repair_id, sku_numbers ,is_warranty_claimed_sku} = req.body;
+  const { repair_id, sku_numbers, is_warranty_claimed_sku } = req.body;
 
   console.log("repair_id", repair_id);
   console.log("sku_numbers", sku_numbers);
@@ -419,7 +419,7 @@ const removeStockAdjustment = catchAsyncError(async (req, res, next) => {
       })
       .session(session);
 
-    if (stockStatus === "Available") {
+    if (stockStatus === "Available" && record.stock_status !== "Available") {
       if (!stockCounterData) {
         const newStock = new stockCounterAndLimitModel({
           branch_id: record.branch_id,
@@ -437,7 +437,10 @@ const removeStockAdjustment = catchAsyncError(async (req, res, next) => {
           session
         );
       }
-    } else if (stockStatus === "Abnormal") {
+    } else if (
+      stockStatus === "Abnormal" &&
+      record.stock_status === "Available"
+    ) {
       if (!stockCounterData) {
         await session.abortTransaction();
         session.endSession();
@@ -458,8 +461,8 @@ const removeStockAdjustment = catchAsyncError(async (req, res, next) => {
       {
         $set: {
           status: false,
-          updatedAt: new Date(),
-          updatedBy: decodedData?.user?.email,
+          updated_at: new Date(),
+          updated_by: decodedData?.user?.email,
         },
       },
       { session }

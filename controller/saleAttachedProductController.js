@@ -357,7 +357,7 @@ const removeStockAdjustment = catchAsyncError(async (req, res, next) => {
     sku_number,
     remarks,
 
-    repair_attached_stock_id,
+    sale_attached_stock_id,
   } = req.body;
 
   if (stockStatus !== "Available" && stockStatus !== "Abnormal") {
@@ -419,7 +419,7 @@ const removeStockAdjustment = catchAsyncError(async (req, res, next) => {
       })
       .session(session);
 
-    if (stockStatus === "Available") {
+    if (stockStatus === "Available" && record.stock_status !== "Available") {
       if (!stockCounterData) {
         const newStock = new stockCounterAndLimitModel({
           branch_id: record.branch_id,
@@ -437,7 +437,10 @@ const removeStockAdjustment = catchAsyncError(async (req, res, next) => {
           session
         );
       }
-    } else if (stockStatus === "Abnormal") {
+    } else if (
+      stockStatus === "Abnormal" &&
+      record.stock_status === "Available"
+    ) {
       if (!stockCounterData) {
         await session.abortTransaction();
         session.endSession();
@@ -453,13 +456,13 @@ const removeStockAdjustment = catchAsyncError(async (req, res, next) => {
       );
     }
 
-    await repairAttachedSparepartsModel.updateOne(
-      { _id: repair_attached_stock_id }, // Match by _id
+    await saleAttachedProductModel.updateOne(
+      { _id: sale_attached_stock_id }, // Match by _id
       {
         $set: {
           status: false,
-          updatedAt: new Date(),
-          updatedBy: decodedData?.user?.email,
+          updated_at: new Date(),
+          updated_by: decodedData?.user?.email,
         },
       },
       { session }
