@@ -160,6 +160,92 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
   });
 });
 
+// const getById = catchAsyncError(async (req, res, next) => {
+//   const id = req.params.id;
+//   const data = await serviceModel.aggregate([
+//     {
+//       $match: { _id: mongoose.Types.ObjectId(id) },
+//     },
+//     {
+//       $lookup: {
+//         from: "devices",
+//         localField: "device_id",
+//         foreignField: "_id",
+//         as: "device_data",
+//       },
+//     },
+//     {
+//       $lookup: {
+//         from: "brands",
+//         localField: "brand_id",
+//         foreignField: "_id",
+//         as: "brand_data",
+//       },
+//     },
+//     {
+//       $lookup: {
+//         from: "branches",
+//         localField: "branch_id",
+//         foreignField: "_id",
+//         as: "branch_data",
+//       },
+//     },
+//     {
+//       $lookup: {
+//         from: "models",
+//         localField: "model_id",
+//         foreignField: "_id",
+//         as: "model_data",
+//       },
+//     },
+//     // {
+//     //   $lookup: {
+//     //     from: "customers",
+//     //     localField: "customer_id",
+//     //     foreignField: "_id",
+//     //     as: "customer_data",
+//     //   },
+//     // },
+//     {
+//       $project: {
+//         _id: 1,
+//         title: 1,
+//         image: 1,
+//         device_id: 1,
+//         model_id: 1,
+//         branch_id: 1,
+//         brand_id: 1,
+//         order_no: 1,
+//         //customer_id: 1,
+//         description: 1,
+//         repair_by: 1,
+//         steps: 1,
+//         repair_info: 1,
+//         remarks: 1,
+//         status: 1,
+//         created_by: 1,
+//         created_at: 1,
+//         updated_by: 1,
+//         updated_at: 1,
+//         "device_data.name": 1,
+//         "device_data.image": 1,
+//         "model_data.name": 1,
+//         "model_data.image": 1,
+//         "brand_data.name": 1,
+//         "branch_data.name": 1,
+//         "branch_data._id": 1,
+//         "branch_data.is_main_branch": 1,
+//         "branch_data.address": 1,
+//         //"customer_data.name": 1,
+//       },
+//     },
+//   ]);
+
+//   if (!data) {
+//     return res.send({ message: "No data found", status: 404 });
+//   }
+//   res.send({ message: "success", status: 200, data: data });
+// });
 const getById = catchAsyncError(async (req, res, next) => {
   const id = req.params.id;
   const data = await serviceModel.aggregate([
@@ -198,14 +284,57 @@ const getById = catchAsyncError(async (req, res, next) => {
         as: "model_data",
       },
     },
-    // {
-    //   $lookup: {
-    //     from: "customers",
-    //     localField: "customer_id",
-    //     foreignField: "_id",
-    //     as: "customer_data",
-    //   },
-    // },
+    {
+      $unwind: {
+        path: "$repair_info",
+        preserveNullAndEmptyArrays: true,
+      },
+    },
+    {
+      $lookup: {
+        from: "products",
+        localField: "repair_info.product_id",
+        foreignField: "_id",
+        as: "repair_info.product_data",
+      },
+    },
+    {
+      $lookup: {
+        from: "product_variations",
+        localField: "repair_info.product_variation_id",
+        foreignField: "_id",
+        as: "repair_info.product_variation_data",
+      },
+    },
+    {
+      $group: {
+        _id: "$_id",
+        doc: { $first: "$$ROOT" },
+        repair_info: {
+          $push: {
+            name: "$repair_info.name",
+            repair_image: "$repair_info.repair_image",
+            details: "$repair_info.details",
+            repair_cost: "$repair_info.repair_cost",
+            guaranty: "$repair_info.guaranty",
+            warranty: "$repair_info.warranty",
+            product_id: "$repair_info.product_id",
+            product_variation_id: "$repair_info.product_variation_id",
+            product_data: { $arrayElemAt: ["$repair_info.product_data", 0] },
+            product_variation_data: {
+              $arrayElemAt: ["$repair_info.product_variation_data", 0],
+            },
+          },
+        },
+      },
+    },
+    {
+      $replaceRoot: {
+        newRoot: {
+          $mergeObjects: ["$doc", { repair_info: "$repair_info" }],
+        },
+      },
+    },
     {
       $project: {
         _id: 1,
@@ -216,7 +345,6 @@ const getById = catchAsyncError(async (req, res, next) => {
         branch_id: 1,
         brand_id: 1,
         order_no: 1,
-        //customer_id: 1,
         description: 1,
         repair_by: 1,
         steps: 1,
@@ -236,14 +364,14 @@ const getById = catchAsyncError(async (req, res, next) => {
         "branch_data._id": 1,
         "branch_data.is_main_branch": 1,
         "branch_data.address": 1,
-        //"customer_data.name": 1,
       },
     },
   ]);
 
-  if (!data) {
+  if (!data || data.length === 0) {
     return res.send({ message: "No data found", status: 404 });
   }
+
   res.send({ message: "success", status: 200, data: data });
 });
 
