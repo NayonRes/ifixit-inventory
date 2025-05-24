@@ -86,6 +86,9 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
   if (req.query.brand_id) {
     query.brand_id = new mongoose.Types.ObjectId(req.query.brand_id);
   }
+  if (req.query.created_by) {
+    query.created_by = req.query.created_by;
+  }
 
   console.log("startDate", startDate);
   if (startDate && endDate) {
@@ -125,6 +128,14 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
         localField: "repair_by",
         foreignField: "_id",
         as: "repair_by_data",
+      },
+    },
+    {
+      $lookup: {
+        from: "users",
+        localField: "created_by",
+        foreignField: "email",
+        as: "created_by_info",
       },
     },
     {
@@ -246,6 +257,9 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
         "repair_status_history_data.user_data._id": 1,
         "repair_status_history_data.user_data.name": 1,
         "repair_status_history_data.user_data.designation": 1,
+        "created_by_info._id": 1,
+        "created_by_info.name": 1,
+        "created_by_info.email": 1,
       },
     },
     {
