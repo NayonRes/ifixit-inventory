@@ -1,11 +1,15 @@
 const mongoose = require("mongoose");
 
 const expenseSchema = mongoose.Schema({
-  name: {
-    type: String,
-    required: [true, "Please enter category name"],
-    trim: true,
-    unique: true,
+  // name: {
+  //   type: String,
+  //   required: [true, "Please enter category name"],
+  //   trim: true,
+  //   unique: true,
+  // },
+  expense_date: {
+    type: Date,
+    required: [true, "Please select purchase date"],
   },
   expense_category_id: {
     type: mongoose.Schema.Types.ObjectId,

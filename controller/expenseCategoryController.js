@@ -7,8 +7,8 @@ const getParentDropdown = catchAsyncError(async (req, res, next) => {
     "getParentDropdown===================================================="
   );
 
-  // const data = await categoryModel.find().lean();
-  const data = await categoryModel.find({}, "name category_id").lean();
+  // const data = await expenseCategoryModel.find().lean();
+  const data = await expenseCategoryModel.find({}, "name").lean();
 
   console.log("category list----------------", data);
 

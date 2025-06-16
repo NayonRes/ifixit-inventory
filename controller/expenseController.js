@@ -2,6 +2,7 @@ const expenseModel = require("../db/models/expenseModel");
 const ErrorHander = require("../utils/errorHandler");
 const catchAsyncError = require("../middleware/catchAsyncError");
 const jwt = require("jsonwebtoken");
+const mongoose = require("mongoose");
 
 const getDataWithPagination = catchAsyncError(async (req, res, next) => {
   const page = parseInt(req.query.page) || 1;
@@ -9,20 +10,97 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
   const limit = parseInt(req.query.limit) || 10;
   const startIndex = (page - 1) * limit;
   const endIndex = page * limit;
+  const startDate = req.query.startDate;
+  const endDate = req.query.endDate;
   var query = {};
-  query.name = { ...query.name, $ne: "Primary" };
+
   if (req.query.name) {
     query.name = new RegExp(`^${req.query.name}$`, "i");
   }
   if (req.query.status) {
     query.status = req.query.status === "true";
   }
-  if (req.query.parent_name) {
-    query.parent_name = new RegExp(`^${req.query.parent_name}$`, "i");
+  if (req.query.expense_category_id) {
+    query.expense_category_id = new mongoose.Types.ObjectId(
+      req.query.expense_category_id
+    );
+  }
+  if (req.query.branch_id) {
+    query.branch_id = new mongoose.Types.ObjectId(req.query.branch_id);
+  }
+  console.log("startDate", startDate);
+  if (startDate && endDate) {
+    query.expense_date = {
+      $gte: new Date(`${startDate}T00:00:00.000Z`),
+      $lte: new Date(`${endDate}T23:59:59.999Z`),
+    };
+  } else if (startDate) {
+    query.expense_date = {
+      $gte: new Date(`${startDate}T00:00:00.000Z`),
+    };
+  } else if (endDate) {
+    query.expense_date = {
+      $lte: new Date(`${endDate}T23:59:59.999Z`),
+    };
   }
   let totalData = await expenseModel.countDocuments(query);
   console.log("totalData=================================", totalData);
-  const data = await expenseModel.find(query).skip(startIndex).limit(limit);
+  // const data = await expenseModel.find(query).skip(startIndex).limit(limit);
+
+  const data = await expenseModel.aggregate([
+    {
+      $match: query,
+    },
+
+    {
+      $lookup: {
+        from: "branches",
+        localField: "branch_id",
+        foreignField: "_id",
+        as: "branch_data",
+      },
+    },
+    {
+      $lookup: {
+        from: "expense_categories",
+        localField: "expense_category_id",
+        foreignField: "_id",
+        as: "expense_category_data",
+      },
+    },
+
+    {
+      $project: {
+        _id: 1,
+
+        amount: 1,
+        expense_date: 1,
+        branch_id: 1,
+        expense_category_id: 1,
+
+        remarks: 1,
+
+        status: 1,
+        created_by: 1,
+        created_at: 1,
+        updated_by: 1,
+        updated_at: 1,
+
+        "branch_data.name": 1,
+        "expense_category_data.name": 1,
+      },
+    },
+    {
+      $sort: { created_at: -1 },
+    },
+
+    {
+      $skip: startIndex,
+    },
+    {
+      $limit: limit,
+    },
+  ]);
   console.log("data", data);
   res.status(200).json({
     success: true,
