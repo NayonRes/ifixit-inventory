@@ -195,6 +195,66 @@ const PermissionData = [
     permission_name: "device_dropdown_list",
     module_name: "Device",
   },
+
+  // Expense Category
+
+  {
+    order_no: 1,
+    name: "Expense Category List",
+    permission_name: "expense_category_list",
+    module_name: "Expense Category",
+  },
+  {
+    order_no: 2,
+    name: "Add Expense Category",
+    permission_name: "add_expense_category",
+    module_name: "Expense Category",
+  },
+  {
+    order_no: 3,
+    name: "Update Expense Category",
+    permission_name: "update_expense_category",
+    module_name: "Expense Category",
+  },
+  {
+    order_no: 4,
+    name: "View Expense Category Details",
+    permission_name: "view_expense_category_details",
+    module_name: "Expense Category",
+  },
+  {
+    order_no: 5,
+    name: "Expense Category Dropdown List",
+    permission_name: "expense_category_dropdown_list",
+    module_name: "Expense Category",
+  },
+
+  // Expense
+  {
+    order_no: 1,
+    name: "Expense List",
+    permission_name: "expense_list",
+    module_name: "Expense",
+  },
+  {
+    order_no: 2,
+    name: "Add Expense",
+    permission_name: "add_expense",
+    module_name: "Expense",
+  },
+  {
+    order_no: 3,
+    name: "Update Expense",
+    permission_name: "update_expense",
+    module_name: "Expense",
+  },
+  {
+    order_no: 4,
+    name: "View Expense Details",
+    permission_name: "view_expense_details",
+    module_name: "Expense",
+  },
+
   // Model
   {
     order_no: 1,

@@ -46,6 +46,7 @@ const getDropdown = catchAsyncError(async (req, res, next) => {
     {
       $project: {
         name: 1,
+        email: 1,
         designation: 1,
         permission: 1,
         image: 1,

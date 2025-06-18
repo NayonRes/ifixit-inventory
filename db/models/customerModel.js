@@ -20,12 +20,24 @@ const customerSchema = mongoose.Schema({
     trim: true,
     unique: true,
   },
+  // email: {
+  //   type: String,
+  //   validate: [validator.isEmail, "Please Enter a valid Email"],
+  //   trim: true,
+  //   unique: true,
+  //   default: null,
+  // },
   email: {
     type: String,
-    validate: [validator.isEmail, "Please Enter a valid Email"],
     trim: true,
     unique: true,
     default: null,
+    validate: {
+      validator: function (value) {
+        return value === null || value === "" || validator.isEmail(value);
+      },
+      message: "Please enter a valid email",
+    },
   },
   customer_type: {
     type: String,

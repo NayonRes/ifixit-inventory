@@ -228,6 +228,16 @@ const permissions = [
   "update_repair_status",
   "view_repair_status_details",
 
+  "expense_category_list",
+  "add_expense_category",
+  "update_expense_category",
+  "view_expense_category_details",
+  "expense_category_dropdown_list",
+  "expense_list",
+  "add_expense",
+  "update_expense",
+  "view_expense_details",
+
   // User
   "user_list",
   "user_management",
