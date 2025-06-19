@@ -14,27 +14,21 @@ const branchModel = require("../db/models/branchModel");
 
 var router = express.Router();
 
-router
-  .route("/dropdownlist")
-  .get(
-    isAuthenticatedUser,
-    authorizeRoles("branch_dropdown_list"),
-    getParentDropdown
-  );
-router
-  .route("/leaf-dropdown")
-  .get(
-    isAuthenticatedUser,
-    authorizeRoles("branch_dropdown_list"),
-    getLeafBranchList
-  );
-router
-  .route("/branch-filter-list")
-  .post(
-    isAuthenticatedUser,
-    authorizeRoles("branch_dropdown_list"),
-    getBranchWiseFilterList
-  );
+router.route("/dropdownlist").get(
+  isAuthenticatedUser,
+
+  getParentDropdown
+);
+router.route("/leaf-dropdown").get(
+  isAuthenticatedUser,
+
+  getLeafBranchList
+);
+router.route("/branch-filter-list").post(
+  isAuthenticatedUser,
+
+  getBranchWiseFilterList
+);
 
 router
   .route("/create")

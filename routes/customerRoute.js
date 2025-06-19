@@ -17,11 +17,20 @@ var router = express.Router();
 // router
 //   .route("/create")
 //   .post(createData);
-router.route("/dropdownlist").get(isAuthenticatedUser, authorizeRoles("customer_dropdown_list"), getParentDropdown);
+router
+  .route("/dropdownlist")
+  .get(
+    isAuthenticatedUser, 
+    getParentDropdown
+  );
 
 router
   .route("/")
-  .get(isAuthenticatedUser, authorizeRoles("customer_list"), getDataWithPagination);
+  .get(
+    isAuthenticatedUser,
+    authorizeRoles("customer_list"),
+    getDataWithPagination
+  );
 router
   .route("/")
   .get(isAuthenticatedUser, authorizeRoles("customer_list"), searchCustomer);

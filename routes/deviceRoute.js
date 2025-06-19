@@ -21,37 +21,29 @@ var router = express.Router();
 //   .route("/create")
 //   .post(createData);
 
-router
-  .route("/parent-child-list")
-  .get(
-    isAuthenticatedUser,
-    authorizeRoles("device_dropdown_list"),
-    getListGroupByParent
-  );
+router.route("/parent-child-list").get(
+  isAuthenticatedUser,
+
+  getListGroupByParent
+);
 router.route("/public/list").get(getParentDropdown);
-router
-  .route("/dropdownlist")
-  .get(
-    isAuthenticatedUser,
-    authorizeRoles("device_dropdown_list"),
-    getParentDropdown
-  );
+router.route("/dropdownlist").get(
+  isAuthenticatedUser,
 
-router
-  .route("/leaf-dropdown")
-  .get(
-    isAuthenticatedUser,
-    authorizeRoles("device_dropdown_list"),
-    getLeafDeviceList
-  );
+  getParentDropdown
+);
 
-router
-  .route("/device-filter-list")
-  .post(
-    isAuthenticatedUser,
-    authorizeRoles("device_dropdown_list"),
-    getDeviceWiseFilterList
-  );
+router.route("/leaf-dropdown").get(
+  isAuthenticatedUser,
+
+  getLeafDeviceList
+);
+
+router.route("/device-filter-list").post(
+  isAuthenticatedUser,
+
+  getDeviceWiseFilterList
+);
 
 router
   .route("/")
@@ -61,13 +53,11 @@ router
     getDataWithPagination
   );
 
-router
-  .route("/get-by-parent")
-  .get(
-    isAuthenticatedUser,
-    authorizeRoles("device_dropdown_list"),
-    getByParent
-  );
+router.route("/get-by-parent").get(
+  isAuthenticatedUser,
+
+  getByParent
+);
 
 router
   .route("/create")

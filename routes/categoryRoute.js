@@ -15,15 +15,29 @@ const categoryModel = require("../db/models/categoryModel");
 var router = express.Router();
 
 //Must be maintain the serial of declaring router.route accordimg to less middleware use
-router.route("/dropdownlist").get(isAuthenticatedUser, authorizeRoles("category_dropdown_list"), getParentDropdown);
-router.route("/leaf-dropdown").get(isAuthenticatedUser, authorizeRoles("category_dropdown_list"), getLeafCategoryList);
-router
-  .route("/category-filter-list")
-  .post(isAuthenticatedUser, authorizeRoles("category_dropdown_list"), getCategoryWiseFilterList);
+router.route("/dropdownlist").get(
+  isAuthenticatedUser,
+
+  getParentDropdown
+);
+router.route("/leaf-dropdown").get(
+  isAuthenticatedUser,
+
+  getLeafCategoryList
+);
+router.route("/category-filter-list").post(
+  isAuthenticatedUser,
+
+  getCategoryWiseFilterList
+);
 
 router
   .route("/")
-  .get(isAuthenticatedUser, authorizeRoles("category_list"), getDataWithPagination);
+  .get(
+    isAuthenticatedUser,
+    authorizeRoles("category_list"),
+    getDataWithPagination
+  );
 router
   .route("/:id")
   .get(isAuthenticatedUser, authorizeRoles("view_category_details"), getById);

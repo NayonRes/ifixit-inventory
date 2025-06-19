@@ -20,8 +20,7 @@ router
 router
   .route("/dropdownlist")
   .get(
-    isAuthenticatedUser,
-    authorizeRoles("purchase_dropdown_list"),
+    isAuthenticatedUser, 
     getParentDropdown
   );
 

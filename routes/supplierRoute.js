@@ -18,7 +18,6 @@ router
   .route("/dropdownlist")
   .get(
     isAuthenticatedUser,
-    authorizeRoles("supplier_dropdown_list"),
     getParentDropdown
   );
 

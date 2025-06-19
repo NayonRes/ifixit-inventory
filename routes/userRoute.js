@@ -27,9 +27,7 @@ router
   .route("/update-profile/:id")
   .put(isAuthenticatedUser, authorizeRoles("update_user"), updateProfile);
 
-router
-  .route("/dropdownlist")
-  .get(isAuthenticatedUser, authorizeRoles("user_dropdown_list"), getDropdown);
+router.route("/dropdownlist").get(isAuthenticatedUser, getDropdown);
 // router.route("/leaf-dropdown").get(getLeafCategoryList);
 
 // router.route("/category-filter-list").post(getCategoryWiseFilterList);
