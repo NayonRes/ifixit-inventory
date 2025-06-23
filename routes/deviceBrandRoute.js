@@ -45,7 +45,7 @@ router
   .route("/")
   .get(
     isAuthenticatedUser,
-    authorizeRoles("device_list"),
+    authorizeRoles("device_brand_list"),
     getDataWithPagination
   );
 
@@ -56,15 +56,19 @@ router.route("/get-by-parent").get(
 );
 router
   .route("/:id")
-  .get(isAuthenticatedUser, authorizeRoles("view_device_details"), getById);
+  .get(
+    isAuthenticatedUser,
+    authorizeRoles("view_device_brand_details"),
+    getById
+  );
 
 router
   .route("/create")
-  .post(isAuthenticatedUser, authorizeRoles("add_device"), createData);
+  .post(isAuthenticatedUser, authorizeRoles("add_device_brand"), createData);
 
 router
   .route("/update/:id")
-  .put(isAuthenticatedUser, authorizeRoles("update_device"), updateData);
+  .put(isAuthenticatedUser, authorizeRoles("update_device_brand"), updateData);
 // router
 //   .route("/delete/:id")
 //   .delete(isAuthenticatedUser, authorizeRoles("dashboard"), deleteData);

@@ -163,6 +163,12 @@ const permissions = [
   "update_customer",
   "view_customer_details",
   // "customer_dropdown_list",
+  "device_brand_list",
+  "add_device_brand",
+  "update_device_brand",
+  "view_device_brand_details",
+  
+  
   "device_list",
   "add_device",
   "update_device",

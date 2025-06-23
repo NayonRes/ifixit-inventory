@@ -162,6 +162,32 @@ const PermissionData = [
   //   name: "Customer Dropdown List",
   //   permission_name: "customer_dropdown_list",
   //   module_name: "Customer",
+
+  // Device
+  {
+    order_no: 1,
+    name: "Device Brand List",
+    permission_name: "device_brand_list",
+    module_name: "Device Brand",
+  },
+  {
+    order_no: 2,
+    name: "Add Device Brand",
+    permission_name: "add_device_brand",
+    module_name: "Device Brand",
+  },
+  {
+    order_no: 3,
+    name: "Update Device Brand",
+    permission_name: "update_device_brand",
+    module_name: "Device Brand",
+  },
+  {
+    order_no: 4,
+    name: "View Device Brand Details",
+    permission_name: "view_device_brand_details",
+    module_name: "Device Brand",
+  },
   // },
 
   // Device
