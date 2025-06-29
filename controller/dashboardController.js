@@ -9,9 +9,25 @@ const expenseModel = require("../db/models/expenseModel");
 
 const getStats = catchAsyncError(async (req, res, next) => {
   let data = {};
-  var query = {};
+  var query = { status: true };
+  const startDate = req.query.startDate;
+  const endDate = req.query.endDate;
   if (req.query.branch_id) {
     query.branch_id = new mongoose.Types.ObjectId(req.query.branch_id);
+  }
+  if (startDate && endDate) {
+    query.expense_date = {
+      $gte: new Date(`${startDate}T00:00:00.000Z`),
+      $lte: new Date(`${endDate}T23:59:59.999Z`),
+    };
+  } else if (startDate) {
+    query.expense_date = {
+      $gte: new Date(`${startDate}T00:00:00.000Z`),
+    };
+  } else if (endDate) {
+    query.expense_date = {
+      $lte: new Date(`${endDate}T23:59:59.999Z`),
+    };
   }
   const expenseData = await expenseModel.aggregate([
     { $match: query },
