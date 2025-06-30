@@ -3,6 +3,7 @@ const ErrorHander = require("../utils/errorHandler");
 const catchAsyncError = require("../middleware/catchAsyncError");
 const jwt = require("jsonwebtoken");
 const mongoose = require("mongoose");
+const formatDate = require("../utils/formatDate");
 
 const getDataWithPagination = catchAsyncError(async (req, res, next) => {
   const page = parseInt(req.query.page) || 1;
@@ -31,16 +32,16 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
   console.log("startDate", startDate);
   if (startDate && endDate) {
     query.expense_date = {
-      $gte: new Date(`${startDate}T00:00:00.000Z`),
-      $lte: new Date(`${endDate}T23:59:59.999Z`),
+      $gte: formatDate(startDate, "start", false),
+      $lte: formatDate(endDate, "end", false),
     };
   } else if (startDate) {
     query.expense_date = {
-      $gte: new Date(`${startDate}T00:00:00.000Z`),
+      $gte: formatDate(startDate, "start", false),
     };
   } else if (endDate) {
     query.expense_date = {
-      $lte: new Date(`${endDate}T23:59:59.999Z`),
+      $lte: formatDate(endDate, "end", false),
     };
   }
   let totalData = await expenseModel.countDocuments(query);

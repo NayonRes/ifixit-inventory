@@ -9,6 +9,7 @@ const imageDelete = require("../utils/imageDelete");
 const fs = require("fs");
 const path = require("path");
 const base64ImageUpload = require("../utils/base64ImageUpload");
+const formatDate = require("../utils/formatDate");
 
 const getDataWithPagination = catchAsyncError(async (req, res, next) => {
   const page = parseInt(req.query.page) || 1;
@@ -30,16 +31,16 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
   // }
   if (startDate && endDate) {
     query.created_at = {
-      $gte: new Date(`${startDate}T00:00:00.000Z`),
-      $lte: new Date(`${endDate}T23:59:59.999Z`),
+      $gte: formatDate(startDate, "start", false),
+      $lte: formatDate(endDate, "end", false),
     };
   } else if (startDate) {
     query.created_at = {
-      $gte: new Date(`${startDate}T00:00:00.000Z`),
+      $gte: formatDate(startDate, "start", false),
     };
   } else if (endDate) {
     query.created_at = {
-      $lte: new Date(`${endDate}T23:59:59.999Z`),
+      $lte: formatDate(endDate, "end", false),
     };
   }
   let totalData = await blogModel.countDocuments(query);

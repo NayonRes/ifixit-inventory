@@ -6,6 +6,7 @@ const catchAsyncError = require("../middleware/catchAsyncError");
 const jwt = require("jsonwebtoken");
 const mongoose = require("mongoose");
 const stockCounterAndLimitController = require("../controller/stockCounterAndLimitController");
+const formatDate = require("../utils/formatDate");
 
 const getDataWithPagination = catchAsyncError(async (req, res, next) => {
   const page = parseInt(req.query.page) || 1;

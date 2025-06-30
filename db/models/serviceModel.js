@@ -9,7 +9,7 @@ const serviceSchema = mongoose.Schema({
   order_no: {
     type: Number,
     required: [true, "Please enter device order no"],
-    unique: true,
+    // unique: true,
   },
   image: {
     public_id: {

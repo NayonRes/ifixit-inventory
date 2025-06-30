@@ -6,6 +6,8 @@ const jwt = require("jsonwebtoken");
 const imageUpload = require("../utils/imageUpload");
 const imageDelete = require("../utils/imageDelete");
 const expenseModel = require("../db/models/expenseModel");
+const formatDate = require("../utils/formatDate");
+const { default: mongoose } = require("mongoose");
 
 const getStats = catchAsyncError(async (req, res, next) => {
   let data = {};
@@ -17,16 +19,16 @@ const getStats = catchAsyncError(async (req, res, next) => {
   }
   if (startDate && endDate) {
     query.expense_date = {
-      $gte: new Date(`${startDate}T00:00:00.000Z`),
-      $lte: new Date(`${endDate}T23:59:59.999Z`),
+      $gte: formatDate(startDate, "start", false),
+      $lte: formatDate(endDate, "end", false),
     };
   } else if (startDate) {
     query.expense_date = {
-      $gte: new Date(`${startDate}T00:00:00.000Z`),
+      $gte: formatDate(startDate, "start", false),
     };
   } else if (endDate) {
     query.expense_date = {
-      $lte: new Date(`${endDate}T23:59:59.999Z`),
+      $lte: formatDate(endDate, "end", false),
     };
   }
   const expenseData = await expenseModel.aggregate([
