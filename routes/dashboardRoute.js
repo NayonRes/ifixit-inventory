@@ -1,6 +1,7 @@
 var express = require("express");
 const {
   getStats,
+  getRepairSummary,
   getParentDropdown,
   getLeafBranchList,
   getDataWithPagination,
@@ -22,6 +23,14 @@ router
     authorizeRoles("dashboard"),
     branchAccessMiddleware,
     getStats
+  );
+router
+  .route("/repair-summary")
+  .get(
+    isAuthenticatedUser,
+    authorizeRoles("dashboard"),
+    branchAccessMiddleware,
+    getRepairSummary
   );
 router.route("/dropdownlist").get(isAuthenticatedUser, getParentDropdown);
 router.route("/leaf-dropdown").get(

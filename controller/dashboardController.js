@@ -8,8 +8,186 @@ const imageDelete = require("../utils/imageDelete");
 const expenseModel = require("../db/models/expenseModel");
 const formatDate = require("../utils/formatDate");
 const { default: mongoose } = require("mongoose");
+const purchaseProductModel = require("../db/models/purchaseProductModel");
+const stockModel = require("../db/models/stockModel");
+const customerModel = require("../db/models/customerModel");
+const supplierModel = require("../db/models/supplierModel");
+const repairModel = require("../db/models/repairModel");
 
-const getStats = catchAsyncError(async (req, res, next) => {
+const getStats = async (req, res) => {
+  try {
+    // Customer/Supplier Query
+    const customerAndSupplierQuery = { status: true };
+
+    // Expense Query
+    const expenseQuery = { status: true };
+
+    // Purchase Query (based on 'purchases' collection)
+    const purchaseQuery = { status: true };
+
+    // Stock Query (joined with purchase_products)
+    const stockQuery = { status: true, stock_status: "Returned" };
+
+    // Parse Dates
+    const startDate = req.query.startDate;
+    const endDate = req.query.endDate;
+
+    if (req.query.branch_id) {
+      const branchId = new mongoose.Types.ObjectId(req.query.branch_id);
+      // customerAndSupplierQuery.branch_id = branchId;
+      expenseQuery.branch_id = branchId;
+      purchaseQuery.branch_id = branchId;
+      stockQuery.branch_id = branchId;
+    }
+
+    if (startDate && endDate) {
+      const dateRange = {
+        $gte: formatDate(startDate, "start", false),
+        $lte: formatDate(endDate, "end", false),
+      };
+      customerAndSupplierQuery.created_at = dateRange;
+      expenseQuery.expense_date = dateRange;
+      purchaseQuery.purchase_date = dateRange;
+      stockQuery.updated_at = dateRange;
+    } else if (startDate) {
+      const date = { $gte: formatDate(startDate, "start", false) };
+      customerAndSupplierQuery.created_at = date;
+      expenseQuery.expense_date = date;
+      purchaseQuery.purchase_date = date;
+      stockQuery.updated_at = date;
+    } else if (endDate) {
+      const date = { $lte: formatDate(endDate, "end", false) };
+      customerAndSupplierQuery.created_at = date;
+      expenseQuery.expense_date = date;
+      purchaseQuery.purchase_date = date;
+      stockQuery.updated_at = date;
+    }
+
+    // Run all operations in parallel
+    const [
+      expenseData,
+      purchaseData,
+      returnedStockData,
+      totalCustomerCount,
+      totalSupplierCount,
+    ] = await Promise.all([
+      // Total Expense
+      expenseModel.aggregate([
+        { $match: expenseQuery },
+        {
+          $group: {
+            _id: null,
+            totalAmount: { $sum: "$amount" },
+          },
+        },
+      ]),
+
+      // Total Purchase (purchase_products * unit_price joined with purchases)
+
+      purchaseProductModel.aggregate([
+        {
+          $lookup: {
+            from: "purchases",
+            localField: "purchase_id",
+            foreignField: "_id",
+            as: "purchase",
+          },
+        },
+        { $unwind: "$purchase" },
+        {
+          $match: {
+            "purchase.status": true,
+            ...(req.query.branch_id && {
+              "purchase.branch_id": new mongoose.Types.ObjectId(
+                req.query.branch_id
+              ),
+            }),
+            ...(req.query.startDate || req.query.endDate
+              ? {
+                  "purchase.purchase_date": {
+                    ...(req.query.startDate && {
+                      $gte: formatDate(req.query.startDate, "start", false),
+                    }),
+                    ...(req.query.endDate && {
+                      $lte: formatDate(req.query.endDate, "end", false),
+                    }),
+                  },
+                }
+              : {}),
+          },
+        },
+        {
+          $project: {
+            quantity: { $toDouble: "$quantity" },
+            unit_price: { $toDouble: "$unit_price" },
+          },
+        },
+        {
+          $project: {
+            total: { $multiply: ["$quantity", "$unit_price"] },
+          },
+        },
+        {
+          $group: {
+            _id: null,
+            grandTotal: { $sum: "$total" },
+          },
+        },
+      ]),
+      // Returned stock total unit_price
+      stockModel.aggregate([
+        { $match: stockQuery },
+        {
+          $lookup: {
+            from: "purchase_products",
+            localField: "purchase_product_id",
+            foreignField: "_id",
+            as: "purchase_product",
+          },
+        },
+        { $unwind: "$purchase_product" },
+        {
+          $project: {
+            unit_price: { $toDouble: "$purchase_product.unit_price" },
+          },
+        },
+        {
+          $group: {
+            _id: null,
+            totalReturnedUnitPrice: { $sum: "$unit_price" },
+          },
+        },
+      ]),
+
+      // Customer count
+      customerModel.countDocuments(customerAndSupplierQuery),
+
+      // Supplier count
+      supplierModel.countDocuments(customerAndSupplierQuery),
+    ]);
+
+    // Final totals with default 0
+    const totalExpense = expenseData[0]?.totalAmount || 0;
+    const totalPurchase = purchaseData[0]?.grandTotal || 0;
+    const totalReturned = returnedStockData[0]?.totalReturnedUnitPrice || 0;
+    const totalCustomer = totalCustomerCount || 0;
+    const totalSupplier = totalSupplierCount || 0;
+
+    // Response
+    res.status(200).json({
+      totalExpense,
+      totalPurchase,
+      totalReturned,
+      totalCustomer,
+      totalSupplier,
+    });
+  } catch (error) {
+    console.error("Dashboard Stats Error:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+const getStats2 = catchAsyncError(async (req, res, next) => {
   let data = {};
   var query = { status: true };
   const startDate = req.query.startDate;
@@ -31,6 +209,7 @@ const getStats = catchAsyncError(async (req, res, next) => {
       $lte: formatDate(endDate, "end", false),
     };
   }
+
   const expenseData = await expenseModel.aggregate([
     { $match: query },
     {
@@ -41,9 +220,300 @@ const getStats = catchAsyncError(async (req, res, next) => {
     },
   ]);
 
+  const purchaseData = await purchaseProductModel.aggregate([
+    {
+      $lookup: {
+        from: "purchases", // name of the parent collection
+        localField: "purchase_id", // field in purchase_products
+        foreignField: "_id", // field in purchases
+        as: "purchase",
+      },
+    },
+    { $unwind: "$purchase" },
+    {
+      $match: {
+        "purchase.status": true,
+        ...(req.query.branch_id && {
+          "purchase.branch_id": new mongoose.Types.ObjectId(
+            req.query.branch_id
+          ),
+        }),
+        ...(req.query.startDate || req.query.endDate
+          ? {
+              "purchase.purchase_date": {
+                ...(req.query.startDate && {
+                  $gte: formatDate(req.query.startDate, "start", false),
+                }),
+                ...(req.query.endDate && {
+                  $lte: formatDate(req.query.endDate, "end", false),
+                }),
+              },
+            }
+          : {}),
+      },
+    },
+    {
+      $project: {
+        quantity: { $toDouble: "$quantity" },
+        unit_price: { $toDouble: "$unit_price" },
+      },
+    },
+    {
+      $project: {
+        total: { $multiply: ["$quantity", "$unit_price"] },
+      },
+    },
+    {
+      $group: {
+        _id: null,
+        grandTotal: { $sum: "$total" },
+      },
+    },
+  ]);
+
+  const returnProductQuery = { stock_status: "Returned", status: true };
+
+  if (req.query.branch_id) {
+    returnProductQuery.branch_id = new mongoose.Types.ObjectId(
+      req.query.branch_id
+    );
+  }
+  if (startDate && endDate) {
+    returnProductQuery.updated_at = {
+      $gte: formatDate(startDate, "start", false),
+      $lte: formatDate(endDate, "end", false),
+    };
+  } else if (startDate) {
+    returnProductQuery.updated_at = {
+      $gte: formatDate(startDate, "start", false),
+    };
+  } else if (endDate) {
+    returnProductQuery.updated_at = {
+      $lte: formatDate(endDate, "end", false),
+    };
+  }
+
+  // Aggregation: from stocks to purchase_products, sum unit_price
+  const returnedStockData = await stockModel.aggregate([
+    {
+      $match: returnProductQuery, // Filter directly on stocks
+    },
+    {
+      $lookup: {
+        from: "purchase_products",
+        localField: "purchase_product_id",
+        foreignField: "_id",
+        as: "purchase_product",
+      },
+    },
+    { $unwind: "$purchase_product" },
+    {
+      $project: {
+        unit_price: { $toDouble: "$purchase_product.unit_price" },
+      },
+    },
+    {
+      $group: {
+        _id: null,
+        totalReturnedUnitPrice: { $sum: "$unit_price" },
+      },
+    },
+  ]);
+  var customerAndSupplierquery = { status: true };
+
+  // if (req.query.branch_id) {
+  //   customerAndSupplierquery.branch_id = new mongoose.Types.ObjectId(
+  //     req.query.branch_id
+  //   );
+  // }
+  if (startDate && endDate) {
+    customerAndSupplierquery.created_at = {
+      $gte: formatDate(startDate, "start", false),
+      $lte: formatDate(endDate, "end", false),
+    };
+  } else if (startDate) {
+    customerAndSupplierquery.created_at = {
+      $gte: formatDate(startDate, "start", false),
+    };
+  } else if (endDate) {
+    customerAndSupplierquery.created_at = {
+      $lte: formatDate(endDate, "end", false),
+    };
+  }
+  const totalCustomer = await customerModel.countDocuments(
+    customerAndSupplierquery
+  );
+  const totalSupplier = await supplierModel.countDocuments(
+    customerAndSupplierquery
+  );
   const totalExpense = expenseData.length > 0 ? expenseData[0].totalAmount : 0;
-  res.send({ message: "success", status: 200, data: { totalExpense } });
+  const totalPurchase = purchaseData[0]?.grandTotal || 0;
+  const totalReturned = returnedStockData[0]?.totalReturnedUnitPrice || 0;
+  res.send({
+    message: "success",
+    status: 200,
+    data: {
+      totalExpense,
+      totalPurchase,
+      totalReturned,
+      totalCustomer,
+      totalSupplier,
+    },
+  });
 });
+const getRepairSummary2 = catchAsyncError(async (req, res, next) => {
+  const { startDate, endDate, branch_id } = req.query;
+
+  const repairQuery = { status: true };
+
+  if (branch_id) {
+    repairQuery._branch_id = new mongoose.Types.ObjectId(branch_id);
+  }
+
+  if (startDate && endDate) {
+    repairQuery.created_at = {
+      $gte: formatDate(startDate, "start", false),
+      $lte: formatDate(endDate, "end", false),
+    };
+  } else if (startDate) {
+    repairQuery.created_at = {
+      $gte: formatDate(startDate, "start", false),
+    };
+  } else if (endDate) {
+    repairQuery.created_at = {
+      $lte: formatDate(endDate, "end", false),
+    };
+  }
+
+  const repairSummary = await repairModel.aggregate([
+    { $match: repairQuery },
+
+    // Step 1: Calculate totalRepairCost and totalProductPrice per document
+    {
+      $addFields: {
+        totalRepairCost: {
+          $sum: {
+            $map: {
+              input: "$issues",
+              as: "issue",
+              in: { $ifNull: ["$$issue.repair_cost", 0] },
+            },
+          },
+        },
+        totalProductPrice: {
+          $sum: {
+            $map: {
+              input: "$product_details",
+              as: "product",
+              in: { $ifNull: ["$$product.price", 0] },
+            },
+          },
+        },
+      },
+    },
+
+    // Step 2: Group by _branch_id
+    {
+      $group: {
+        _id: "$_branch_id",
+        totalRepairCost: { $sum: "$totalRepairCost" },
+        totalProductPrice: { $sum: "$totalProductPrice" },
+        totalRepairs: { $sum: 1 },
+      },
+    },
+
+    // Step 3: Optional - populate branch info
+    {
+      $lookup: {
+        from: "branches",
+        localField: "_id",
+        foreignField: "_id",
+        as: "branchInfo",
+      },
+    },
+    { $unwind: { path: "$branchInfo", preserveNullAndEmptyArrays: true } },
+
+    // Step 4: Final projection
+    {
+      $project: {
+        _id: 0,
+        branch_id: "$_id",
+        totalRepairs: 1,
+        totalRepairCost: 1,
+        totalProductPrice: 1,
+        branch: "$branchInfo",
+      },
+    },
+  ]);
+
+  res.send({
+    message: "success",
+    status: 200,
+    data: repairSummary,
+  });
+});
+
+const getRepairSummary = catchAsyncError(async (req, res, next) => {
+  const { startDate, endDate, branch_id } = req.query;
+
+  const repairQuery = { status: true };
+
+  if (branch_id) {
+    repairQuery._branch_id = new mongoose.Types.ObjectId(branch_id);
+  }
+
+  if (startDate && endDate) {
+    repairQuery.created_at = {
+      $gte: formatDate(startDate, "start", false),
+      $lte: formatDate(endDate, "end", false),
+    };
+  } else if (startDate) {
+    repairQuery.created_at = {
+      $gte: formatDate(startDate, "start", false),
+    };
+  } else if (endDate) {
+    repairQuery.created_at = {
+      $lte: formatDate(endDate, "end", false),
+    };
+  }
+
+  const repairSummary = await repairModel.aggregate([
+    { $match: repairQuery },
+
+    {
+      $group: {
+        _id: "$_branch_id",
+        repairs: { $push: "$$ROOT" },
+      },
+    },
+
+    {
+      $lookup: {
+        from: "branches",
+        localField: "_id",
+        foreignField: "_id",
+        as: "branchInfo",
+      },
+    },
+    { $unwind: { path: "$branchInfo", preserveNullAndEmptyArrays: true } },
+
+    {
+      $project: {
+        _id: 0,
+        branch_id: "$_id",
+        branch: "$branchInfo",
+        repairs: 1,
+      },
+    },
+  ]);
+
+  res.send({
+    message: "success",
+    status: 200,
+    data: repairSummary,
+  });
+});
+
 const getParentDropdown = catchAsyncError(async (req, res, next) => {
   console.log(
     "getParentDropdown===================================================="
@@ -321,6 +791,7 @@ const getBranchWiseFilterList = catchAsyncError(async (req, res, next) => {
 });
 module.exports = {
   getStats,
+  getRepairSummary,
   getParentDropdown,
   getLeafBranchList,
   getDataWithPagination,
