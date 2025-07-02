@@ -8,12 +8,18 @@ const {
 } = require("../controller/repairController");
 const { isAuthenticatedUser, authorizeRoles } = require("../middleware/auth");
 const repairModel = require("../db/models/repairModel");
+const branchAccessMiddleware = require("../middleware/branchAccessMiddleware");
 
 var router = express.Router();
 
 router
   .route("/")
-  .get(isAuthenticatedUser, authorizeRoles("repair_list"), getDataWithPagination);
+  .get(
+    isAuthenticatedUser,
+    authorizeRoles("repair_list"),
+    branchAccessMiddleware,
+    getDataWithPagination
+  );
 router
   .route("/:id")
   .get(isAuthenticatedUser, authorizeRoles("view_repair_details"), getById);

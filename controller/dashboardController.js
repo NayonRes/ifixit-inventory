@@ -361,6 +361,7 @@ const getStats2 = catchAsyncError(async (req, res, next) => {
     },
   });
 });
+
 const getRepairSummary2 = catchAsyncError(async (req, res, next) => {
   const { startDate, endDate, branch_id } = req.query;
 
@@ -388,10 +389,10 @@ const getRepairSummary2 = catchAsyncError(async (req, res, next) => {
   const repairSummary = await repairModel.aggregate([
     { $match: repairQuery },
 
-    // Step 1: Calculate totalRepairCost and totalProductPrice per document
+    // Step 1: Compute total_issue_cost and total_product_price per repair
     {
       $addFields: {
-        totalRepairCost: {
+        total_issue_cost: {
           $sum: {
             $map: {
               input: "$issues",
@@ -400,7 +401,7 @@ const getRepairSummary2 = catchAsyncError(async (req, res, next) => {
             },
           },
         },
-        totalProductPrice: {
+        total_product_price: {
           $sum: {
             $map: {
               input: "$product_details",
@@ -412,36 +413,37 @@ const getRepairSummary2 = catchAsyncError(async (req, res, next) => {
       },
     },
 
-    // Step 2: Group by _branch_id
+    // Step 2: Group by branch_id
     {
       $group: {
-        _id: "$_branch_id",
-        totalRepairCost: { $sum: "$totalRepairCost" },
-        totalProductPrice: { $sum: "$totalProductPrice" },
-        totalRepairs: { $sum: 1 },
+        _id: "$branch_id",
+        repairs: { $push: "$$ROOT" },
+        total_issue_cost: { $sum: "$total_issue_cost" },
+        total_product_price: { $sum: "$total_product_price" },
       },
     },
 
-    // Step 3: Optional - populate branch info
+    // Step 3: Lookup branch info
     {
       $lookup: {
         from: "branches",
         localField: "_id",
-        foreignField: "_id",
+        foreignField: "_id", // assuming `branch_id` is ObjectId in both
         as: "branchInfo",
       },
     },
     { $unwind: { path: "$branchInfo", preserveNullAndEmptyArrays: true } },
 
-    // Step 4: Final projection
+    // Step 4: Format final output
     {
       $project: {
         _id: 0,
         branch_id: "$_id",
-        totalRepairs: 1,
-        totalRepairCost: 1,
-        totalProductPrice: 1,
+        branch_name: "$branchInfo.name",
         branch: "$branchInfo",
+        repairs: 1,
+        total_issue_cost: 1,
+        total_product_price: 1,
       },
     },
   ]);
@@ -452,7 +454,6 @@ const getRepairSummary2 = catchAsyncError(async (req, res, next) => {
     data: repairSummary,
   });
 });
-
 const getRepairSummary = catchAsyncError(async (req, res, next) => {
   const { startDate, endDate, branch_id } = req.query;
 
@@ -478,34 +479,61 @@ const getRepairSummary = catchAsyncError(async (req, res, next) => {
   }
 
   const repairSummary = await repairModel.aggregate([
-    { $match: repairQuery },
+  { $match: repairQuery },
 
-    {
-      $group: {
-        _id: "$_branch_id",
-        repairs: { $push: "$$ROOT" },
+  {
+    $addFields: {
+      total_issue_cost: {
+        $sum: {
+          $map: {
+            input: "$issues",
+            as: "issue",
+            in: { $ifNull: ["$$issue.repair_cost", 0] },
+          },
+        },
+      },
+      total_product_price: {
+        $sum: {
+          $map: {
+            input: "$product_details",
+            as: "product",
+            in: { $ifNull: ["$$product.price", 0] },
+          },
+        },
       },
     },
+  },
 
-    {
-      $lookup: {
-        from: "branches",
-        localField: "_id",
-        foreignField: "_id",
-        as: "branchInfo",
-      },
+  {
+    $group: {
+      _id: "$branch_id",
+      total_issue_cost: { $sum: "$total_issue_cost" },
+      total_product_price: { $sum: "$total_product_price" },
     },
-    { $unwind: { path: "$branchInfo", preserveNullAndEmptyArrays: true } },
+  },
 
-    {
-      $project: {
-        _id: 0,
-        branch_id: "$_id",
-        branch: "$branchInfo",
-        repairs: 1,
-      },
+  {
+    $lookup: {
+      from: "branches",
+      localField: "_id",
+      foreignField: "_id",
+      as: "branchInfo",
     },
-  ]);
+  },
+  { $unwind: { path: "$branchInfo", preserveNullAndEmptyArrays: true } },
+
+  {
+    $project: {
+      _id: 0,
+      branch_id: "$_id",
+      branch_name: "$branchInfo.name",
+      branch: "$branchInfo",
+      total_issue_cost: 1,
+      total_product_price: 1,
+    },
+  },
+]);
+
 
   res.send({
     message: "success",
@@ -513,6 +541,8 @@ const getRepairSummary = catchAsyncError(async (req, res, next) => {
     data: repairSummary,
   });
 });
+
+ 
 
 const getParentDropdown = catchAsyncError(async (req, res, next) => {
   console.log(
