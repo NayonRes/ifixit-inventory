@@ -2,6 +2,7 @@ var express = require("express");
 const {
   getStats,
   getRepairSummary,
+  getRepairSummaryForChart,
   getParentDropdown,
   getLeafBranchList,
   getDataWithPagination,
@@ -32,11 +33,15 @@ router
     branchAccessMiddleware,
     getRepairSummary
   );
+router
+  .route("/repair-chart")
+  .get(
+    isAuthenticatedUser,
+    authorizeRoles("dashboard"),
+    getRepairSummaryForChart
+  );
 router.route("/dropdownlist").get(isAuthenticatedUser, getParentDropdown);
-router.route("/leaf-dropdown").get(
-  isAuthenticatedUser,
-  getLeafBranchList
-);
+router.route("/leaf-dropdown").get(isAuthenticatedUser, getLeafBranchList);
 router
   .route("/branch-filter-list")
   .post(isAuthenticatedUser, getBranchWiseFilterList);

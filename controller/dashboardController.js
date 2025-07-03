@@ -368,7 +368,7 @@ const getRepairSummary2 = catchAsyncError(async (req, res, next) => {
   const repairQuery = { status: true };
 
   if (branch_id) {
-    repairQuery._branch_id = new mongoose.Types.ObjectId(branch_id);
+    repairQuery.branch_id = new mongoose.Types.ObjectId(branch_id);
   }
 
   if (startDate && endDate) {
@@ -460,7 +460,7 @@ const getRepairSummary = catchAsyncError(async (req, res, next) => {
   const repairQuery = { status: true };
 
   if (branch_id) {
-    repairQuery._branch_id = new mongoose.Types.ObjectId(branch_id);
+    repairQuery.branch_id = new mongoose.Types.ObjectId(branch_id);
   }
 
   if (startDate && endDate) {
@@ -479,61 +479,60 @@ const getRepairSummary = catchAsyncError(async (req, res, next) => {
   }
 
   const repairSummary = await repairModel.aggregate([
-  { $match: repairQuery },
+    { $match: repairQuery },
 
-  {
-    $addFields: {
-      total_issue_cost: {
-        $sum: {
-          $map: {
-            input: "$issues",
-            as: "issue",
-            in: { $ifNull: ["$$issue.repair_cost", 0] },
+    {
+      $addFields: {
+        total_issue_cost: {
+          $sum: {
+            $map: {
+              input: "$issues",
+              as: "issue",
+              in: { $ifNull: ["$$issue.repair_cost", 0] },
+            },
+          },
+        },
+        total_product_price: {
+          $sum: {
+            $map: {
+              input: "$product_details",
+              as: "product",
+              in: { $ifNull: ["$$product.price", 0] },
+            },
           },
         },
       },
-      total_product_price: {
-        $sum: {
-          $map: {
-            input: "$product_details",
-            as: "product",
-            in: { $ifNull: ["$$product.price", 0] },
-          },
-        },
+    },
+
+    {
+      $group: {
+        _id: "$branch_id",
+        total_issue_cost: { $sum: "$total_issue_cost" },
+        total_product_price: { $sum: "$total_product_price" },
       },
     },
-  },
 
-  {
-    $group: {
-      _id: "$branch_id",
-      total_issue_cost: { $sum: "$total_issue_cost" },
-      total_product_price: { $sum: "$total_product_price" },
+    {
+      $lookup: {
+        from: "branches",
+        localField: "_id",
+        foreignField: "_id",
+        as: "branchInfo",
+      },
     },
-  },
+    { $unwind: { path: "$branchInfo", preserveNullAndEmptyArrays: true } },
 
-  {
-    $lookup: {
-      from: "branches",
-      localField: "_id",
-      foreignField: "_id",
-      as: "branchInfo",
+    {
+      $project: {
+        _id: 0,
+        branch_id: "$_id",
+        branch_name: "$branchInfo.name",
+        branch: "$branchInfo",
+        total_issue_cost: 1,
+        total_product_price: 1,
+      },
     },
-  },
-  { $unwind: { path: "$branchInfo", preserveNullAndEmptyArrays: true } },
-
-  {
-    $project: {
-      _id: 0,
-      branch_id: "$_id",
-      branch_name: "$branchInfo.name",
-      branch: "$branchInfo",
-      total_issue_cost: 1,
-      total_product_price: 1,
-    },
-  },
-]);
-
+  ]);
 
   res.send({
     message: "success",
@@ -541,8 +540,130 @@ const getRepairSummary = catchAsyncError(async (req, res, next) => {
     data: repairSummary,
   });
 });
+const getRepairSummaryForChart = catchAsyncError(async (req, res, next) => {
+  const { startDate, endDate, branch_id, months } = req.query;
 
- 
+  const repairQueryBase = { status: true };
+
+  if (branch_id) {
+    repairQuery.branch_id = new mongoose.Types.ObjectId(branch_id);
+  }
+  let matchConditions = [];
+  if (months) {
+    const monthsInt = parseInt(months);
+    const currentDate = new Date();
+    currentDate.setDate(1); // Move to first day of current month
+    currentDate.setHours(0, 0, 0, 0); // Clear time
+
+    for (let i = 0; i < monthsInt; i++) {
+      const start = new Date(
+        currentDate.getFullYear(),
+        currentDate.getMonth() - i,
+        1
+      );
+      const end = new Date(
+        currentDate.getFullYear(),
+        currentDate.getMonth() - i + 1,
+        0,
+        23,
+        59,
+        59,
+        999
+      );
+
+      matchConditions.push({
+        ...repairQueryBase,
+        created_at: { $gte: start, $lte: end },
+      });
+    }
+  }
+  // if (startDate && endDate) {
+  //   repairQuery.created_at = {
+  //     $gte: formatDate(startDate, "start", false),
+  //     $lte: formatDate(endDate, "end", false),
+  //   };
+  // } else if (startDate) {
+  //   repairQuery.created_at = {
+  //     $gte: formatDate(startDate, "start", false),
+  //   };
+  // } else if (endDate) {
+  //   repairQuery.created_at = {
+  //     $lte: formatDate(endDate, "end", false),
+  //   };
+  // }
+
+  const repairSummary = await repairModel.aggregate([
+    {
+      $match: {
+        $or: matchConditions,
+      },
+    },
+    {
+      $addFields: {
+        total_issue_cost: {
+          $sum: {
+            $map: {
+              input: "$issues",
+              as: "issue",
+              in: { $ifNull: ["$$issue.repair_cost", 0] },
+            },
+          },
+        },
+        total_product_price: {
+          $sum: {
+            $map: {
+              input: "$product_details",
+              as: "product",
+              in: { $ifNull: ["$$product.price", 0] },
+            },
+          },
+        },
+        year: { $year: "$created_at" },
+        month: { $month: "$created_at" },
+      },
+    },
+    {
+      $group: {
+        _id: {
+          branch_id: "$branch_id",
+          year: "$year",
+          month: "$month",
+        },
+        total_issue_cost: { $sum: "$total_issue_cost" },
+        total_product_price: { $sum: "$total_product_price" },
+      },
+    },
+    {
+      $lookup: {
+        from: "branches",
+        localField: "_id.branch_id",
+        foreignField: "_id",
+        as: "branchInfo",
+      },
+    },
+    {
+      $unwind: { path: "$branchInfo", preserveNullAndEmptyArrays: true },
+    },
+    {
+      $project: {
+        _id: 0,
+        branch_id: "$_id.branch_id",
+        branch_name: "$branchInfo.name",
+        year: "$_id.year",
+        month: "$_id.month",
+        total_issue_cost: 1,
+        total_product_price: 1,
+      },
+    },
+    { $sort: { year: 1, month: 1 } },
+  ]);
+
+  res.send({
+    message: "success",
+    status: 200,
+    data: repairSummary,
+  });
+});
 
 const getParentDropdown = catchAsyncError(async (req, res, next) => {
   console.log(
@@ -822,6 +943,7 @@ const getBranchWiseFilterList = catchAsyncError(async (req, res, next) => {
 module.exports = {
   getStats,
   getRepairSummary,
+  getRepairSummaryForChart,
   getParentDropdown,
   getLeafBranchList,
   getDataWithPagination,
