@@ -13,20 +13,16 @@ const { isAuthenticatedUser, authorizeRoles } = require("../middleware/auth");
 
 var router = express.Router();
 //Must be maintain the serial of declaring router.route accordimg to less middleware use
-router
-  .route("/dropdownlist")
-  .get(
-    isAuthenticatedUser,
-    authorizeRoles("permission_dropdown_list"),
-    getParentDropdown
-  );
-router
-  .route("/leaf-dropdown")
-  .get(
-    isAuthenticatedUser,
-    authorizeRoles("permission_dropdown_list"),
-    getLeafPermissionList
-  );
+router.route("/dropdownlist").get(
+  isAuthenticatedUser,
+
+  getParentDropdown
+);
+router.route("/leaf-dropdown").get(
+  isAuthenticatedUser,
+
+  getLeafPermissionList
+);
 // router.route("/category-filter-list").post(getCategoryWiseFilterList);
 
 router

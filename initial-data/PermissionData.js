@@ -61,12 +61,12 @@ const PermissionData = [
     permission_name: "view_branch_details",
     module_name: "Branch",
   },
-  {
-    order_no: 5,
-    name: "Branch Dropdown List",
-    permission_name: "branch_dropdown_list",
-    module_name: "Branch",
-  },
+  // {
+  //   order_no: 5,
+  //   name: "Branch Dropdown List",
+  //   permission_name: "branch_dropdown_list",
+  //   module_name: "Branch",
+  // },
 
   // Brand
   {
@@ -93,12 +93,12 @@ const PermissionData = [
     permission_name: "view_brand_details",
     module_name: "Brand",
   },
-  {
-    order_no: 5,
-    name: "Brand Dropdown List",
-    permission_name: "brand_dropdown_list",
-    module_name: "Brand",
-  },
+  // {
+  //   order_no: 5,
+  //   name: "Brand Dropdown List",
+  //   permission_name: "brand_dropdown_list",
+  //   module_name: "Brand",
+  // },
 
   // Category
   {
@@ -125,12 +125,12 @@ const PermissionData = [
     permission_name: "view_category_details",
     module_name: "Category",
   },
-  {
-    order_no: 5,
-    name: "Category Dropdown List",
-    permission_name: "category_dropdown_list",
-    module_name: "Category",
-  },
+  // {
+  //   order_no: 5,
+  //   name: "Category Dropdown List",
+  //   permission_name: "category_dropdown_list",
+  //   module_name: "Category",
+  // },
 
   // Customer
   {
@@ -157,12 +157,38 @@ const PermissionData = [
     permission_name: "view_customer_details",
     module_name: "Customer",
   },
+  // {
+  //   order_no: 5,
+  //   name: "Customer Dropdown List",
+  //   permission_name: "customer_dropdown_list",
+  //   module_name: "Customer",
+
+  // Device
   {
-    order_no: 5,
-    name: "Customer Dropdown List",
-    permission_name: "customer_dropdown_list",
-    module_name: "Customer",
+    order_no: 1,
+    name: "Device Brand List",
+    permission_name: "device_brand_list",
+    module_name: "Device Brand",
   },
+  {
+    order_no: 2,
+    name: "Add Device Brand",
+    permission_name: "add_device_brand",
+    module_name: "Device Brand",
+  },
+  {
+    order_no: 3,
+    name: "Update Device Brand",
+    permission_name: "update_device_brand",
+    module_name: "Device Brand",
+  },
+  {
+    order_no: 4,
+    name: "View Device Brand Details",
+    permission_name: "view_device_brand_details",
+    module_name: "Device Brand",
+  },
+  // },
 
   // Device
   {
@@ -189,12 +215,12 @@ const PermissionData = [
     permission_name: "view_device_details",
     module_name: "Device",
   },
-  {
-    order_no: 5,
-    name: "Device Dropdown List",
-    permission_name: "device_dropdown_list",
-    module_name: "Device",
-  },
+  // {
+  //   order_no: 5,
+  //   name: "Device Dropdown List",
+  //   permission_name: "device_dropdown_list",
+  //   module_name: "Device",
+  // },
 
   // Expense Category
 
@@ -222,12 +248,12 @@ const PermissionData = [
     permission_name: "view_expense_category_details",
     module_name: "Expense Category",
   },
-  {
-    order_no: 5,
-    name: "Expense Category Dropdown List",
-    permission_name: "expense_category_dropdown_list",
-    module_name: "Expense Category",
-  },
+  // {
+  //   order_no: 5,
+  //   name: "Expense Category Dropdown List",
+  //   permission_name: "expense_category_dropdown_list",
+  //   module_name: "Expense Category",
+  // },
 
   // Expense
   {
@@ -280,12 +306,12 @@ const PermissionData = [
     permission_name: "view_model_details",
     module_name: "Model",
   },
-  {
-    order_no: 5,
-    name: "Model Dropdown List",
-    permission_name: "model_dropdown_list",
-    module_name: "Model",
-  },
+  // {
+  //   order_no: 5,
+  //   name: "Model Dropdown List",
+  //   permission_name: "model_dropdown_list",
+  //   module_name: "Model",
+  // },
 
   // Product
   {
@@ -312,12 +338,12 @@ const PermissionData = [
     permission_name: "view_product_details",
     module_name: "Product",
   },
-  {
-    order_no: 5,
-    name: "Product Dropdown List",
-    permission_name: "product_dropdown_list",
-    module_name: "Product",
-  },
+  // {
+  //   order_no: 5,
+  //   name: "Product Dropdown List",
+  //   permission_name: "product_dropdown_list",
+  //   module_name: "Product",
+  // },
 
   // Purchase
   {
@@ -345,12 +371,12 @@ const PermissionData = [
     module_name: "Purchase",
   },
 
-  {
-    order_no: 5,
-    name: "Purchase Dropdown List",
-    permission_name: "purchase_dropdown_list",
-    module_name: "Purchase",
-  },
+  // {
+  //   order_no: 5,
+  //   name: "Purchase Dropdown List",
+  //   permission_name: "purchase_dropdown_list",
+  //   module_name: "Purchase",
+  // },
   // Purchase Return
   {
     order_no: 1,
@@ -408,12 +434,12 @@ const PermissionData = [
     permission_name: "view_permission_details",
     module_name: "Permission",
   },
-  {
-    order_no: 5,
-    name: "Permission Dropdown List",
-    permission_name: "permission_dropdown_list",
-    module_name: "Permission",
-  },
+  // {
+  //   order_no: 5,
+  //   name: "Permission Dropdown List",
+  //   permission_name: "permission_dropdown_list",
+  //   module_name: "Permission",
+  // },
   // Order
   // {
   //   order_no: 1,
@@ -471,12 +497,12 @@ const PermissionData = [
     permission_name: "view_service_details",
     module_name: "Service",
   },
-  {
-    order_no: 5,
-    name: "Service Dropdown List",
-    permission_name: "service_dropdown_list",
-    module_name: "Service",
-  },
+  // {
+  //   order_no: 5,
+  //   name: "Service Dropdown List",
+  //   permission_name: "service_dropdown_list",
+  //   module_name: "Service",
+  // },
   // Spare Parts
   {
     order_no: 1,
@@ -502,12 +528,12 @@ const PermissionData = [
     permission_name: "view_spare_parts_details",
     module_name: "Spare Parts",
   },
-  {
-    order_no: 5,
-    name: "Spare Parts Dropdown List",
-    permission_name: "spare_parts_dropdown_list",
-    module_name: "Spare Parts",
-  },
+  // {
+  //   order_no: 5,
+  //   name: "Spare Parts Dropdown List",
+  //   permission_name: "spare_parts_dropdown_list",
+  //   module_name: "Spare Parts",
+  // },
   // Stock
   {
     order_no: 1,
@@ -533,12 +559,12 @@ const PermissionData = [
     permission_name: "view_stock_details",
     module_name: "Stock",
   },
-  {
-    order_no: 5,
-    name: "Stock Dropdown List",
-    permission_name: "stock_dropdown_list",
-    module_name: "Stock",
-  },
+  // {
+  //   order_no: 5,
+  //   name: "Stock Dropdown List",
+  //   permission_name: "stock_dropdown_list",
+  //   module_name: "Stock",
+  // },
   {
     order_no: 6,
     name: "Stock Transfer List",
@@ -612,12 +638,12 @@ const PermissionData = [
     permission_name: "view_supplier_details",
     module_name: "Supplier",
   },
-  {
-    order_no: 5,
-    name: "Supplier Dropdown List",
-    permission_name: "supplier_dropdown_list",
-    module_name: "Supplier",
-  },
+  // {
+  //   order_no: 5,
+  //   name: "Supplier Dropdown List",
+  //   permission_name: "supplier_dropdown_list",
+  //   module_name: "Supplier",
+  // },
 
   // Repair
   {
@@ -644,12 +670,12 @@ const PermissionData = [
     permission_name: "view_repair_details",
     module_name: "Repair",
   },
-  {
-    order_no: 5,
-    name: "Repair Dropdown List",
-    permission_name: "repair_dropdown_list",
-    module_name: "Repair",
-  },
+  // {
+  //   order_no: 5,
+  //   name: "Repair Dropdown List",
+  //   permission_name: "repair_dropdown_list",
+  //   module_name: "Repair",
+  // },
   {
     order_no: 6,
     name: "Repair Status List",
@@ -771,12 +797,12 @@ const PermissionData = [
     permission_name: "view_user_details",
     module_name: "User",
   },
-  {
-    order_no: 6,
-    name: "User Dropdown List",
-    permission_name: "user_dropdown_list",
-    module_name: "User",
-  },
+  // {
+  //   order_no: 6,
+  //   name: "User Dropdown List",
+  //   permission_name: "user_dropdown_list",
+  //   module_name: "User",
+  // },
 ];
 
 module.exports = PermissionData;

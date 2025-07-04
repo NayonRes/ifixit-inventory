@@ -20,34 +20,26 @@ var router = express.Router();
 router
   .route("/create")
   .post(isAuthenticatedUser, authorizeRoles("add_model"), createData);
-router
-  .route("/dropdownlist")
-  .get(
-    isAuthenticatedUser,
-    authorizeRoles("model_dropdown_list"),
-    getParentDropdown
-  );
-router
-  .route("/leaf-dropdown")
-  .get(
-    isAuthenticatedUser,
-    authorizeRoles("model_dropdown_list"),
-    getLeafModelList
-  );
-router
-  .route("/device-model")
-  .get(
-    isAuthenticatedUser,
-    authorizeRoles("model_dropdown_list"),
-    getDeviceWiseModelDropdown
-  );
-router
-  .route("/model-filter-list")
-  .post(
-    isAuthenticatedUser,
-    authorizeRoles("model_dropdown_list"),
-    getModelWiseFilterList
-  );
+router.route("/dropdownlist").get(
+  isAuthenticatedUser,
+
+  getParentDropdown
+);
+router.route("/leaf-dropdown").get(
+  isAuthenticatedUser,
+
+  getLeafModelList
+);
+router.route("/device-model").get(
+  isAuthenticatedUser,
+
+  getDeviceWiseModelDropdown
+);
+router.route("/model-filter-list").post(
+  isAuthenticatedUser,
+
+  getModelWiseFilterList
+);
 
 router
   .route("/")
@@ -57,13 +49,11 @@ router
     getDataWithPagination
   );
 router.route("/public/get-by-device").get(getByDeviceId);
-router
-  .route("/get-by-device/")
-  .get(
-    isAuthenticatedUser,
-    authorizeRoles("model_dropdown_list"),
-    getByDeviceId
-  );
+router.route("/get-by-device/").get(
+  isAuthenticatedUser,
+
+  getByDeviceId
+);
 router
   .route("/:id")
   .get(isAuthenticatedUser, authorizeRoles("view_model_details"), getById);

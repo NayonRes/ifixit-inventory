@@ -5,6 +5,7 @@ const catchAsyncError = require("../middleware/catchAsyncError");
 const jwt = require("jsonwebtoken");
 const mongoose = require("mongoose");
 const customerModel = require("../db/models/customerModel");
+const formatDate = require("../utils/formatDate");
 
 const getDataWithPagination = catchAsyncError(async (req, res, next) => {
   const page = parseInt(req.query.page) || 1;
@@ -73,12 +74,17 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
   if (req.query.model_id) {
     query.model_id = new mongoose.Types.ObjectId(req.query.model_id);
   }
+
   if (req.query.branch_id) {
     query.branch_id = new mongoose.Types.ObjectId(req.query.branch_id);
+  }
+  if (req.query.customer_id) {
+    query.customer_id = new mongoose.Types.ObjectId(req.query.customer_id);
   }
   if (customerId) {
     query.customer_id = new mongoose.Types.ObjectId(customerId);
   }
+
   // if (req.query.customer_id) {
   //   query.customer_id = new mongoose.Types.ObjectId(req.query.customer_id);
   // }
@@ -93,16 +99,16 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
   console.log("startDate", startDate);
   if (startDate && endDate) {
     query.created_at = {
-      $gte: new Date(`${startDate}T00:00:00.000Z`),
-      $lte: new Date(`${endDate}T23:59:59.999Z`),
+      $gte: formatDate(startDate, "start", false),
+      $lte: formatDate(endDate, "end", false),
     };
   } else if (startDate) {
     query.created_at = {
-      $gte: new Date(`${startDate}T00:00:00.000Z`),
+      $gte: formatDate(startDate, "start", false),
     };
   } else if (endDate) {
     query.created_at = {
-      $lte: new Date(`${endDate}T23:59:59.999Z`),
+      $lte: formatDate(endDate, "end", false),
     };
   }
 

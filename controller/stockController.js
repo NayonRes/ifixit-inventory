@@ -8,6 +8,7 @@ const purchaseModel = require("../db/models/purchaseModel");
 const stockCounterAndLimitModel = require("../db/models/stockCounterAndLimitModel");
 const purchaseProductModel = require("../db/models/purchaseProductModel");
 const stockCounterAndLimitController = require("../controller/stockCounterAndLimitController");
+const formatDate = require("../utils/formatDate");
 
 const getAllStock = catchAsyncError(async (req, res, next) => {
   var query = {};

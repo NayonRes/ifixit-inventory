@@ -9,6 +9,7 @@ const stockCounterAndLimitModel = require("../db/models/stockCounterAndLimitMode
 const purchaseProductModel = require("../db/models/purchaseProductModel");
 const stockCounterAndLimitController = require("../controller/stockCounterAndLimitController");
 const stockModel = require("../db/models/stockModel");
+const formatDate = require("../utils/formatDate");
 
 const getDataWithPagination = catchAsyncError(async (req, res, next) => {
   const page = parseInt(req.query.page) || 1;

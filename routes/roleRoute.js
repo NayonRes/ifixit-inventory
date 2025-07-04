@@ -12,9 +12,7 @@ const { isAuthenticatedUser, authorizeRoles } = require("../middleware/auth");
 
 var router = express.Router();
 //Must be maintain the serial of declaring router.route accordimg to less middleware use
-router
-  .route("/dropdownlist")
-  .get(isAuthenticatedUser, authorizeRoles("role_dropdown_list"), getDropdown);
+router.route("/dropdownlist").get(isAuthenticatedUser, getDropdown);
 
 router
   .route("/")

@@ -1,5 +1,8 @@
 var express = require("express");
 const {
+  getStats,
+  getRepairSummary,
+  getRepairSummaryForChart,
   getParentDropdown,
   getLeafBranchList,
   getDataWithPagination,
@@ -8,27 +11,40 @@ const {
   updateData,
   deleteData,
   getBranchWiseFilterList,
-} = require("../controller/branchController");
+} = require("../controller/dashboardController");
 const { isAuthenticatedUser, authorizeRoles } = require("../middleware/auth");
-const branchModel = require("../db/models/branchModel");
+const branchAccessMiddleware = require("../middleware/branchAccessMiddleware");
 
 var router = express.Router();
 
-router.route("/dropdownlist").get(
-  isAuthenticatedUser,
-
-  getParentDropdown
-);
-router.route("/leaf-dropdown").get(
-  isAuthenticatedUser,
-
-  getLeafBranchList
-);
-router.route("/branch-filter-list").post(
-  isAuthenticatedUser,
-
-  getBranchWiseFilterList
-);
+router
+  .route("/stats")
+  .get(
+    isAuthenticatedUser,
+    authorizeRoles("dashboard"),
+    branchAccessMiddleware,
+    getStats
+  );
+router
+  .route("/repair-summary")
+  .get(
+    isAuthenticatedUser,
+    authorizeRoles("dashboard"),
+    branchAccessMiddleware,
+    getRepairSummary
+  );
+router
+  .route("/repair-chart")
+  .get(
+    isAuthenticatedUser,
+    authorizeRoles("dashboard"),
+    getRepairSummaryForChart
+  );
+router.route("/dropdownlist").get(isAuthenticatedUser, getParentDropdown);
+router.route("/leaf-dropdown").get(isAuthenticatedUser, getLeafBranchList);
+router
+  .route("/branch-filter-list")
+  .post(isAuthenticatedUser, getBranchWiseFilterList);
 
 router
   .route("/create")
