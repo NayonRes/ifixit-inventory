@@ -22,6 +22,7 @@ jobs:
           cd ~/ifixit-inventory # Update this path to match your EC2 directory
 
           # Pull the latest changes from the repository
+          git checkout .
           git pull origin main
 
           # Install updated dependencies
