@@ -11,155 +11,155 @@ const path = require("path");
 const base64ImageUpload = require("../utils/base64ImageUpload");
 const formatDate = require("../utils/formatDate");
 
-const getDataWithPagination = catchAsyncError(async (req, res, next) => {
-  const page = parseInt(req.query.page) || 1;
-  console.log("===========req.query.page", req.query.page);
-  const limit = parseInt(req.query.limit) || 10;
-  const startIndex = (page - 1) * limit;
-  const endIndex = page * limit;
-  const startDate = req.query.startDate;
-  const endDate = req.query.endDate;
+// const getDataWithPagination = catchAsyncError(async (req, res, next) => {
+//   const page = parseInt(req.query.page) || 1;
+//   console.log("===========req.query.page", req.query.page);
+//   const limit = parseInt(req.query.limit) || 10;
+//   const startIndex = (page - 1) * limit;
+//   const endIndex = page * limit;
+//   const startDate = req.query.startDate;
+//   const endDate = req.query.endDate;
 
-  var query = {};
-  if (req.query.model_id) {
-    query.model_id = new mongoose.Types.ObjectId(req.query.model_id);
-  }
-  if (req.query.status) {
-    query.status = req.query.status === "true";
-  }
-  if (req.query.device_id) {
-    query.device_id = new mongoose.Types.ObjectId(req.query.device_id);
-  }
-  if (req.query.brand_id) {
-    query.brand_id = new mongoose.Types.ObjectId(req.query.brand_id);
-  }
-  if (req.query.branch_id) {
-    query.branch_id = {
-      $in: [new mongoose.Types.ObjectId(req.query.branch_id)],
-    };
-  }
-  if (req.query.order_no && !isNaN(req.query.order_no)) {
-    query.order_no = parseInt(req.query.order_no);
-  }
-  // if (req.query.customer_id) {
-  //   query.customer_id = new RegExp(`^${req.query.customer_id}$`, "i");
-  // }
-  if (startDate && endDate) {
-    query.created_at = {
-      $gte: formatDate(startDate, "start", false),
-      $lte: formatDate(endDate, "end", false),
-    };
-  } else if (startDate) {
-    query.created_at = {
-      $gte: formatDate(startDate, "start", false),
-    };
-  } else if (endDate) {
-    query.created_at = {
-      $lte: formatDate(endDate, "end", false),
-    };
-  }
-  let totalData = await serviceModel.countDocuments(query);
-  console.log("totalData=================================", totalData);
-  //const data = await serviceModel.find(query).skip(startIndex).limit(limit);
+//   var query = {};
+//   if (req.query.model_id) {
+//     query.model_id = new mongoose.Types.ObjectId(req.query.model_id);
+//   }
+//   if (req.query.status) {
+//     query.status = req.query.status === "true";
+//   }
+//   if (req.query.device_id) {
+//     query.device_id = new mongoose.Types.ObjectId(req.query.device_id);
+//   }
+//   if (req.query.brand_id) {
+//     query.brand_id = new mongoose.Types.ObjectId(req.query.brand_id);
+//   }
+//   if (req.query.branch_id) {
+//     query.branch_id = {
+//       $in: [new mongoose.Types.ObjectId(req.query.branch_id)],
+//     };
+//   }
+//   if (req.query.order_no && !isNaN(req.query.order_no)) {
+//     query.order_no = parseInt(req.query.order_no);
+//   }
+//   // if (req.query.customer_id) {
+//   //   query.customer_id = new RegExp(`^${req.query.customer_id}$`, "i");
+//   // }
+//   if (startDate && endDate) {
+//     query.created_at = {
+//       $gte: formatDate(startDate, "start", false),
+//       $lte: formatDate(endDate, "end", false),
+//     };
+//   } else if (startDate) {
+//     query.created_at = {
+//       $gte: formatDate(startDate, "start", false),
+//     };
+//   } else if (endDate) {
+//     query.created_at = {
+//       $lte: formatDate(endDate, "end", false),
+//     };
+//   }
+//   let totalData = await serviceModel.countDocuments(query);
+//   console.log("totalData=================================", totalData);
+//   //const data = await serviceModel.find(query).skip(startIndex).limit(limit);
 
-  const data = await serviceModel.aggregate([
-    {
-      $match: query,
-    },
-    {
-      $lookup: {
-        from: "devices",
-        localField: "device_id",
-        foreignField: "_id",
-        as: "device_data",
-      },
-    },
-    {
-      $lookup: {
-        from: "brands",
-        localField: "brand_id",
-        foreignField: "_id",
-        as: "brand_data",
-      },
-    },
-    {
-      $lookup: {
-        from: "branches",
-        localField: "branch_id",
-        foreignField: "_id",
-        as: "branch_data",
-      },
-    },
-    {
-      $lookup: {
-        from: "models",
-        localField: "model_id",
-        foreignField: "_id",
-        as: "model_data",
-      },
-    },
-    // {
-    //   $lookup: {
-    //     from: "customers",
-    //     localField: "customer_id",
-    //     foreignField: "_id",
-    //     as: "customer_data",
-    //   },
-    // },
-    {
-      $project: {
-        _id: 1,
-        title: 1,
-        image: 1,
-        device_id: 1,
-        model_id: 1,
-        branch_id: 1,
-        brand_id: 1,
-        order_no: 1,
-        //customer_id: 1,
-        description: 1,
-        repair_by: 1,
-        steps: 1,
-        repair_info: 1,
-        remarks: 1,
-        status: 1,
-        created_by: 1,
-        created_at: 1,
-        updated_by: 1,
-        updated_at: 1,
-        "device_data.name": 1,
-        "device_data.image": 1,
-        "model_data.name": 1,
-        "model_data.image": 1,
-        "brand_data.name": 1,
-        "branch_data.name": 1,
-        "branch_data._id": 1,
-        "branch_data.is_main_branch": 1,
-        "branch_data.address": 1,
-        // "customer_data.name": 1,
-      },
-    },
-    {
-      $sort: { order_no: 1 },
-    },
-    {
-      $skip: startIndex,
-    },
-    {
-      $limit: limit,
-    },
-  ]);
+//   const data = await serviceModel.aggregate([
+//     {
+//       $match: query,
+//     },
+//     {
+//       $lookup: {
+//         from: "devices",
+//         localField: "device_id",
+//         foreignField: "_id",
+//         as: "device_data",
+//       },
+//     },
+//     {
+//       $lookup: {
+//         from: "brands",
+//         localField: "brand_id",
+//         foreignField: "_id",
+//         as: "brand_data",
+//       },
+//     },
+//     {
+//       $lookup: {
+//         from: "branches",
+//         localField: "branch_id",
+//         foreignField: "_id",
+//         as: "branch_data",
+//       },
+//     },
+//     {
+//       $lookup: {
+//         from: "models",
+//         localField: "model_id",
+//         foreignField: "_id",
+//         as: "model_data",
+//       },
+//     },
+//     // {
+//     //   $lookup: {
+//     //     from: "customers",
+//     //     localField: "customer_id",
+//     //     foreignField: "_id",
+//     //     as: "customer_data",
+//     //   },
+//     // },
+//     {
+//       $project: {
+//         _id: 1,
+//         title: 1,
+//         image: 1,
+//         device_id: 1,
+//         model_id: 1,
+//         branch_id: 1,
+//         brand_id: 1,
+//         order_no: 1,
+//         //customer_id: 1,
+//         description: 1,
+//         repair_by: 1,
+//         steps: 1,
+//         repair_info: 1,
+//         remarks: 1,
+//         status: 1,
+//         created_by: 1,
+//         created_at: 1,
+//         updated_by: 1,
+//         updated_at: 1,
+//         "device_data.name": 1,
+//         "device_data.image": 1,
+//         "model_data.name": 1,
+//         "model_data.image": 1,
+//         "brand_data.name": 1,
+//         "branch_data.name": 1,
+//         "branch_data._id": 1,
+//         "branch_data.is_main_branch": 1,
+//         "branch_data.address": 1,
+//         // "customer_data.name": 1,
+//       },
+//     },
+//     {
+//       $sort: { order_no: 1 },
+//     },
+//     {
+//       $skip: startIndex,
+//     },
+//     {
+//       $limit: limit,
+//     },
+//   ]);
 
-  console.log("data", data);
-  res.status(200).json({
-    success: true,
-    message: "successful",
-    data: data,
-    totalData: totalData,
-    pageNo: page,
-    limit: limit,
-  });
-});
+//   console.log("data", data);
+//   res.status(200).json({
+//     success: true,
+//     message: "successful",
+//     data: data,
+//     totalData: totalData,
+//     pageNo: page,
+//     limit: limit,
+//   });
+// });
 
 // const getById = catchAsyncError(async (req, res, next) => {
 //   const id = req.params.id;
@@ -247,6 +247,229 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
 //   }
 //   res.send({ message: "success", status: 200, data: data });
 // });
+const getDataWithPagination = catchAsyncError(async (req, res, next) => {
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 10;
+  const startIndex = (page - 1) * limit;
+
+  const startDate = req.query.startDate;
+  const endDate = req.query.endDate;
+
+  let query = {};
+
+  if (req.query.model_id) {
+    query.model_id = new mongoose.Types.ObjectId(req.query.model_id);
+  }
+  if (req.query.status) {
+    query.status = req.query.status === "true";
+  }
+  if (req.query.device_id) {
+    query.device_id = new mongoose.Types.ObjectId(req.query.device_id);
+  }
+  if (req.query.brand_id) {
+    query.brand_id = new mongoose.Types.ObjectId(req.query.brand_id);
+  }
+  if (req.query.branch_id) {
+    query.branch_id = {
+      $in: [new mongoose.Types.ObjectId(req.query.branch_id)],
+    };
+  }
+  if (req.query.order_no && !isNaN(req.query.order_no)) {
+    query.order_no = parseInt(req.query.order_no);
+  }
+
+  if (startDate && endDate) {
+    query.created_at = {
+      $gte: formatDate(startDate, "start", false),
+      $lte: formatDate(endDate, "end", false),
+    };
+  } else if (startDate) {
+    query.created_at = {
+      $gte: formatDate(startDate, "start", false),
+    };
+  } else if (endDate) {
+    query.created_at = {
+      $lte: formatDate(endDate, "end", false),
+    };
+  }
+
+  const totalData = await serviceModel.countDocuments(query);
+
+  const data = await serviceModel.aggregate([
+    { $match: query },
+
+    // Lookups
+    {
+      $lookup: {
+        from: "devices",
+        localField: "device_id",
+        foreignField: "_id",
+        as: "device_data",
+      },
+    },
+    {
+      $lookup: {
+        from: "brands",
+        localField: "brand_id",
+        foreignField: "_id",
+        as: "brand_data",
+      },
+    },
+    {
+      $lookup: {
+        from: "branches",
+        localField: "branch_id",
+        foreignField: "_id",
+        as: "branch_data",
+      },
+    },
+    {
+      $lookup: {
+        from: "models",
+        localField: "model_id",
+        foreignField: "_id",
+        as: "model_data",
+      },
+    },
+
+    // Handle repair_info
+    {
+      $unwind: {
+        path: "$repair_info",
+        preserveNullAndEmptyArrays: true,
+      },
+    },
+    {
+      $lookup: {
+        from: "products",
+        localField: "repair_info.product_id",
+        foreignField: "_id",
+        as: "repair_info.product_data",
+      },
+    },
+    {
+      $lookup: {
+        from: "product_variations",
+        localField: "repair_info.product_variation_id",
+        foreignField: "_id",
+        as: "repair_info.product_variation_data",
+      },
+    },
+    {
+      $unwind: {
+        path: "$repair_info.product_data",
+        preserveNullAndEmptyArrays: true,
+      },
+    },
+    {
+      $unwind: {
+        path: "$repair_info.product_variation_data",
+        preserveNullAndEmptyArrays: true,
+      },
+    },
+
+    // Sort
+    {
+      $sort: { order_no: 1 },
+    },
+
+    // Pagination
+    { $skip: startIndex },
+    { $limit: limit },
+
+    // Group back to array
+    {
+      $group: {
+        _id: "$_id",
+        doc: { $first: "$$ROOT" },
+        repair_info: { $push: "$repair_info" },
+      },
+    },
+    {
+      $replaceRoot: {
+        newRoot: {
+          $mergeObjects: ["$doc", { repair_info: "$repair_info" }],
+        },
+      },
+    },
+
+    // Final Projection
+    // {
+    //   $project: {
+    //     _id: 1,
+    //     title: 1,
+    //     image: 1,
+    //     device_id: 1,
+    //     model_id: 1,
+    //     branch_id: 1,
+    //     brand_id: 1,
+    //     order_no: 1,
+    //     description: 1,
+    //     repair_by: 1,
+    //     steps: 1,
+    //     repair_info: 1,
+    //     remarks: 1,
+    //     status: 1,
+    //     created_by: 1,
+    //     created_at: 1,
+    //     updated_by: 1,
+    //     updated_at: 1,
+    //     "device_data.name": 1,
+    //     "device_data.image": 1,
+    //     "model_data.name": 1,
+    //     "model_data.image": 1,
+    //     "brand_data.name": 1,
+    //     "branch_data.name": 1,
+    //     "branch_data._id": 1,
+    //     "branch_data.is_main_branch": 1,
+    //     "branch_data.address": 1,
+    //     "repair_info.product_data": 1,
+    //     "repair_info.product_variation_data": 1,
+    //   },
+    // },
+    {
+      $project: {
+        _id: 1,
+        title: 1,
+        image: 1,
+        device_id: 1,
+        model_id: 1,
+        branch_id: 1,
+        brand_id: 1,
+        order_no: 1,
+        description: 1,
+        repair_by: 1,
+        steps: 1,
+        repair_info: 1, // include all of repair_info
+        remarks: 1,
+        status: 1,
+        created_by: 1,
+        created_at: 1,
+        updated_by: 1,
+        updated_at: 1,
+        "device_data.name": 1,
+        "device_data.image": 1,
+        "model_data.name": 1,
+        "model_data.image": 1,
+        "brand_data.name": 1,
+        "branch_data.name": 1,
+        "branch_data._id": 1,
+        "branch_data.is_main_branch": 1,
+        "branch_data.address": 1,
+      },
+    },
+  ]);
+
+  res.status(200).json({
+    success: true,
+    message: "successful",
+    data: data,
+    totalData: totalData,
+    pageNo: page,
+    limit: limit,
+  });
+});
+
 const getById = catchAsyncError(async (req, res, next) => {
   const id = req.params.id;
   const data = await serviceModel.aggregate([
