@@ -22,9 +22,9 @@ const supplierSchema = mongoose.Schema({
   },
   email: {
     type: String,
-    validate: [validator.isEmail, "Please Enter a valid Email"],
+    // validate: [validator.isEmail, "Please Enter a valid Email"],
     trim: true,
-    unique: true,
+    // unique: true,
     default: null,
   },
   address: {
