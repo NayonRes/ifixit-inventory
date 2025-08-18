@@ -257,8 +257,14 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
 
   let query = {};
 
+  // if (req.query.model_id) {
+  //   query.model_id = new mongoose.Types.ObjectId(req.query.model_id);
+  // }
+
   if (req.query.model_id) {
-    query.model_id = new mongoose.Types.ObjectId(req.query.model_id);
+    query.model_id = {
+      $in: [new mongoose.Types.ObjectId(req.query.model_id)],
+    };
   }
   if (req.query.status) {
     query.status = req.query.status === "true";
@@ -370,7 +376,7 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
 
     // Sort
     {
-      $sort: { order_no: 1 },
+      $sort: { created_at: 1 },
     },
 
     // Pagination

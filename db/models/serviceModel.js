@@ -19,11 +19,18 @@ const serviceSchema = mongoose.Schema({
       type: String,
     },
   },
-  model_id: {
-    type: Schema.Types.ObjectId,
-    ref: "modelModel",
-    required: [true, "Please enter select model"],
-  },
+  // model_id: {
+  //   type: Schema.Types.ObjectId,
+  //   ref: "modelModel",
+  //   required: [true, "Please enter select model"],
+  // },
+  model_id: [
+    {
+      type: Schema.Types.ObjectId,
+      ref: "modelModel",
+      required: [true, "Please select at least one model"],
+    },
+  ],
   device_id: {
     type: Schema.Types.ObjectId,
     ref: "deviceModel",
