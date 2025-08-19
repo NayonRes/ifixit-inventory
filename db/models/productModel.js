@@ -33,14 +33,20 @@ const productSchema = mongoose.Schema({
     ref: "modelModel",
     required: [true, "Please enter select model"],
   },
-
+  attachable_models: [
+    {
+      type: Schema.Types.ObjectId,
+      ref: "modelModel",
+      required: [true, "Please select at least one model"],
+    },
+  ],
   price: {
     type: Number,
     // required: [true, "Please enter the product name"],
 
     default: 0,
   },
-   
+
   warranty: {
     type: Number,
     // required: [true, "Please enter the product price"],
