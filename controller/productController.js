@@ -43,6 +43,12 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
   if (req.query.model_id) {
     query.model_id = new mongoose.Types.ObjectId(req.query.model_id);
   }
+
+  if (req.query.attachable_models) {
+    query.attachable_models = {
+      $in: [new mongoose.Types.ObjectId(req.query.attachable_models)],
+    };
+  }
   if (parseInt(minPrice) && parseInt(maxPrice)) {
     query.price = {
       $gte: parseInt(minPrice),
@@ -137,6 +143,7 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
         images: 1,
         description: 1,
         remarks: 1,
+        attachable_models: 1,
 
         status: 1,
         created_by: 1,
@@ -247,6 +254,14 @@ const getById = catchAsyncError(async (req, res, next) => {
     },
     {
       $lookup: {
+        from: "models",
+        localField: "attachable_models",
+        foreignField: "_id",
+        as: "attachable_models_data",
+      },
+    },
+    {
+      $lookup: {
         from: "product_variations",
         localField: "_id",
         foreignField: "product_id",
@@ -267,6 +282,8 @@ const getById = catchAsyncError(async (req, res, next) => {
         price: 1,
         images: 1,
         remarks: 1,
+        attachable_models: 1,
+
         status: 1,
         created_by: 1,
         created_at: 1,
@@ -276,6 +293,8 @@ const getById = catchAsyncError(async (req, res, next) => {
         "brand_data.name": 1,
         "device_data.name": 1,
         "model_data.name": 1,
+        "attachable_models_data._id": 1,
+        "attachable_models_data.name": 1,
         variation_data: 1,
       },
     },
