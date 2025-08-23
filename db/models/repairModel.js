@@ -114,9 +114,15 @@ const repairSchema = mongoose.Schema({
       type: String,
     },
     checklist: [
+      // {
+      //   name: { type: String }, // Ensure 'key' is a string and required
+      //   status: { type: String }, // Ensure 'isFunctional' is a boolean and required
+      // },
+
       {
-        name: { type: String }, // Ensure 'key' is a string and required
-        status: { type: String }, // Ensure 'isFunctional' is a boolean and required
+        type: Schema.Types.ObjectId,
+        ref: "issueModel",
+        // required: [true, "Please select at least one issue"],
       },
     ],
   },
