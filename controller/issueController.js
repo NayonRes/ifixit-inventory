@@ -84,8 +84,8 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
     },
 
     // Pagination
-    { $skip: startIndex },
-    { $limit: limit },
+    // { $skip: startIndex },
+    // { $limit: limit },
 
     // Group back to array
 
