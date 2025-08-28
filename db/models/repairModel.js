@@ -55,11 +55,13 @@ const repairSchema = mongoose.Schema({
   repair_by: {
     type: Schema.Types.ObjectId,
     ref: "userModel",
-    required: [true, "Please enter select brand"],
+    default: null,
+    set: (v) => (v === "" ? null : v),
+    // required: [true, "Please enter select brand"],
   },
   repair_status: {
     type: String,
-    required: [true, "Please enter repair status"],
+    // required: [true, "Please enter repair status"],
   },
 
   issues: [
