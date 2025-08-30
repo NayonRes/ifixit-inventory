@@ -114,6 +114,226 @@ const getAllStock = catchAsyncError(async (req, res, next) => {
     totalData: totalData,
   });
 });
+const getDataWithGroupByUpdateDate2 = catchAsyncError(
+  async (req, res, next) => {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const startIndex = (page - 1) * limit;
+
+    let query = {};
+
+    if (req.query.product_id) {
+      query.product_id = new mongoose.Types.ObjectId(req.query.product_id);
+    }
+    if (req.query.product_variation_id) {
+      query.product_variation_id = new mongoose.Types.ObjectId(
+        req.query.product_variation_id
+      );
+    }
+    if (req.query.branch_id) {
+      query.branch_id = new mongoose.Types.ObjectId(req.query.branch_id);
+    }
+    if (req.query.purchase_id) {
+      query.purchase_id = new mongoose.Types.ObjectId(req.query.purchase_id);
+    }
+    if (req.query.stock_status) {
+      query.stock_status = new RegExp(`^${req.query.stock_status}$`, "i");
+    }
+    if (req.query.sku_number && !isNaN(req.query.sku_number)) {
+      query.sku_number = Number(req.query.sku_number);
+    } else if (req.query.sku_number) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid sku number provided",
+      });
+    }
+
+    const data = await stockModel.aggregate([
+      { $match: query },
+
+      // 🔹 Lookup relations (can still keep your lookups if needed)
+      {
+        $lookup: {
+          from: "products",
+          localField: "product_id",
+          foreignField: "_id",
+          as: "product_data",
+        },
+      },
+
+      // ... other $lookups here ...
+
+      // 🔹 Group by date (YYYY-MM-DD)
+      {
+        $group: {
+          _id: {
+            $dateToString: { format: "%Y-%m-%d", date: "$updated_at" },
+          },
+          stocks: { $push: "$$ROOT" }, // all docs for that date
+          count: { $sum: 1 }, // how many docs that date
+        },
+      },
+
+      // 🔹 Sort by date descending
+      { $sort: { _id: -1 } },
+
+      // 🔹 Pagination using facet
+      {
+        $facet: {
+          metadata: [{ $count: "total" }],
+          data: [{ $skip: startIndex }, { $limit: limit }],
+        },
+      },
+    ]);
+
+    const totalData = data[0]?.metadata[0]?.total || 0;
+    const groupedData = data[0]?.data || [];
+
+    res.status(200).json({
+      success: true,
+      message: "successful",
+      data: groupedData,
+      totalData,
+      pageNo: page,
+      limit,
+    });
+  }
+);
+const getDataWithGroupByUpdateDate = catchAsyncError(async (req, res, next) => {
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 10;
+  const startIndex = (page - 1) * limit;
+
+  let query = {};
+
+  if (req.query.product_id) {
+    query.product_id = new mongoose.Types.ObjectId(req.query.product_id);
+  }
+  if (req.query.product_variation_id) {
+    query.product_variation_id = new mongoose.Types.ObjectId(
+      req.query.product_variation_id
+    );
+  }
+  if (req.query.branch_id) {
+    query.branch_id = new mongoose.Types.ObjectId(req.query.branch_id);
+  }
+  if (req.query.purchase_id) {
+    query.purchase_id = new mongoose.Types.ObjectId(req.query.purchase_id);
+  }
+  if (req.query.stock_status) {
+    query.stock_status = new RegExp(`^${req.query.stock_status}$`, "i");
+  }
+  if (req.query.sku_number && !isNaN(req.query.sku_number)) {
+    query.sku_number = Number(req.query.sku_number);
+  } else if (req.query.sku_number) {
+    return res.status(400).json({
+      success: false,
+      message: "Invalid sku number provided",
+    });
+  }
+
+  const data = await stockModel.aggregate([
+    { $match: query },
+
+    // =============== LOOKUPS ==================
+    {
+      $lookup: {
+        from: "products",
+        localField: "product_id",
+        foreignField: "_id",
+        as: "product_data",
+      },
+    },
+    {
+      $lookup: {
+        from: "product_variations",
+        localField: "product_variation_id",
+        foreignField: "_id",
+        as: "product_variation_data",
+      },
+    },
+    {
+      $lookup: {
+        from: "branches",
+        localField: "branch_id",
+        foreignField: "_id",
+        as: "branch_data",
+      },
+    },
+    {
+      $lookup: {
+        from: "branches",
+        localField: "purchase_branch_id",
+        foreignField: "_id",
+        as: "purchase_branch_data",
+      },
+    },
+    {
+      $lookup: {
+        from: "purchases",
+        localField: "purchase_id",
+        foreignField: "_id",
+        as: "purchase_data",
+      },
+    },
+    {
+      $lookup: {
+        from: "purchase_products",
+        let: {
+          purchase_id: "$purchase_id",
+          product_variation_id: "$product_variation_id",
+        },
+        pipeline: [
+          {
+            $match: {
+              $expr: {
+                $and: [
+                  { $eq: ["$purchase_id", "$$purchase_id"] },
+                  { $eq: ["$product_variation_id", "$$product_variation_id"] },
+                ],
+              },
+            },
+          },
+        ],
+        as: "purchase_products_data",
+      },
+    },
+
+    // =============== GROUP BY DATE ==================
+    {
+      $group: {
+        _id: {
+          $dateToString: { format: "%Y-%m-%d", date: "$updated_at" },
+        },
+        stocks: { $push: "$$ROOT" }, // keep full doc with lookups
+        count: { $sum: 1 },
+      },
+    },
+
+    // =============== SORT BY DATE DESC ==================
+    { $sort: { _id: -1 } },
+
+    // =============== PAGINATION ==================
+    {
+      $facet: {
+        metadata: [{ $count: "total" }],
+        data: [{ $skip: startIndex }, { $limit: limit }],
+      },
+    },
+  ]);
+
+  const totalData = data[0]?.metadata[0]?.total || 0;
+  const groupedData = data[0]?.data || [];
+
+  res.status(200).json({
+    success: true,
+    message: "successful",
+    data: groupedData,
+    totalData,
+    pageNo: page,
+    limit,
+  });
+});
 
 const getDataWithPagination = catchAsyncError(async (req, res, next) => {
   const page = parseInt(req.query.page) || 1;
@@ -1018,6 +1238,7 @@ const deleteData = catchAsyncError(async (req, res, next) => {
 });
 
 module.exports = {
+  getDataWithGroupByUpdateDate,
   getDataWithPagination,
   getAllStock,
   getById,

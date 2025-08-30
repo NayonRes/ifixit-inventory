@@ -1,5 +1,6 @@
 var express = require("express");
 const {
+  getDataWithGroupByUpdateDate,
   getDataWithPagination,
   getAllStock,
   getById,
@@ -13,6 +14,13 @@ const { isAuthenticatedUser, authorizeRoles } = require("../middleware/auth");
 
 var router = express.Router();
 
+router
+  .route("/group-by-list")
+  .get(
+    isAuthenticatedUser,
+    authorizeRoles("stock_list"),
+    getDataWithGroupByUpdateDate
+  );
 router
   .route("/")
   .get(
