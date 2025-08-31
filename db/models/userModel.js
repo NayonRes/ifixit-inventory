@@ -167,8 +167,7 @@ const permissions = [
   "add_device_brand",
   "update_device_brand",
   "view_device_brand_details",
-  
-  
+
   "device_list",
   "add_device",
   "update_device",
@@ -179,6 +178,12 @@ const permissions = [
   "update_model",
   "view_model_details",
   // "model_dropdown_list",
+
+  "issue_list",
+  "add_issue",
+  "update_issue",
+  "view_issue_details",
+
   "product_list",
   "add_product",
   "update_product",

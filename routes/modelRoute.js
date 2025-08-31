@@ -51,7 +51,6 @@ router
 router.route("/public/get-by-device").get(getByDeviceId);
 router.route("/get-by-device/").get(
   isAuthenticatedUser,
-
   getByDeviceId
 );
 router

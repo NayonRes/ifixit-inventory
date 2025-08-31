@@ -281,6 +281,32 @@ const PermissionData = [
     module_name: "Expense",
   },
 
+  // Issue
+  {
+    order_no: 1,
+    name: "Issue List",
+    permission_name: "issue_list",
+    module_name: "Issue",
+  },
+  {
+    order_no: 2,
+    name: "Add Issue",
+    permission_name: "add_issue",
+    module_name: "Issue",
+  },
+  {
+    order_no: 3,
+    name: "Update Issue",
+    permission_name: "update_issue",
+    module_name: "Issue",
+  },
+  {
+    order_no: 4,
+    name: "View Issue Details",
+    permission_name: "view_issue_details",
+    module_name: "Issue",
+  },
+
   // Model
   {
     order_no: 1,

@@ -42,7 +42,7 @@ const getParentDropdown = catchAsyncError(async (req, res, next) => {
 
   // const data = await modelModel.find().lean();
   const data = await modelModel
-    .find({}, "name model_id")
+    .find({}, "name model_id order_no")
     .sort({ order_no: -1 })
     .lean();
 
