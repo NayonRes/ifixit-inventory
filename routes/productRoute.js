@@ -1,5 +1,6 @@
 var express = require("express");
 const {
+  getDataWithBranchAvaiableProducts,
   getDataWithPagination,
   lightSearchWithPagination,
   getById,
@@ -12,12 +13,21 @@ const { isAuthenticatedUser, authorizeRoles } = require("../middleware/auth");
 
 var router = express.Router();
 
+
 router
   .route("/")
   .get(
     isAuthenticatedUser,
     authorizeRoles("spare_parts_list"),
     getDataWithPagination
+  );
+
+  router
+  .route("/branch-stocks")
+  .get(
+    isAuthenticatedUser,
+    authorizeRoles("spare_parts_list"),
+    getDataWithBranchAvaiableProducts
   );
 // router
 //   .route("/lightSearch")
