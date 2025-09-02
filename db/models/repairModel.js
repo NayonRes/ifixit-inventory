@@ -78,6 +78,9 @@ const repairSchema = mongoose.Schema({
         type: Number,
         default: 0,
       },
+      remarks: {
+        type: String,
+      },
       status: {
         type: Boolean,
         default: true,
@@ -115,6 +118,25 @@ const repairSchema = mongoose.Schema({
         type: Number,
         default: 0,
       },
+      remarks: {
+        type: String,
+      },
+      status: {
+        type: Boolean,
+        default: true,
+      },
+      created_by: {
+        type: String,
+        trim: true,
+        default: "Admin",
+      },
+      created_at: { type: Date, default: Date.now },
+      updated_by: {
+        type: String,
+        trim: true,
+        default: "N/A",
+      },
+      updated_at: { type: Date, default: Date.now },
     },
   ],
   stock_sku: {
