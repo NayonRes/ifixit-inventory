@@ -6,6 +6,8 @@ const jwt = require("jsonwebtoken");
 const mongoose = require("mongoose");
 const customerModel = require("../db/models/customerModel");
 const formatDate = require("../utils/formatDate");
+const repairServiceHistoryModel = require("../db/models/repairServiceHistoryModel");
+const repairProductHistoryModel = require("../db/models/repairProductHistoryModel");
 
 const getDataWithPagination = catchAsyncError(async (req, res, next) => {
   const page = parseInt(req.query.page) || 1;
@@ -599,97 +601,424 @@ const getById = catchAsyncError(async (req, res, next) => {
   });
 });
 
+// const createData = catchAsyncError(async (req, res, next) => {
+//   console.log("req.files--------", req.files);
+//   console.log("req.body------------", req.body);
+
+//   let newIdserial;
+//   let newIdNo;
+//   let newId;
+//   const lastDoc = await repairModel.find().sort({ _id: -1 });
+
+//   if (lastDoc.length > 0) {
+//     newIdserial = lastDoc[0].repair_id.slice(0, 2);
+//     newIdNo = parseInt(lastDoc[0].repair_id.slice(2)) + 1;
+//     newId = newIdserial.concat(newIdNo);
+//   } else {
+//     newId = "RN10000";
+//   }
+
+//   const { token } = req.cookies;
+//   let decodedData = jwt.verify(token, process.env.JWT_SECRET);
+
+//   let newData = {
+//     ...req.body,
+//     repair_id: newId,
+//     created_by: decodedData?.user?.email,
+//   };
+//   const data = await repairModel.create(newData);
+
+//   console.log("data *************************", data._id);
+//   console.log("data *************************", data);
+//   // creating status histoy
+//   let newStatusData = {
+//     user_id: new mongoose.Types.ObjectId(req.body?.repair_by),
+//     repair_id: new mongoose.Types.ObjectId(data._id),
+
+//     repair_status_name: req.body?.repair_status,
+//     created_by: decodedData?.user?.email,
+//   };
+//   const statusData = await repairStatusHistoryModel.create(newStatusData);
+//   // creating issue/service histoy
+//   let newServiceData = {
+//     repair_id: new mongoose.Types.ObjectId(data._id),
+
+//     service_info: Array.isArray(req.body?.issues)
+//       ? req.body.issues.map((issue) => ({
+//           ...issue,
+//           service_id: new mongoose.Types.ObjectId(issue.service_id),
+//         }))
+//       : [],
+
+//     created_by: decodedData?.user?.email,
+//   };
+
+//   const serviceData = await repairServiceHistoryModel.create(newServiceData);
+//   // creating product histoy
+//   let newProductData = {
+//     repair_id: new mongoose.Types.ObjectId(data._id),
+
+//     product_details: Array.isArray(req.body?.issues)
+//       ? req.body.issues.map((product) => ({
+//           ...product,
+//           product_id: new mongoose.Types.ObjectId(product.product_id),
+//           product_variation_id: new mongoose.Types.ObjectId(
+//             product.product_variation_id
+//           ),
+//         }))
+//       : [],
+
+//     created_by: decodedData?.user?.email,
+//   };
+
+//   const productData = await repairProductHistoryModel.create(newProductData);
+
+//   res.send({
+//     message: "success",
+//     status: 201,
+//     data: data,
+//     statusData: statusData,
+//     serviceData: serviceData,
+//     productData: productData,
+//   });
+// });
+
+// const updateData = async (req, res, next) => {
+//   try {
+//     const { token } = req.cookies;
+//     let data = await repairModel.findById(req.params.id);
+
+//     if (!data) {
+//       console.log("if");
+//       return next(new ErrorHander("No data found", 404));
+//     }
+
+//     let decodedData = jwt.verify(token, process.env.JWT_SECRET);
+
+//     const newData = {
+//       ...req.body,
+//       updated_by: decodedData?.user?.email,
+//       updated_at: new Date(),
+//     };
+//     console.log("newData", newData);
+//     let updateData = await repairModel.findByIdAndUpdate(
+//       req.params.id,
+//       newData,
+//       {
+//         new: true,
+//         runValidators: true,
+//         useFindAndModified: false,
+//       }
+//     );
+
+//     res.status(200).json({
+//       success: true,
+//       message: "Update successfully",
+//       data: updateData,
+//     });
+//   } catch (error) {
+//     console.log("error", error);
+//     res.send({ message: "error", status: 400, error: error });
+//   }
+// };
+
+// ======================
+// Helper functions
+// ======================
+async function createStatusHistory(session, req, repairId, decodedData) {
+  console.log("req.body.repair_status:", req.body.repair_status);
+  const newStatusData = {
+    user_id: new mongoose.Types.ObjectId(req.body?.repair_by),
+    repair_id: new mongoose.Types.ObjectId(repairId),
+    repair_status_name: req.body?.repair_status,
+    remarks: req.body?.repair_status_remarks,
+    created_by: decodedData?.user?.email,
+  };
+
+  const statusData = await repairStatusHistoryModel.create([newStatusData], {
+    session,
+  });
+
+  console.log("newStatusData", newStatusData);
+  console.log("statusData", statusData);
+
+  if (!statusData || statusData.length === 0) {
+    return null;
+  }
+  return statusData[0];
+}
+
+async function createServiceHistory(session, req, repairId, decodedData) {
+  const newServiceData = {
+    repair_id: new mongoose.Types.ObjectId(repairId),
+    service_info: Array.isArray(req.body?.issues)
+      ? req.body.issues.map((issue) => ({
+          ...issue,
+          service_id: new mongoose.Types.ObjectId(issue.service_id),
+        }))
+      : [],
+    created_by: decodedData?.user?.email,
+  };
+
+  const serviceData = await repairServiceHistoryModel.create([newServiceData], {
+    session,
+  });
+  if (!serviceData || serviceData.length === 0) {
+    return null;
+  }
+  return serviceData[0];
+}
+
+async function createProductHistory(session, req, repairId, decodedData) {
+  const newProductData = {
+    repair_id: new mongoose.Types.ObjectId(repairId),
+    product_details: Array.isArray(req.body?.product_details)
+      ? req.body.product_details.map((product) => ({
+          ...product,
+          product_id: new mongoose.Types.ObjectId(product.product_id),
+          product_variation_id: new mongoose.Types.ObjectId(
+            product.product_variation_id
+          ),
+        }))
+      : [],
+    created_by: decodedData?.user?.email,
+  };
+
+  const productData = await repairProductHistoryModel.create([newProductData], {
+    session,
+  });
+  if (!productData || productData.length === 0) {
+    return null;
+  }
+  return productData[0];
+}
+
+// ======================
+// Main function
+// ======================
 const createData = catchAsyncError(async (req, res, next) => {
-  console.log("req.files--------", req.files);
-  console.log("req.body------------", req.body);
+  // console.log("req.body.product_details:", req.body.product_details);
 
-  let newIdserial;
-  let newIdNo;
-  let newId;
+  // Step 0: Generate new repair_id
   const lastDoc = await repairModel.find().sort({ _id: -1 });
-
+  let newId;
   if (lastDoc.length > 0) {
-    newIdserial = lastDoc[0].repair_id.slice(0, 2);
-    newIdNo = parseInt(lastDoc[0].repair_id.slice(2)) + 1;
-    newId = newIdserial.concat(newIdNo);
+    const serial = lastDoc[0].repair_id.slice(0, 2);
+    const number = parseInt(lastDoc[0].repair_id.slice(2)) + 1;
+    newId = serial.concat(number);
   } else {
     newId = "RN10000";
   }
 
+  // Step 1: Decode JWT
   const { token } = req.cookies;
-  let decodedData = jwt.verify(token, process.env.JWT_SECRET);
+  const decodedData = jwt.verify(token, process.env.JWT_SECRET);
 
-  let newData = {
-    ...req.body,
-    repair_id: newId,
-    created_by: decodedData?.user?.email,
-  };
-  const data = await repairModel.create(newData);
+  // Step 2: Start session
+  const session = await mongoose.startSession();
 
-  console.log("data *************************", data._id);
-  console.log("data *************************", data);
-
-  let newStatusData = {
-    user_id: new mongoose.Types.ObjectId(req.body?.repair_by),
-    repair_id: new mongoose.Types.ObjectId(data._id),
-
-    repair_status_name: req.body?.repair_status,
-    created_by: decodedData?.user?.email,
-  };
-  const statusData = await repairStatusHistoryModel.create(newStatusData);
-  res.send({
-    message: "success",
-    status: 201,
-    data: data,
-    statusData: statusData,
-  });
-});
-
-const updateData = async (req, res, next) => {
   try {
-    const { token } = req.cookies;
-    let data = await repairModel.findById(req.params.id);
+    await session.withTransaction(async () => {
+      // 2a: Create repair
+      const newRepairData = {
+        ...req.body,
+        repair_id: newId,
+        created_by: decodedData?.user?.email,
+      };
+      const data = await repairModel.create([newRepairData], { session });
+      const repair = data[0];
 
-    if (!data) {
-      console.log("if");
-      return next(new ErrorHander("No data found", 404));
-    }
-
-    let decodedData = jwt.verify(token, process.env.JWT_SECRET);
-
-    const newData = {
-      ...req.body,
-      updated_by: decodedData?.user?.email,
-      updated_at: new Date(),
-    };
-    console.log("newData", newData);
-    let updateData = await repairModel.findByIdAndUpdate(
-      req.params.id,
-      newData,
-      {
-        new: true,
-        runValidators: true,
-        useFindAndModified: false,
+      if (!repair) {
+        await session.abortTransaction();
+        session.endSession();
+        return res.status(500).json({ message: "Failed to create repair" });
       }
-    );
 
-    // let newStatusData = {
-    //   user_id: new mongoose.Types.ObjectId(req.body?.repair_by),
-    //   repair_id: new mongoose.Types.ObjectId(data._id),
-    //   repair_status_name: req.body?.repair_status,
-    //   created_by: decodedData?.user?.email,
-    // };
-    // const statusData = await repairStatusHistoryModel.create(newStatusData);
-    res.status(200).json({
-      success: true,
-      message: "Update successfully",
-      data: updateData,
+      // 2b: Create status history
+      const statusData = await createStatusHistory(
+        session,
+        req,
+        repair._id,
+        decodedData
+      );
+      if (!statusData) {
+        await session.abortTransaction();
+        session.endSession();
+        return res
+          .status(404)
+          .json({ message: "Failed to save status history" });
+      }
+
+      // 2c: Create service history (only if issues exist)
+      let serviceData = null;
+      if (Array.isArray(req.body?.issues) && req.body.issues.length > 0) {
+        serviceData = await createServiceHistory(
+          session,
+          req,
+          repair._id,
+          decodedData
+        );
+        if (!serviceData) {
+          await session.abortTransaction();
+          session.endSession();
+          return res
+            .status(404)
+            .json({ message: "Failed to save service history" });
+        }
+      }
+
+      // 2d: Create product history (only if product_details exist)
+      let productData = null;
+      if (
+        Array.isArray(req.body?.product_details) &&
+        req.body.product_details.length > 0
+      ) {
+        productData = await createProductHistory(
+          session,
+          req,
+          repair._id,
+          decodedData
+        );
+        if (!productData || productData.length === 0) {
+          await session.abortTransaction();
+          session.endSession();
+          return res
+            .status(404)
+            .json({ message: "Failed to save product history" });
+        }
+      }
+
+      // 2e: Send success response
+      return res.status(201).json({
+        message: "Success",
+        data: repair,
+        statusData,
+        serviceData,
+        productData,
+      });
     });
   } catch (error) {
-    console.log("error", error);
-    res.send({ message: "error", status: 400, error: error });
+    console.error("Transaction failed:", error);
+    next(error);
+  } finally {
+    session.endSession();
   }
-};
+});
+
+const updateData = catchAsyncError(async (req, res, next) => {
+  const { token } = req.cookies;
+
+  // Step 0: Find existing repair
+  const existingRepair = await repairModel.findById(req.params.id);
+  if (!existingRepair) {
+    return next(new ErrorHander("No data found", 404));
+  }
+
+  const decodedData = jwt.verify(token, process.env.JWT_SECRET);
+
+  const session = await mongoose.startSession();
+
+  try {
+    await session.withTransaction(async () => {
+      // 1: Update repair
+      const updatedData = {
+        ...req.body,
+        updated_by: decodedData?.user?.email,
+        updated_at: new Date(),
+      };
+
+      const updatedRepair = await repairModel.findByIdAndUpdate(
+        req.params.id,
+        updatedData,
+        {
+          new: true,
+          runValidators: true,
+          useFindAndModify: false,
+          session,
+        }
+      );
+
+      if (!updatedRepair) {
+        await session.abortTransaction();
+        session.endSession();
+        return res.status(500).json({ message: "Failed to update repair" });
+      }
+
+      // 2: Status history
+      const statusData = await createStatusHistory(
+        session,
+        req,
+        updatedRepair._id,
+        decodedData
+      );
+      if (!statusData) {
+        await session.abortTransaction();
+        session.endSession();
+        return res
+          .status(404)
+          .json({ message: "Failed to save status history" });
+      }
+
+      // 3: Service history
+      let serviceData = null;
+      if (Array.isArray(req.body?.issues) && req.body.issues.length > 0) {
+        serviceData = await createServiceHistory(
+          session,
+          req,
+          updatedRepair._id,
+          decodedData
+        );
+        if (!serviceData) {
+          await session.abortTransaction();
+          session.endSession();
+          return res
+            .status(404)
+            .json({ message: "Failed to save service history" });
+        }
+      }
+
+      // 4: Product history
+      let productData = null;
+      if (
+        Array.isArray(req.body?.product_details) &&
+        req.body.product_details.length > 0
+      ) {
+        productData = await createProductHistory(
+          session,
+          req,
+          updatedRepair._id,
+          decodedData
+        );
+        if (!productData || productData.length === 0) {
+          await session.abortTransaction();
+          session.endSession();
+          return res
+            .status(404)
+            .json({ message: "Failed to save product history" });
+        }
+      }
+
+      // 5: Success response
+      return res.status(200).json({
+        success: true,
+        message: "Update successfully",
+        data: updatedRepair,
+        statusData,
+        serviceData,
+        productData,
+      });
+    });
+  } catch (error) {
+    console.log("Transaction failed:", error);
+    res.status(400).json({
+      success: false,
+      message: "Update failed",
+      error: error.message || error,
+    });
+  } finally {
+    session.endSession();
+  }
+});
 
 const deleteData = catchAsyncError(async (req, res, next) => {
   let data = await repairModel.findById(req.params.id);
