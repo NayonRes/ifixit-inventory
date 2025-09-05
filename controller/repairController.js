@@ -331,54 +331,102 @@ const getById = catchAsyncError(async (req, res, next) => {
         as: "warranties_data",
       },
     },
+    {
+      $lookup: {
+        from: "repair_service_histories",
+        localField: "_id",
+        foreignField: "repair_id",
+        as: "repair_service_history_data",
+        pipeline: [
+          // Join created_by user
+          {
+            $lookup: {
+              from: "users",
+              let: { createdEmail: "$created_by" },
+              pipeline: [
+                { $match: { $expr: { $eq: ["$email", "$$createdEmail"] } } },
+                { $project: { _id: 1, name: 1, email: 1 } },
+              ],
+              as: "created_user",
+            },
+          },
+          {
+            $unwind: {
+              path: "$created_user",
+              preserveNullAndEmptyArrays: true,
+            },
+          },
 
-    // {
-    //   $lookup: {
-    //     from: "repair_attached_spareparts",
-    //     localField: "_id",
-    //     foreignField: "repair_id",
-    //     as: "repair_attached_spareparts_data",
-    //     pipeline: [
-    //       // Join created_by user
-    //       {
-    //         $lookup: {
-    //           from: "users",
-    //           let: { createdEmail: "$created_by" },
-    //           pipeline: [
-    //             { $match: { $expr: { $eq: ["$email", "$$createdEmail"] } } },
-    //             { $project: { _id: 1, name: 1, email: 1 } },
-    //           ],
-    //           as: "created_user",
-    //         },
-    //       },
-    //       {
-    //         $unwind: {
-    //           path: "$created_user",
-    //           preserveNullAndEmptyArrays: true,
-    //         },
-    //       },
+          // Join updated_by user
+          {
+            $lookup: {
+              from: "users",
+              let: { updatedEmail: "$updated_by" },
+              pipeline: [
+                { $match: { $expr: { $eq: ["$email", "$$updatedEmail"] } } },
+                { $project: { _id: 1, name: 1, email: 1 } },
+              ],
+              as: "updated_user",
+            },
+          },
+          {
+            $unwind: {
+              path: "$updated_user",
+              preserveNullAndEmptyArrays: true,
+            },
+          },
+        ],
+      },
+    },
 
-    //       // Join updated_by user
-    //       {
-    //         $lookup: {
-    //           from: "users",
-    //           let: { updatedEmail: "$updated_by" },
-    //           pipeline: [
-    //             { $match: { $expr: { $eq: ["$email", "$$updatedEmail"] } } },
-    //             { $project: { _id: 1, name: 1, email: 1 } },
-    //           ],
-    //           as: "updated_user",
-    //         },
-    //       },
-    //       {
-    //         $unwind: {
-    //           path: "$updated_user",
-    //           preserveNullAndEmptyArrays: true,
-    //         },
-    //       },
-    //     ],
-    //   },
-    // },
+    {
+      $lookup: {
+        from: "repair_product_histories",
+        localField: "_id",
+        foreignField: "repair_id",
+        as: "repair_product_history_data",
+        pipeline: [
+          // Join created_by user
+          {
+            $lookup: {
+              from: "users",
+              let: { createdEmail: "$created_by" },
+              pipeline: [
+                { $match: { $expr: { $eq: ["$email", "$$createdEmail"] } } },
+                { $project: { _id: 1, name: 1, email: 1 } },
+              ],
+              as: "created_user",
+            },
+          },
+          {
+            $unwind: {
+              path: "$created_user",
+              preserveNullAndEmptyArrays: true,
+            },
+          },
+
+          // Join updated_by user
+          {
+            $lookup: {
+              from: "users",
+              let: { updatedEmail: "$updated_by" },
+              pipeline: [
+                { $match: { $expr: { $eq: ["$email", "$$updatedEmail"] } } },
+                { $project: { _id: 1, name: 1, email: 1 } },
+              ],
+              as: "updated_user",
+            },
+          },
+          {
+            $unwind: {
+              path: "$updated_user",
+              preserveNullAndEmptyArrays: true,
+            },
+          },
+        ],
+      },
+    },
+
     {
       $lookup: {
         from: "repair_attached_spareparts",
@@ -586,6 +634,8 @@ const getById = catchAsyncError(async (req, res, next) => {
         "repair_status_history_data.user_data.designation": 1,
         repair_attached_spareparts_data: 1,
         warranties_data: 1,
+        repair_product_history_data: 1,
+        repair_service_history_data: 1,
       },
     },
   ]);
@@ -851,42 +901,42 @@ const createData = catchAsyncError(async (req, res, next) => {
 
       // 2c: Create service history (only if issues exist)
       let serviceData = null;
-      if (Array.isArray(req.body?.issues) && req.body.issues.length > 0) {
-        serviceData = await createServiceHistory(
-          session,
-          req,
-          repair._id,
-          decodedData
-        );
-        if (!serviceData) {
-          await session.abortTransaction();
-          session.endSession();
-          return res
-            .status(404)
-            .json({ message: "Failed to save service history" });
-        }
+      // if (Array.isArray(req.body?.issues) && req.body.issues.length > 0) {
+      serviceData = await createServiceHistory(
+        session,
+        req,
+        repair._id,
+        decodedData
+      );
+      if (!serviceData) {
+        await session.abortTransaction();
+        session.endSession();
+        return res
+          .status(404)
+          .json({ message: "Failed to save service history" });
       }
+      // }
 
       // 2d: Create product history (only if product_details exist)
       let productData = null;
-      if (
-        Array.isArray(req.body?.product_details) &&
-        req.body.product_details.length > 0
-      ) {
-        productData = await createProductHistory(
-          session,
-          req,
-          repair._id,
-          decodedData
-        );
-        if (!productData || productData.length === 0) {
-          await session.abortTransaction();
-          session.endSession();
-          return res
-            .status(404)
-            .json({ message: "Failed to save product history" });
-        }
+      // if (
+      //   Array.isArray(req.body?.product_details) &&
+      //   req.body.product_details.length > 0
+      // ) {
+      productData = await createProductHistory(
+        session,
+        req,
+        repair._id,
+        decodedData
+      );
+      if (!productData || productData.length === 0) {
+        await session.abortTransaction();
+        session.endSession();
+        return res
+          .status(404)
+          .json({ message: "Failed to save product history" });
       }
+      // }
 
       // 2e: Send success response
       return res.status(201).json({
@@ -961,42 +1011,42 @@ const updateData = catchAsyncError(async (req, res, next) => {
 
       // 3: Service history
       let serviceData = null;
-      if (Array.isArray(req.body?.issues) && req.body.issues.length > 0) {
-        serviceData = await createServiceHistory(
-          session,
-          req,
-          updatedRepair._id,
-          decodedData
-        );
-        if (!serviceData) {
-          await session.abortTransaction();
-          session.endSession();
-          return res
-            .status(404)
-            .json({ message: "Failed to save service history" });
-        }
+      // if (Array.isArray(req.body?.issues) && req.body.issues.length > 0) {
+      serviceData = await createServiceHistory(
+        session,
+        req,
+        updatedRepair._id,
+        decodedData
+      );
+      if (!serviceData) {
+        await session.abortTransaction();
+        session.endSession();
+        return res
+          .status(404)
+          .json({ message: "Failed to save service history" });
       }
+      // }
 
       // 4: Product history
       let productData = null;
-      if (
-        Array.isArray(req.body?.product_details) &&
-        req.body.product_details.length > 0
-      ) {
-        productData = await createProductHistory(
-          session,
-          req,
-          updatedRepair._id,
-          decodedData
-        );
-        if (!productData || productData.length === 0) {
-          await session.abortTransaction();
-          session.endSession();
-          return res
-            .status(404)
-            .json({ message: "Failed to save product history" });
-        }
+      // if (
+      //   Array.isArray(req.body?.product_details) &&
+      //   req.body.product_details.length > 0
+      // ) {
+      productData = await createProductHistory(
+        session,
+        req,
+        updatedRepair._id,
+        decodedData
+      );
+      if (!productData || productData.length === 0) {
+        await session.abortTransaction();
+        session.endSession();
+        return res
+          .status(404)
+          .json({ message: "Failed to save product history" });
       }
+      // }
 
       // 5: Success response
       return res.status(200).json({
