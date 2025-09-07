@@ -7,7 +7,7 @@ const transactionHistorySchema = mongoose.Schema({
     refPath: "transaction_source_type", // dynamic reference
     required: [true, "Please select a source ID"],
   },
-  payment_info: [
+  transaction_info: [
     {
       name: {
         type: String,
@@ -23,9 +23,10 @@ const transactionHistorySchema = mongoose.Schema({
     trim: true,
     enum: ["repairModel", "warrantyModel"], // list allowed models
   },
-  is_credit: {
-    type: Boolean,
-    default: true,
+  transaction_type: {
+    type: String,
+    enum: ["credit", "debit"],
+    default: "credit",
   },
   remarks: {
     type: String,

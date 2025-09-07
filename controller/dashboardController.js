@@ -457,7 +457,7 @@ const getRepairSummary2 = catchAsyncError(async (req, res, next) => {
 const getRepairSummary = catchAsyncError(async (req, res, next) => {
   const { startDate, endDate, branch_id } = req.query;
 
-  const repairQuery = { status: true };
+  const repairQuery = { status: true, repair_status: "Complete" };
 
   if (branch_id) {
     repairQuery.branch_id = new mongoose.Types.ObjectId(branch_id);
