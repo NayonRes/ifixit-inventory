@@ -8,6 +8,8 @@ const customerModel = require("../db/models/customerModel");
 const formatDate = require("../utils/formatDate");
 const repairServiceHistoryModel = require("../db/models/repairServiceHistoryModel");
 const repairProductHistoryModel = require("../db/models/repairProductHistoryModel");
+const transactionHistoryModel = require("../db/models/transactionHistoryModel");
+const { createTransaction } = require("./transactionHistoryController");
 
 const getDataWithPagination = catchAsyncError(async (req, res, next) => {
   const page = parseInt(req.query.page) || 1;
@@ -819,6 +821,29 @@ async function createServiceHistory(session, req, repairId, decodedData) {
   return serviceData[0];
 }
 
+async function createTransactionHistory(session, req, repairId, decodedData) {
+  const newTransactionData = {
+    transaction_source_id: new mongoose.Types.ObjectId(repairId),
+    transaction_info: Array.isArray(req.body?.billCollections)
+      ? req.body.billCollections
+      : [],
+
+    transaction_source_type: "repairModel",
+    transaction_type: "credit",
+    created_by: decodedData?.user?.email,
+  };
+
+  const transactionData = await transactionHistoryModel.create(
+    [newTransactionData],
+    {
+      session,
+    }
+  );
+  if (!transactionData || transactionData.length === 0) {
+    return null;
+  }
+  return transactionData[0];
+}
 async function createProductHistory(session, req, repairId, decodedData) {
   const newProductData = {
     repair_id: new mongoose.Types.ObjectId(repairId),
@@ -898,6 +923,51 @@ const createData = catchAsyncError(async (req, res, next) => {
           .status(404)
           .json({ message: "Failed to save status history" });
       }
+
+      // 2c: Create transaction history (only if billCollections exist)
+
+      let transactionData = null;
+      if (
+        Array.isArray(req.body?.billCollections) &&
+        req.body.billCollections.length > 0
+      ) {
+        transactionData = await createTransaction(
+          repair._id, // transaction_source_id
+          req.body.billCollections, // transaction_info
+          "repairModel", // transaction_source_type
+          "credit", // transaction_type
+          decodedData?.user?.email, // created_by
+          session // optional
+        );
+
+        if (!transactionData) {
+          await session.abortTransaction();
+          session.endSession();
+          return res
+            .status(404)
+            .json({ message: "Failed to save transaction history" });
+        }
+      }
+
+      // let transactionData = null;
+      // if (
+      //   Array.isArray(req.body?.billCollections) &&
+      //   req.body.billCollections.length > 0
+      // ) {
+      //   transactionData = await createTransactionHistory(
+      //     session,
+      //     req,
+      //     repair._id,
+      //     decodedData
+      //   );
+      //   if (!transactionData) {
+      //     await session.abortTransaction();
+      //     session.endSession();
+      //     return res
+      //       .status(404)
+      //       .json({ message: "Failed to save transaction history" });
+      //   }
+      // }
 
       // 2c: Create service history (only if issues exist)
       let serviceData = null;
@@ -1008,7 +1078,50 @@ const updateData = catchAsyncError(async (req, res, next) => {
           .status(404)
           .json({ message: "Failed to save status history" });
       }
+      // 2c: Create transaction history (only if billCollections exist)
 
+      let transactionData = null;
+
+      if (
+        Array.isArray(req.body?.billCollections) &&
+        req.body.billCollections.length > 0
+      ) {
+        transactionData = await createTransaction(
+          updatedRepair._id, // transaction_source_id
+          req.body.billCollections, // transaction_info
+          "repairModel", // transaction_source_type
+          "credit", // transaction_type
+          decodedData?.user?.email, // created_by
+          session // optional, will be used if transaction is active
+        );
+
+        if (!transactionData) {
+          await session.abortTransaction();
+          session.endSession();
+          return res
+            .status(404)
+            .json({ message: "Failed to save transaction history" });
+        }
+      }
+      // let transactionData = null;
+      // if (
+      //   Array.isArray(req.body?.billCollections) &&
+      //   req.body.billCollections.length > 0
+      // ) {
+      //   transactionData = await createTransactionHistory(
+      //     session,
+      //     req,
+      //     updatedRepair._id,
+      //     decodedData
+      //   );
+      //   if (!transactionData) {
+      //     await session.abortTransaction();
+      //     session.endSession();
+      //     return res
+      //       .status(404)
+      //       .json({ message: "Failed to save transaction history" });
+      //   }
+      // }
       // 3: Service history
       let serviceData = null;
       // if (Array.isArray(req.body?.issues) && req.body.issues.length > 0) {

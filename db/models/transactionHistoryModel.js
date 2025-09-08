@@ -26,7 +26,13 @@ const transactionHistorySchema = mongoose.Schema({
   transaction_type: {
     type: String,
     enum: ["credit", "debit"],
-    default: "credit",
+    // default: "credit",
+    required: [true, "Please enter transaction type"],
+  },
+
+  is_collection_received: {
+    type: Boolean,
+    default: false,
   },
   remarks: {
     type: String,
