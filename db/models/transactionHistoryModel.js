@@ -11,10 +11,13 @@ const transactionHistorySchema = mongoose.Schema({
     {
       name: {
         type: String,
+        trim: true,
+        required: [true, "Please enter transaction account name"],
       },
       amount: {
         type: Number,
         default: 0,
+        required: [true, "Please enter amount"],
       },
     },
   ],

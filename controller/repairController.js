@@ -335,6 +335,53 @@ const getById = catchAsyncError(async (req, res, next) => {
     },
     {
       $lookup: {
+        from: "transaction_histories",
+        localField: "transaction_source_id",
+        foreignField: "repair_id",
+        as: "transaction_histories_data",
+        pipeline: [
+          // Join created_by user
+          {
+            $lookup: {
+              from: "users",
+              let: { createdEmail: "$created_by" },
+              pipeline: [
+                { $match: { $expr: { $eq: ["$email", "$$createdEmail"] } } },
+                { $project: { _id: 1, name: 1, email: 1 } },
+              ],
+              as: "created_user",
+            },
+          },
+          {
+            $unwind: {
+              path: "$created_user",
+              preserveNullAndEmptyArrays: true,
+            },
+          },
+
+          // Join updated_by user
+          {
+            $lookup: {
+              from: "users",
+              let: { updatedEmail: "$updated_by" },
+              pipeline: [
+                { $match: { $expr: { $eq: ["$email", "$$updatedEmail"] } } },
+                { $project: { _id: 1, name: 1, email: 1 } },
+              ],
+              as: "updated_user",
+            },
+          },
+          {
+            $unwind: {
+              path: "$updated_user",
+              preserveNullAndEmptyArrays: true,
+            },
+          },
+        ],
+      },
+    },
+    {
+      $lookup: {
         from: "repair_service_histories",
         localField: "_id",
         foreignField: "repair_id",
@@ -638,6 +685,7 @@ const getById = catchAsyncError(async (req, res, next) => {
         warranties_data: 1,
         repair_product_history_data: 1,
         repair_service_history_data: 1,
+        transaction_histories_data: 1,
       },
     },
   ]);
