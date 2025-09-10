@@ -8,6 +8,201 @@ const jwt = require("jsonwebtoken");
 const mongoose = require("mongoose");
 const formatDate = require("../utils/formatDate");
 
+const getDataWithBranchAvaiableProducts = catchAsyncError(
+  async (req, res, next) => {
+    console.log("===========req.query================", req.query);
+
+    const minPrice = req.query.minPrice;
+    const maxPrice = req.query.maxPrice;
+    const startDate = req.query.startDate;
+    const endDate = req.query.endDate;
+    var query = {};
+    // if (req.query.name) {
+    //   query.name = new RegExp(`^${req.query.name}$`, "i");
+    // }
+
+    if (req.query.name) {
+      query.name = { $regex: req.query.name, $options: "i" };
+    }
+    if (req.query.status) {
+      query.status = req.query.status === "true";
+    }
+
+    if (req.query.category_id) {
+      query.category_id = new mongoose.Types.ObjectId(req.query.category_id);
+    }
+    if (req.query.brand_id) {
+      query.brand_id = new mongoose.Types.ObjectId(req.query.brand_id);
+    }
+    if (req.query.device_id) {
+      query.device_id = new mongoose.Types.ObjectId(req.query.device_id);
+    }
+    if (req.query.model_id) {
+      query.model_id = new mongoose.Types.ObjectId(req.query.model_id);
+    }
+
+    if (req.query.attachable_models) {
+      query.attachable_models = {
+        $in: [new mongoose.Types.ObjectId(req.query.attachable_models)],
+      };
+    }
+    if (parseInt(minPrice) && parseInt(maxPrice)) {
+      query.price = {
+        $gte: parseInt(minPrice),
+        $lte: parseInt(maxPrice),
+      };
+    } else if (parseInt(minPrice)) {
+      query.price = {
+        $gte: parseInt(minPrice),
+      };
+    } else if (parseInt(maxPrice)) {
+      query.price = {
+        $lte: parseInt(maxPrice),
+      };
+    }
+    console.log("startDate", startDate);
+    if (startDate && endDate) {
+      query.created_at = {
+        $gte: formatDate(startDate, "start", false),
+        $lte: formatDate(endDate, "end", false),
+      };
+    } else if (startDate) {
+      query.created_at = {
+        $gte: formatDate(startDate, "start", false),
+      };
+    } else if (endDate) {
+      query.created_at = {
+        $lte: formatDate(endDate, "end", false),
+      };
+    }
+
+    let totalData = await productModel.countDocuments(query);
+    console.log("totalData=================================", totalData);
+
+    const data = await productModel.aggregate([
+      {
+        $match: query,
+      },
+      {
+        $lookup: {
+          from: "categories",
+          localField: "category_id",
+          foreignField: "_id",
+          as: "category_data",
+        },
+      },
+      {
+        $lookup: {
+          from: "brands",
+          localField: "brand_id",
+          foreignField: "_id",
+          as: "brand_data",
+        },
+      },
+      {
+        $lookup: {
+          from: "devices",
+          localField: "device_id",
+          foreignField: "_id",
+          as: "device_data",
+        },
+      },
+      {
+        $lookup: {
+          from: "models",
+          localField: "model_id",
+          foreignField: "_id",
+          as: "model_data",
+        },
+      },
+
+      {
+        $lookup: {
+          from: "product_variations",
+          let: { productId: "$_id" },
+          pipeline: [
+            {
+              $match: {
+                $expr: { $eq: ["$product_id", "$$productId"] },
+              },
+            },
+            {
+              $lookup: {
+                from: "stock_counter_and_limits",
+                let: { variationId: "$_id" },
+                pipeline: [
+                  {
+                    $match: {
+                      $expr: {
+                        $eq: ["$product_variation_id", "$$variationId"],
+                      },
+                    },
+                  },
+                  {
+                    $lookup: {
+                      from: "branches",
+                      localField: "branch_id",
+                      foreignField: "_id",
+                      as: "branch_data",
+                    },
+                  },
+                  // 🔹 flatten branch_data if you want just a single object instead of an array
+                  {
+                    $unwind: {
+                      path: "$branch_data",
+                      preserveNullAndEmptyArrays: true,
+                    },
+                  },
+                ],
+                as: "stock_data",
+              },
+            },
+          ],
+          as: "variation_data",
+        },
+      },
+      // 🔹 Regroup variations back into array
+      {
+        $group: {
+          _id: "$_id",
+          name: { $first: "$name" },
+          description: { $first: "$description" },
+          brand_id: { $first: "$brand_id" },
+          category_id: { $first: "$category_id" },
+          device_id: { $first: "$device_id" },
+          model_id: { $first: "$model_id" },
+          product_id: { $first: "$product_id" },
+          warranty: { $first: "$warranty" },
+          price: { $first: "$price" },
+          images: { $first: "$images" },
+          remarks: { $first: "$remarks" },
+          attachable_models: { $first: "$attachable_models" },
+          status: { $first: "$status" },
+          created_by: { $first: "$created_by" },
+          created_at: { $first: "$created_at" },
+          updated_by: { $first: "$updated_by" },
+          updated_at: { $first: "$updated_at" },
+          category_data: { $first: "$category_data" },
+          brand_data: { $first: "$brand_data" },
+          device_data: { $first: "$device_data" },
+          model_data: { $first: "$model_data" },
+          variation_data: { $push: "$variation_data" }, // with stock_data inside
+        },
+      },
+
+      { $sort: { created_at: -1 } },
+    ]);
+
+    console.log("data", data);
+    res.status(200).json({
+      success: true,
+      message: "successful",
+      data: data,
+      totalData: totalData,
+    });
+  }
+);
+
 const getDataWithPagination = catchAsyncError(async (req, res, next) => {
   const page = parseInt(req.query.page) || 1;
   console.log("===========req.query================", req.query);
@@ -428,6 +623,7 @@ const deleteData = catchAsyncError(async (req, res, next) => {
   });
 });
 module.exports = {
+  getDataWithBranchAvaiableProducts,
   getDataWithPagination,
   lightSearchWithPagination,
   getById,

@@ -9,7 +9,7 @@ const formatDate = require("../utils/formatDate");
 const getBrnachLimit = catchAsyncError(async (req, res, next) => {
   const page = parseInt(req.query.page) || 1;
   console.log("===========req.query.page", req.query.page);
-  const limit = parseInt(req.query.limit) || 100;
+  const limit = parseInt(req.query.limit) || 10000;
   const startIndex = (page - 1) * limit;
   const endIndex = page * limit;
   var query = {};
@@ -56,6 +56,30 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
     query.product_variation_id = new mongoose.Types.ObjectId(
       req.query.product_variation_id
     );
+  }
+  // for multipe product_variation_id only
+  if (req.query.product_variation_ids) {
+    let ids = req.query.product_variation_ids;
+
+    // Handle stringified JSON or comma-separated IDs
+    if (typeof ids === "string") {
+      try {
+        ids = JSON.parse(ids); // try parsing JSON array string
+      } catch {
+        ids = ids.split(","); // fallback: comma-separated string
+      }
+    }
+
+    // Ensure it's always an array of valid ObjectIds
+    if (Array.isArray(ids)) {
+      const objectIds = ids
+        .filter((id) => mongoose.Types.ObjectId.isValid(id)) // only keep valid ones
+        .map((id) => new mongoose.Types.ObjectId(id));
+
+      if (objectIds.length > 0) {
+        query.product_variation_id = { $in: objectIds };
+      }
+    }
   }
   if (req.query.branch_id) {
     query.branch_id = new mongoose.Types.ObjectId(req.query.branch_id);

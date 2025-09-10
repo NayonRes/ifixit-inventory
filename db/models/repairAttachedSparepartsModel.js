@@ -12,6 +12,10 @@ const repairAttachedSparepartsSchema = mongoose.Schema({
     type: Number,
     required: [true, "Please select product"],
   },
+  claimed_on_sku_number: {
+    type: Number,
+    default: null,
+  },
 
   remarks: {
     type: String,
