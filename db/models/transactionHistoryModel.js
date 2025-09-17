@@ -7,6 +7,10 @@ const transactionHistorySchema = mongoose.Schema({
     refPath: "transaction_source_type", // dynamic reference
     required: [true, "Please select a source ID"],
   },
+  transaction_name: {
+    type: String,
+    trim: true,
+  },
   transaction_info: [
     {
       name: {
@@ -24,7 +28,7 @@ const transactionHistorySchema = mongoose.Schema({
   transaction_source_type: {
     type: String,
     trim: true,
-    enum: ["repairModel", "warrantyModel"], // list allowed models
+    enum: ["repairModel", "warrantyModel","expenseModel"], // list allowed models
   },
   transaction_type: {
     type: String,

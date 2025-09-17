@@ -1135,6 +1135,7 @@ const updateData = catchAsyncError(async (req, res, next) => {
         req.body.billCollections.length > 0
       ) {
         transactionData = await createTransaction(
+          "Repair Income",
           updatedRepair._id, // transaction_source_id
           req.body.billCollections, // transaction_info
           "repairModel", // transaction_source_type

@@ -83,6 +83,7 @@ const createData = catchAsyncError(async (req, res, next) => {
 
 // using this for use inside other controller
 async function createTransaction(
+  transaction_name,
   transaction_source_id,
   transaction_info,
   transaction_source_type,
@@ -105,6 +106,7 @@ async function createTransaction(
         : transaction_source_id;
     const newTransaction = [
       {
+        transaction_name,
         transaction_source_id: sourceId,
         transaction_info: Array.isArray(transaction_info)
           ? transaction_info
@@ -126,6 +128,67 @@ async function createTransaction(
     return data;
   } catch (err) {
     console.error("Error creating transaction history:", err);
+    throw err;
+  }
+}
+
+async function updateTransaction(
+  transaction_name,
+  transaction_source_id,
+  transaction_info,
+  transaction_source_type,
+  transaction_type,
+  updated_by,
+  session = null
+) {
+  try {
+    console.log(
+      "Update params---------------------------",
+      transaction_source_id,
+      transaction_info,
+      transaction_source_type,
+      transaction_type,
+      updated_by
+    );
+
+    const sourceId =
+      typeof transaction_source_id === "string"
+        ? new mongoose.Types.ObjectId(transaction_source_id)
+        : transaction_source_id;
+
+    const options = session ? { session, new: true } : { new: true };
+
+    const data = await transactionHistoryModel.findOneAndUpdate(
+      { transaction_source_id: sourceId },
+      {
+        $set: {
+          transaction_name,
+          transaction_info: Array.isArray(transaction_info)
+            ? transaction_info
+            : [],
+          transaction_source_type,
+          transaction_type,
+          updated_by,
+          updated_at: new Date(),
+        },
+      },
+      options
+    );
+
+    if (!data) {
+      console.log(
+        `No transaction history found for source_id: ${transaction_source_id}`
+      );
+      return null;
+    }
+
+    console.log(
+      `Transaction history updated for source_id: ${transaction_source_id}`
+    );
+
+    return data;
+  } catch (err) {
+    console.error("Error updating transaction history:", err);
     throw err;
   }
 }
@@ -295,4 +358,5 @@ module.exports = {
   deleteData,
   getCategoryWiseFilterList,
   createTransaction,
+  updateTransaction,
 };

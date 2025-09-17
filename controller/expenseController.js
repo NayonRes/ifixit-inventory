@@ -4,6 +4,8 @@ const catchAsyncError = require("../middleware/catchAsyncError");
 const jwt = require("jsonwebtoken");
 const mongoose = require("mongoose");
 const formatDate = require("../utils/formatDate");
+const { createTransaction,updateTransaction } = require("./transactionHistoryController");
+const transactionHistoryModel = require("../db/models/transactionHistoryModel");
 
 const getDataWithPagination = catchAsyncError(async (req, res, next) => {
   const page = parseInt(req.query.page) || 1;
@@ -120,53 +122,212 @@ const getById = catchAsyncError(async (req, res, next) => {
   res.send({ message: "success", status: 200, data: data });
 });
 
+// const createData = catchAsyncError(async (req, res, next) => {
+//   const { token } = req.cookies;
+
+//   let decodedData = jwt.verify(token, process.env.JWT_SECRET);
+//   let newData = {
+//     ...req.body,
+//     created_by: decodedData?.user?.email,
+//   };
+
+//   const data = await expenseModel.create(newData);
+//   res.send({ message: "success", status: 201, data: data });
+// });
 const createData = catchAsyncError(async (req, res, next) => {
   const { token } = req.cookies;
+  const decodedData = jwt.verify(token, process.env.JWT_SECRET);
 
-  let decodedData = jwt.verify(token, process.env.JWT_SECRET);
-  let newData = {
-    ...req.body,
-    created_by: decodedData?.user?.email,
-  };
+  const session = await mongoose.startSession();
 
-  const data = await expenseModel.create(newData);
-  res.send({ message: "success", status: 201, data: data });
+  try {
+    await session.withTransaction(async () => {
+      // Step 1: Prepare expense data
+      const newData = {
+        ...req.body,
+        created_by: decodedData?.user?.email,
+      };
+
+      // Step 2: Create expense
+      const data = await expenseModel.create([newData], { session });
+      const expense = data[0];
+
+      if (!expense) {
+        await session.abortTransaction();
+        session.endSession();
+        return res.status(500).json({ message: "Failed to create expense" });
+      }
+
+      // Step 3: Optional transaction history
+      let transactionData = null;
+      if (
+        Array.isArray(req.body?.transaction_info) &&
+        req.body.transaction_info.length > 0
+      ) {
+        transactionData = await createTransaction(
+          req.body?.transaction_name,
+          expense._id, // transaction_source_id
+          req.body.transaction_info, // transaction_info
+          "expenseModel", // transaction_source_type
+          "debit", // transaction_type
+          decodedData?.user?.email, // created_by
+          session // pass session
+        );
+
+        if (!transactionData) {
+          await session.abortTransaction();
+          session.endSession();
+          return res
+            .status(404)
+            .json({ message: "Failed to save transaction history" });
+        }
+      }
+
+      // Step 4: Send response
+      return res.status(201).json({
+        message: "Success",
+        status: 201,
+        data: expense,
+        transactionData,
+      });
+    });
+  } catch (error) {
+    console.error("Transaction failed:", error);
+    next(error);
+  } finally {
+    session.endSession();
+  }
 });
 
 const updateData = catchAsyncError(async (req, res, next) => {
   const { token } = req.cookies;
+  const decodedData = jwt.verify(token, process.env.JWT_SECRET);
 
-  let data = await expenseModel.findById(req.params.id);
+  const transactionSourceId = req.params.id;
 
-  if (!data) {
-    console.log("if");
-    return next(new ErrorHander("No data found", 404));
+  // Step 0: Check if transaction is completed
+  const existingTransaction = await transactionHistoryModel.findOne({
+    transaction_source_id: transactionSourceId,
+  });
+
+  if (existingTransaction?.is_collection_received) {
+    return next(
+      new ErrorHander("Transaction is completed, so you cannot update.", 400)
+    );
   }
-  let decodedData = jwt.verify(token, process.env.JWT_SECRET);
 
-  const newData = {
-    ...req.body,
-    updated_by: decodedData?.user?.email,
-    updated_at: new Date(),
-  };
+  // Step 1: Start session
+  const session = await mongoose.startSession();
 
-  data = await expenseModel.findByIdAndUpdate(req.params.id, newData, {
-    new: true,
-    runValidators: true,
-    useFindAndModified: false,
-  });
+  try {
+    await session.withTransaction(async () => {
+      // Step 2: Find existing expense
+      let expense = await expenseModel
+        .findById(transactionSourceId)
+        .session(session);
 
-  // const childrenParentUpdate = await expenseModel.updateMany(
-  //   { parent_name: oldParentName },
-  //   { $set: { parent_name: name } }
-  // );
-  res.status(200).json({
-    success: true,
-    message: "Update successfully",
-    data: data,
-    // childrenParentUpdate,
-  });
+      if (!expense) {
+        await session.abortTransaction();
+        return next(new ErrorHander("No data found", 404));
+      }
+
+      // Step 3: Prepare updated expense data
+      const updatedData = {
+        ...req.body,
+        updated_by: decodedData?.user?.email,
+        updated_at: new Date(),
+      };
+
+      // Step 4: Update expense
+      expense = await expenseModel.findByIdAndUpdate(
+        transactionSourceId,
+        updatedData,
+        {
+          new: true,
+          runValidators: true,
+          session,
+        }
+      );
+
+      if (!expense) {
+        await session.abortTransaction();
+        return res.status(500).json({ message: "Failed to update expense" });
+      }
+
+      // Step 5: Optional transaction history update
+      let transactionData = null;
+      if (
+        Array.isArray(req.body?.transaction_info) &&
+        req.body.transaction_info.length > 0
+      ) {
+        transactionData = await updateTransaction(
+          req.body?.transaction_name,
+          expense._id, // transaction_source_id
+          req.body.transaction_info, // transaction_info
+          "expenseModel", // transaction_source_type
+          "debit", // transaction_type
+          decodedData?.user?.email, // updated_by
+          session // pass session
+        );
+
+        if (!transactionData) {
+          await session.abortTransaction();
+          return res
+            .status(404)
+            .json({ message: "Failed to update transaction history" });
+        }
+      }
+
+      // Step 6: Send response
+      return res.status(200).json({
+        success: true,
+        message: "Update successfully",
+        data: expense,
+        transactionData,
+      });
+    });
+  } catch (error) {
+    console.error("Transaction failed:", error);
+    next(error);
+  } finally {
+    session.endSession();
+  }
 });
+
+// const updateData = catchAsyncError(async (req, res, next) => {
+//   const { token } = req.cookies;
+
+//   let data = await expenseModel.findById(req.params.id);
+
+//   if (!data) {
+//     console.log("if");
+//     return next(new ErrorHander("No data found", 404));
+//   }
+//   let decodedData = jwt.verify(token, process.env.JWT_SECRET);
+
+//   const newData = {
+//     ...req.body,
+//     updated_by: decodedData?.user?.email,
+//     updated_at: new Date(),
+//   };
+
+//   data = await expenseModel.findByIdAndUpdate(req.params.id, newData, {
+//     new: true,
+//     runValidators: true,
+//     useFindAndModified: false,
+//   });
+
+//   // const childrenParentUpdate = await expenseModel.updateMany(
+//   //   { parent_name: oldParentName },
+//   //   { $set: { parent_name: name } }
+//   // );
+//   res.status(200).json({
+//     success: true,
+//     message: "Update successfully",
+//     data: data,
+//     // childrenParentUpdate,
+//   });
+// });
 
 const deleteData = catchAsyncError(async (req, res, next) => {
   console.log("deleteData function is working");
