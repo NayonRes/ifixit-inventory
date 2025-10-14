@@ -5,6 +5,7 @@ const mongoose = require("mongoose");
 const catchAsyncError = require("../middleware/catchAsyncError");
 const jwt = require("jsonwebtoken");
 const formatDate = require("../utils/formatDate");
+const repairStatusHistoryModel = require("../db/models/repairStatusHistoryModel");
 
 const getDataWithPagination = catchAsyncError(async (req, res, next) => {
   const page = parseInt(req.query.page) || 1;
@@ -13,21 +14,17 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
   const startIndex = (page - 1) * limit;
   const endIndex = page * limit;
   var query = {};
- 
+
   if (req.query.repair_id) {
     query.repair_id = new mongoose.Types.ObjectId(req.query.repair_id);
   }
 
- 
   if (req.query.status) {
     query.status = req.query.status === "true";
   }
   let totalData = await warrantyModel.countDocuments(query);
   console.log("totalData=================================", totalData);
-  const data = await warrantyModel
-    .find(query)
-    .skip(startIndex)
-    .limit(limit);
+  const data = await warrantyModel.find(query).skip(startIndex).limit(limit);
   console.log("data", data);
   res.status(200).json({
     success: true,
@@ -118,9 +115,100 @@ const getById = catchAsyncError(async (req, res, next) => {
   }
   res.send({ message: "success", status: 200, data: data });
 });
+async function createStatusHistory(session, req, warrantyId, decodedData) {
+  console.log("req.body.repair_status:", req.body.repair_status);
+  const newStatusData = {
+    user_id: new mongoose.Types.ObjectId(req.body?.repair_by),
+    warranty_id: new mongoose.Types.ObjectId(warrantyId),
+    repair_id: new mongoose.Types.ObjectId(req.body?.repair_id),
+    repair_status_name: req.body?.repair_status,
+    remarks: req.body?.repair_status_remarks,
+    created_by: decodedData?.user?.email,
+  };
+
+  const statusData = await repairStatusHistoryModel.create([newStatusData], {
+    session,
+  });
+
+  console.log("newStatusData", newStatusData);
+  console.log("statusData", statusData);
+
+  if (!statusData || statusData.length === 0) {
+    return null;
+  }
+  return statusData[0];
+}
 
 const createData = catchAsyncError(async (req, res, next) => {
+  // console.log("req.body.product_details:", req.body.product_details);
+
+  // Step 0: Generate new repair_id
+  const lastDoc = await warrantyModel.find().sort({ _id: -1 });
+  let newId;
+  if (lastDoc.length > 0) {
+    const serial = lastDoc[0].warranty_id.slice(0, 2);
+    const number = parseInt(lastDoc[0].warranty_id.slice(2)) + 1;
+    newId = serial.concat(number);
+  } else {
+    newId = "WN10000";
+  }
+
+  // Step 1: Decode JWT
+  const { token } = req.cookies;
+  const decodedData = jwt.verify(token, process.env.JWT_SECRET);
+
+  // Step 2: Start session
+  const session = await mongoose.startSession();
+
+  try {
+    await session.withTransaction(async () => {
+      // 2a: Create warranty
+      const newRepairData = {
+        ...req.body,
+        warranty_id: newId,
+        created_by: decodedData?.user?.email,
+      };
+      const data = await warrantyModel.create([newRepairData], { session });
+      const warranty = data[0];
+
+      if (!warranty) {
+        await session.abortTransaction();
+        session.endSession();
+        return res.status(500).json({ message: "Failed to create warranty" });
+      }
+
+      // 2b: Create status history
+      const statusData = await createStatusHistory(
+        session,
+        req,
+        warranty._id,
+        decodedData
+      );
+      if (!statusData) {
+        await session.abortTransaction();
+        session.endSession();
+        return res
+          .status(404)
+          .json({ message: "Failed to save status history" });
+      }
+
+      // 2e: Send success response
+      return res.status(201).json({
+        message: "Success",
+        data: warranty,
+        statusData,
+      });
+    });
+  } catch (error) {
+    console.error("Transaction failed:", error);
+    next(error);
+  } finally {
+    session.endSession();
+  }
+});
+const createData2 = catchAsyncError(async (req, res, next) => {
   console.log("warranty createData ****************************");
+  // Step 0: Generate new repair_id
 
   const { token } = req.cookies;
   const decodedData = jwt.verify(token, process.env.JWT_SECRET);
@@ -130,8 +218,19 @@ const createData = catchAsyncError(async (req, res, next) => {
   console.log("existingWarranty", existingWarranty);
 
   if (!existingWarranty) {
+    const lastDoc = await warrantyModel.find().sort({ _id: -1 });
+    let newId;
+    if (lastDoc.length > 0) {
+      const serial = lastDoc[0].warranty_id.slice(0, 2);
+      const number = parseInt(lastDoc[0].warranty_id.slice(2)) + 1;
+      newId = serial.concat(number);
+    } else {
+      newId = "WN10000";
+    }
+
     const newDocument = {
       ...req.body,
+      warranty_id: newId,
       created_by: decodedData?.user?.email,
     };
 
@@ -157,6 +256,44 @@ const createData = catchAsyncError(async (req, res, next) => {
     res.send({ message: "success", status: 201, data: data });
   }
 });
+// const createData = catchAsyncError(async (req, res, next) => {
+//   console.log("warranty createData ****************************");
+
+//   const { token } = req.cookies;
+//   const decodedData = jwt.verify(token, process.env.JWT_SECRET);
+//   const repair_id = mongoose.Types.ObjectId(req.body.repair_id);
+
+//   let existingWarranty = await warrantyModel.findOne({ repair_id });
+//   console.log("existingWarranty", existingWarranty);
+
+//   if (!existingWarranty) {
+//     const newDocument = {
+//       ...req.body,
+//       created_by: decodedData?.user?.email,
+//     };
+
+//     let data = await warrantyModel.create(newDocument);
+//     res.send({ message: "success", status: 201, data: data });
+//   } else {
+//     let data = await warrantyModel.findByIdAndUpdate(
+//       existingWarranty._id,
+//       {
+//         $set: {
+//           ...req.body,
+//           updated_by: decodedData?.user?.email,
+//           updated_at: new Date(),
+//         },
+//       },
+//       {
+//         new: true,
+//         runValidators: true,
+//         useFindAndModified: false, // should be useFindAndModify
+//       }
+//     );
+
+//     res.send({ message: "success", status: 201, data: data });
+//   }
+// });
 
 // Note : this function is for only one sku update status of repair attached spareparts inactive and adjust stock counter collection
 

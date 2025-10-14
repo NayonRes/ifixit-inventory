@@ -161,7 +161,7 @@ const repairSchema = mongoose.Schema({
 
       {
         name: { type: String },
-        model_id: { type: Schema.Types.ObjectId, ref: "issueModel" },
+        issue_id: { type: Schema.Types.ObjectId, ref: "issueModel" },
         status: { type: String },
         // required: [true, "Please select at least one issue"],
       },

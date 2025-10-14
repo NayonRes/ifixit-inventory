@@ -7,7 +7,11 @@ const repairAttachedSparepartsSchema = mongoose.Schema({
     ref: "repairModel",
     required: [true, "Please select repair id"],
   },
-
+  warranty_id: {
+    type: Schema.Types.ObjectId,
+    ref: "warrantyModel",
+    default: null,
+  },
   sku_number: {
     type: Number,
     required: [true, "Please select product"],

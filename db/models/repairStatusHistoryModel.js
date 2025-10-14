@@ -12,6 +12,11 @@ const repairStatusHistorySchema = mongoose.Schema({
     ref: "repairModel",
     required: [true, "Please select a repairId"],
   },
+  warranty_id: {
+    type: Schema.Types.ObjectId,
+    ref: "warrantyModel",
+    default: null,
+  },
   repair_status_name: {
     type: String,
     required: [true, "Please enter Status"],
