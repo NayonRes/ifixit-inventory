@@ -1063,6 +1063,7 @@ const createData = catchAsyncError(async (req, res, next) => {
         statusData,
         serviceData,
         productData,
+        transactionData,
       });
     });
   } catch (error) {
@@ -1218,6 +1219,7 @@ const updateData = catchAsyncError(async (req, res, next) => {
         statusData,
         serviceData,
         productData,
+        transactionData,
       });
     });
   } catch (error) {

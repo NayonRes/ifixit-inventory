@@ -24,6 +24,18 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
   if (req.query.repair_id) {
     query.repair_id = new mongoose.Types.ObjectId(req.query.repair_id);
   }
+  // if (req.query.warranty_id) {
+  //   query.warranty_id = new mongoose.Types.ObjectId(req.query.warranty_id);
+  // }
+
+  if (req.query.warranty_id === "null") {
+    query.warranty_id = null;
+  } else if (
+    req.query.warranty_id &&
+    mongoose.Types.ObjectId.isValid(req.query.warranty_id)
+  ) {
+    query.warranty_id = new mongoose.Types.ObjectId(req.query.warranty_id);
+  }
   if (req.query.updated_by) {
     query.updated_by = new RegExp(`^${req.query.updated_by}$`, "i");
   }
@@ -70,6 +82,7 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
         user_id: 1,
         repair_id: 1,
         repair_status_name: 1,
+        warranty_id: 1,
 
         remarks: 1,
         status: 1,
@@ -145,6 +158,7 @@ const getById = catchAsyncError(async (req, res, next) => {
         user_id: 1,
         repair_id: 1,
         repair_status_name: 1,
+        warranty_id: 1,
 
         remarks: 1,
         status: 1,

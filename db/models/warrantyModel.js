@@ -23,6 +23,10 @@ const stockSchema = mongoose.Schema({
     set: (v) => (v === "" ? null : v),
     // required: [true, "Please enter select brand"],
   },
+  repair_status: {
+    type: String,
+    // required: [true, "Please enter repair status"],
+  },
   delivery_status: {
     type: String,
   },
