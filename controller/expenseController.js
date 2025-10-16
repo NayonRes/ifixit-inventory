@@ -168,7 +168,7 @@ const createData = catchAsyncError(async (req, res, next) => {
           req.body?.transaction_name,
           expense._id, // transaction_source_id
           req.body.transaction_info, // transaction_info
-          "expenseModel", // transaction_source_type
+          "expense", // transaction_source_type
           "debit", // transaction_type
           decodedData?.user?.email, // created_by
           session // pass session
@@ -264,7 +264,7 @@ const updateData = catchAsyncError(async (req, res, next) => {
           req.body?.transaction_name,
           expense._id, // transaction_source_id
           req.body.transaction_info, // transaction_info
-          "expenseModel", // transaction_source_type
+          "expense", // transaction_source_type
           "debit", // transaction_type
           decodedData?.user?.email, // updated_by
           session // pass session

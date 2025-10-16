@@ -24,6 +24,67 @@ const getParentDropdown = catchAsyncError(async (req, res, next) => {
     data: data,
   });
 });
+const getAllData = catchAsyncError(async (req, res, next) => {
+  const query = {
+    name: { $ne: "Primary" },
+  };
+
+  if (req.query.name) {
+    query.name = new RegExp(`^${req.query.name}$`, "i");
+  }
+
+  if (req.query.status) {
+    query.status = req.query.status === "true";
+  }
+
+  const totalData = await transactionHistoryModel.countDocuments(query);
+
+  const data = await transactionHistoryModel
+    .find(query)
+    .populate({
+      path: "transaction_source_id", // dynamic based on refPath
+      select:
+        "name title _id repair_id warranty_id amount createdAt usedated At remarks", // optional fields
+    })
+
+    .sort({ createdAt: -1 }); // newest first
+
+  res.status(200).json({
+    success: true,
+    message: "successful",
+    totalData,
+
+    data,
+  });
+});
+
+// const getAllData = catchAsyncError(async (req, res, next) => {
+//   const page = parseInt(req.query.page) || 1;
+//   console.log("===========req.query.page", req.query.page);
+//   const limit = parseInt(req.query.limit) || 10;
+//   const startIndex = (page - 1) * limit;
+//   const endIndex = page * limit;
+//   var query = {};
+//   query.name = { ...query.name, $ne: "Primary" };
+//   if (req.query.name) {
+//     query.name = new RegExp(`^${req.query.name}$`, "i");
+//   }
+//   if (req.query.status) {
+//     query.status = req.query.status === "true";
+//   }
+
+//   let totalData = await transactionHistoryModel.countDocuments(query);
+//   console.log("totalData=================================", totalData);
+//   const data = await transactionHistoryModel.find(query);
+
+//   console.log("data", data);
+//   res.status(200).json({
+//     success: true,
+//     message: "successful",
+//     data: data,
+//     totalData: totalData,
+//   });
+// });
 const getDataWithPagination = catchAsyncError(async (req, res, next) => {
   const page = parseInt(req.query.page) || 1;
   console.log("===========req.query.page", req.query.page);
@@ -349,6 +410,7 @@ const getCategoryWiseFilterList = catchAsyncError(async (req, res, next) => {
   });
 });
 module.exports = {
+  getAllData,
   getParentDropdown,
   getLeafCategoryList,
   getDataWithPagination,

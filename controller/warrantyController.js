@@ -71,7 +71,7 @@ const getById = catchAsyncError(async (req, res, next) => {
         updated_by: 1,
         updated_at: 1,
 
-        "repair_data.name": 1,
+        repair_data: 1,
       },
     },
   ]);
@@ -129,12 +129,12 @@ const createData = catchAsyncError(async (req, res, next) => {
   try {
     await session.withTransaction(async () => {
       // 2a: Create warranty
-      const newRepairData = {
+      const newWarranyData = {
         ...req.body,
         warranty_id: newId,
         created_by: decodedData?.user?.email,
       };
-      const data = await warrantyModel.create([newRepairData], { session });
+      const data = await warrantyModel.create([newWarranyData], { session });
       const warranty = data[0];
 
       if (!warranty) {
@@ -169,7 +169,99 @@ const createData = catchAsyncError(async (req, res, next) => {
           "Warranty Income",
           warranty._id, // transaction_source_id
           req.body.billCollections, // transaction_info
-          "warrantyModel", // transaction_source_type
+          "warranty", // transaction_source_type
+          "credit", // transaction_type
+          decodedData?.user?.email, // created_by
+          session // optional, will be used if transaction is active
+        );
+
+        if (!transactionData) {
+          await session.abortTransaction();
+          session.endSession();
+          return res
+            .status(404)
+            .json({ message: "Failed to save transaction history" });
+        }
+      }
+      // 2e: Send success response
+      return res.status(201).json({
+        message: "Success",
+        data: warranty,
+        statusData,
+        transactionData,
+      });
+    });
+  } catch (error) {
+    console.error("Transaction failed:", error);
+    next(error);
+  } finally {
+    session.endSession();
+  }
+});
+const updateData = catchAsyncError(async (req, res, next) => {
+  const { token } = req.cookies;
+  const decodedData = jwt.verify(token, process.env.JWT_SECRET);
+  const existingRepair = await warrantyModel.findById(req.params.id);
+  if (!existingRepair) {
+    return next(new ErrorHander("No data found", 404));
+  }
+  // Step 2: Start session
+  const session = await mongoose.startSession();
+
+  try {
+    await session.withTransaction(async () => {
+      // 2a: Create warranty
+
+      const updatedData = {
+        ...req.body,
+        updated_by: decodedData?.user?.email,
+        updated_at: new Date(),
+      };
+
+      const warranty = await warrantyModel.findByIdAndUpdate(
+        req.params.id,
+        updatedData,
+        {
+          new: true,
+          runValidators: true,
+          useFindAndModify: false,
+          session,
+        }
+      );
+
+      if (!warranty) {
+        await session.abortTransaction();
+        session.endSession();
+        return res.status(500).json({ message: "Failed to update repair" });
+      }
+
+      // 2b: Create status history
+      const statusData = await createStatusHistory(
+        session,
+        req,
+        warranty._id,
+        decodedData
+      );
+      if (!statusData) {
+        await session.abortTransaction();
+        session.endSession();
+        return res
+          .status(404)
+          .json({ message: "Failed to save status history" });
+      }
+      // 2c: Create transaction history (only if billCollections exist)
+
+      let transactionData = null;
+
+      if (
+        Array.isArray(req.body?.billCollections) &&
+        req.body.billCollections.length > 0
+      ) {
+        transactionData = await createTransaction(
+          "Warranty Income",
+          warranty._id, // transaction_source_id
+          req.body.billCollections, // transaction_info
+          "warranty", // transaction_source_type
           "credit", // transaction_type
           decodedData?.user?.email, // created_by
           session // optional, will be used if transaction is active
@@ -293,4 +385,5 @@ module.exports = {
   getDataWithPagination,
   getById,
   createData,
+  updateData,
 };

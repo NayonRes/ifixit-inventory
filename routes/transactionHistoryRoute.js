@@ -1,5 +1,6 @@
 var express = require("express");
 const {
+  getAllData,
   getParentDropdown,
   getLeafCategoryList,
   getDataWithPagination,
@@ -35,6 +36,11 @@ router.route("/").get(
   isAuthenticatedUser,
 
   getDataWithPagination
+);
+router.route("/all").get(
+  isAuthenticatedUser,
+
+  getAllData
 );
 router.route("/:id").get(isAuthenticatedUser, getById);
 router.route("/create").post(isAuthenticatedUser, createData);

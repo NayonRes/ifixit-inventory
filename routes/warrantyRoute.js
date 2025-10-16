@@ -4,6 +4,7 @@ const {
 
   getById,
   createData,
+  updateData,
 } = require("../controller/warrantyController");
 const { isAuthenticatedUser, authorizeRoles } = require("../middleware/auth");
 
@@ -24,5 +25,8 @@ router
 router
   .route("/create")
   .post(isAuthenticatedUser, authorizeRoles("update_repair"), createData);
+router
+  .route("/update/:id")
+  .put(isAuthenticatedUser, authorizeRoles("update_repair"), updateData);
 
 module.exports = router;

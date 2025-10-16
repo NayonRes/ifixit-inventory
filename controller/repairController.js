@@ -869,29 +869,6 @@ async function createServiceHistory(session, req, repairId, decodedData) {
   return serviceData[0];
 }
 
-async function createTransactionHistory(session, req, repairId, decodedData) {
-  const newTransactionData = {
-    transaction_source_id: new mongoose.Types.ObjectId(repairId),
-    transaction_info: Array.isArray(req.body?.billCollections)
-      ? req.body.billCollections
-      : [],
-
-    transaction_source_type: "repairModel",
-    transaction_type: "credit",
-    created_by: decodedData?.user?.email,
-  };
-
-  const transactionData = await transactionHistoryModel.create(
-    [newTransactionData],
-    {
-      session,
-    }
-  );
-  if (!transactionData || transactionData.length === 0) {
-    return null;
-  }
-  return transactionData[0];
-}
 async function createProductHistory(session, req, repairId, decodedData) {
   const newProductData = {
     repair_id: new mongoose.Types.ObjectId(repairId),
@@ -950,6 +927,7 @@ const createData = catchAsyncError(async (req, res, next) => {
       };
       const data = await repairModel.create([newRepairData], { session });
       const repair = data[0];
+      console.log("repair111", repair);
 
       if (!repair) {
         await session.abortTransaction();
@@ -980,9 +958,10 @@ const createData = catchAsyncError(async (req, res, next) => {
         req.body.billCollections.length > 0
       ) {
         transactionData = await createTransaction(
+          "Repair Income",
           repair._id, // transaction_source_id
           req.body.billCollections, // transaction_info
-          "repairModel", // transaction_source_type
+          "repair", // transaction_source_type
           "credit", // transaction_type
           decodedData?.user?.email, // created_by
           session // optional
@@ -1139,7 +1118,7 @@ const updateData = catchAsyncError(async (req, res, next) => {
           "Repair Income",
           updatedRepair._id, // transaction_source_id
           req.body.billCollections, // transaction_info
-          "repairModel", // transaction_source_type
+          "repair", // transaction_source_type
           "credit", // transaction_type
           decodedData?.user?.email, // created_by
           session // optional, will be used if transaction is active
