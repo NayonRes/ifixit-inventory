@@ -25,18 +25,35 @@ const getParentDropdown = catchAsyncError(async (req, res, next) => {
   });
 });
 const getAllData = catchAsyncError(async (req, res, next) => {
-  const query = {
-    name: { $ne: "Primary" },
-  };
+  const startDate = req.query.startDate;
+  const endDate = req.query.endDate;
+  const query = {};
 
   if (req.query.name) {
     query.name = new RegExp(`^${req.query.name}$`, "i");
   }
 
+  if (req.query.is_collection_received) {
+    query.is_collection_received = req.query.is_collection_received === "true";
+  }
   if (req.query.status) {
     query.status = req.query.status === "true";
   }
-
+  console.log("startDate", startDate);
+  if (startDate && endDate) {
+    query.created_at = {
+      $gte: formatDate(startDate, "start", false),
+      $lte: formatDate(endDate, "end", false),
+    };
+  } else if (startDate) {
+    query.created_at = {
+      $gte: formatDate(startDate, "start", false),
+    };
+  } else if (endDate) {
+    query.created_at = {
+      $lte: formatDate(endDate, "end", false),
+    };
+  }
   const totalData = await transactionHistoryModel.countDocuments(query);
 
   const data = await transactionHistoryModel
@@ -85,12 +102,15 @@ const getAllData = catchAsyncError(async (req, res, next) => {
 //     totalData: totalData,
 //   });
 // });
+
 const getDataWithPagination = catchAsyncError(async (req, res, next) => {
   const page = parseInt(req.query.page) || 1;
   console.log("===========req.query.page", req.query.page);
   const limit = parseInt(req.query.limit) || 10;
   const startIndex = (page - 1) * limit;
   const endIndex = page * limit;
+  const startDate = req.query.startDate;
+  const endDate = req.query.endDate;
   var query = {};
   query.name = { ...query.name, $ne: "Primary" };
   if (req.query.name) {
@@ -101,6 +121,22 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
   }
   if (req.query.parent_name) {
     query.parent_name = new RegExp(`^${req.query.parent_name}$`, "i");
+  }
+
+  console.log("startDate", startDate);
+  if (startDate && endDate) {
+    query.created_at = {
+      $gte: formatDate(startDate, "start", false),
+      $lte: formatDate(endDate, "end", false),
+    };
+  } else if (startDate) {
+    query.created_at = {
+      $gte: formatDate(startDate, "start", false),
+    };
+  } else if (endDate) {
+    query.created_at = {
+      $lte: formatDate(endDate, "end", false),
+    };
   }
   let totalData = await transactionHistoryModel.countDocuments(query);
   console.log("totalData=================================", totalData);
@@ -282,15 +318,48 @@ const updateData = catchAsyncError(async (req, res, next) => {
     }
   );
 
-  // const childrenParentUpdate = await transactionHistoryModel.updateMany(
-  //   { parent_name: oldParentName },
-  //   { $set: { parent_name: name } }
-  // );
   res.status(200).json({
     success: true,
     message: "Update successfully",
     data: data,
-    // childrenParentUpdate,
+  });
+});
+const updateCollectionStatus = catchAsyncError(async (req, res, next) => {
+  const { token } = req.cookies;
+  const updates = req.body.transaction_received_status_list; // Expecting an array of objects [{ _id, is_collection_received }]
+
+  if (!Array.isArray(updates) || updates.length === 0) {
+    return next(new ErrorHander("Invalid or empty update data", 400));
+  }
+
+  let decodedData;
+  try {
+    decodedData = jwt.verify(token, process.env.JWT_SECRET);
+  } catch (err) {
+    return next(new ErrorHander("Invalid or expired token", 401));
+  }
+
+  // Prepare bulk update operations
+  const bulkOps = updates.map((item) => ({
+    updateOne: {
+      filter: { _id: item._id },
+      update: {
+        $set: {
+          is_collection_received: item.is_collection_received,
+          updated_by: decodedData?.user?.email,
+          updated_at: new Date(),
+        },
+      },
+    },
+  }));
+
+  // Perform bulk update
+  const result = await transactionHistoryModel.bulkWrite(bulkOps);
+
+  res.status(200).json({
+    success: true,
+    message: "Collection status updated successfully",
+    result,
   });
 });
 
@@ -421,4 +490,5 @@ module.exports = {
   getCategoryWiseFilterList,
   createTransaction,
   updateTransaction,
+  updateCollectionStatus,
 };
