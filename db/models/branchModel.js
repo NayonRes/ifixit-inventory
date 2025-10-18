@@ -17,7 +17,7 @@ const branchSchema = mongoose.Schema({
   // },
   parent_id: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "branchModel", // Reference to the brandModel
+    ref: "branch", // Reference to the brandModel
     default: null,
   },
   remarks: {

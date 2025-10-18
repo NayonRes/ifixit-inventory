@@ -4,17 +4,17 @@ const { Schema } = mongoose;
 const repairStatusHistorySchema = mongoose.Schema({
   user_id: {
     type: Schema.Types.ObjectId,
-    ref: "userModel",
+    ref: "user",
     required: [true, "Please select user"],
   },
   repair_id: {
     type: Schema.Types.ObjectId,
-    ref: "repairModel",
+    ref: "repair",
     required: [true, "Please select a repairId"],
   },
   warranty_id: {
     type: Schema.Types.ObjectId,
-    ref: "warrantyModel",
+    ref: "warranty",
     default: null,
   },
   repair_status_name: {

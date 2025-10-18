@@ -15,28 +15,28 @@ const productSchema = mongoose.Schema({
   },
   brand_id: {
     type: Schema.Types.ObjectId,
-    ref: "brandModel", // Reference to the brandModel
+    ref: "brand", // Reference to the brandModel
     required: [true, "Please enter select brand"],
   },
   category_id: {
     type: Schema.Types.ObjectId,
-    ref: "categoryModel",
+    ref: "category",
     required: [true, "Please enter select category"],
   },
   device_id: {
     type: Schema.Types.ObjectId,
-    ref: "deviceModel",
+    ref: "device",
     required: [true, "Please enter select device"],
   },
   model_id: {
     type: Schema.Types.ObjectId,
-    ref: "modelModel",
+    ref: "model",
     required: [true, "Please enter select model"],
   },
   attachable_models: [
     {
       type: Schema.Types.ObjectId,
-      ref: "modelModel",
+      ref: "model",
       required: [true, "Please select at least one model"],
     },
   ],

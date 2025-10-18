@@ -15,7 +15,7 @@ const productVariationSchema = mongoose.Schema({
   },
   product_id: {
     type: Schema.Types.ObjectId,
-    ref: "productModel",
+    ref: "product",
     required: [true, "Please enter product Id"],
   },
   price: {

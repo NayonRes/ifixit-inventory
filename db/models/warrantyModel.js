@@ -8,7 +8,7 @@ const stockSchema = mongoose.Schema({
   },
   repair_id: {
     type: Schema.Types.ObjectId,
-    ref: "repairModel",
+    ref: "repair",
     required: [true, "Please select repair id"],
   },
   service_charge: {
@@ -18,7 +18,7 @@ const stockSchema = mongoose.Schema({
 
   repair_by: {
     type: Schema.Types.ObjectId,
-    ref: "userModel",
+    ref: "user",
     default: null,
     set: (v) => (v === "" ? null : v),
     // required: [true, "Please enter select brand"],

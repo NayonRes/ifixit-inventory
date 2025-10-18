@@ -4,19 +4,19 @@ const { Schema } = mongoose;
 const repairProductHistorySchema = mongoose.Schema({
   repair_id: {
     type: Schema.Types.ObjectId,
-    ref: "repairModel",
+    ref: "repair",
     required: [true, "Please select a repairId"],
   },
   product_details: [
     {
       product_id: {
         type: Schema.Types.ObjectId,
-        ref: "productModel",
+        ref: "product",
         required: [true, "Please enter product Id"],
       },
       product_variation_id: {
         type: Schema.Types.ObjectId,
-        ref: "productVariationModel",
+        ref: "product_variation",
         required: [true, "Please enter product Id"],
       },
       name: {

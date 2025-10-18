@@ -27,7 +27,7 @@ const modelSchema = mongoose.Schema({
   },
   device_id: {
     type: Schema.Types.ObjectId,
-    ref: "deviceModel",
+    ref: "device",
     required: [true, "Please enter device name"],
   },
   parent_name: {

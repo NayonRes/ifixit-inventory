@@ -25,7 +25,115 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
   }
   let totalData = await warrantyModel.countDocuments(query);
   console.log("totalData=================================", totalData);
-  const data = await warrantyModel.find(query).skip(startIndex).limit(limit);
+  // const data = await warrantyModel.find(query).skip(startIndex).limit(limit);
+
+  const data = await warrantyModel.aggregate([
+    {
+      $match: query,
+    },
+    {
+      $lookup: {
+        from: "repairs",
+        localField: "repair_id",
+        foreignField: "_id",
+        as: "repair_data",
+      },
+    },
+    {
+      $lookup: {
+        from: "repair_status_histories",
+        localField: "_id",
+        foreignField: "warranty_id",
+        as: "repair_status_history_data",
+      },
+    },
+    // Lookup users for user_id inside repair_status_history_data
+    {
+      $lookup: {
+        from: "users",
+        localField: "repair_status_history_data.user_id",
+        foreignField: "_id",
+        as: "repair_status_users",
+      },
+    },
+    // Merge repair_status_users into repair_status_history_data
+    {
+      $addFields: {
+        repair_status_history_data: {
+          $map: {
+            input: "$repair_status_history_data",
+            as: "history",
+            in: {
+              $mergeObjects: [
+                "$$history",
+                {
+                  user_data: {
+                    $arrayElemAt: [
+                      {
+                        $filter: {
+                          input: "$repair_status_users",
+                          as: "user",
+                          cond: { $eq: ["$$user._id", "$$history.user_id"] },
+                        },
+                      },
+                      0,
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+        },
+      },
+    },
+    {
+      $project: {
+        _id: 1,
+        warranty_id: 1,
+        repair_id: 1,
+        service_charge: 1,
+        repair_by: 1,
+        repair_status: 1,
+        delivery_status: 1,
+        due_amount: 1,
+        discount_amount: 1,
+        payment_info: 1,
+
+        remarks: 1,
+        status: 1,
+        created_by: 1,
+        created_at: 1,
+        updated_by: 1,
+        updated_at: 1,
+
+        repair_data: 1,
+
+        "repair_status_history_data._id": 1,
+        "repair_status_history_data.remarks": 1,
+        "repair_status_history_data.created_by": 1,
+        "repair_status_history_data.updated_at": 1,
+        "repair_status_history_data.updated_by": 1,
+        "repair_status_history_data.user_id": 1,
+        "repair_status_history_data.repair_id": 1,
+        "repair_status_history_data.warranty_id": 1,
+        "repair_status_history_data.repair_status_name": 1,
+        "repair_status_history_data.remarks": 1,
+        "repair_status_history_data.created_at": 1,
+        "repair_status_history_data.user_data._id": 1,
+        "repair_status_history_data.user_data.name": 1,
+        "repair_status_history_data.user_data.designation": 1,
+      },
+    },
+    {
+      $sort: { created_at: -1 },
+    },
+    {
+      $skip: startIndex,
+    },
+    {
+      $limit: limit,
+    },
+  ]);
   console.log("data", data);
   res.status(200).json({
     success: true,
@@ -50,7 +158,53 @@ const getById = catchAsyncError(async (req, res, next) => {
         as: "repair_data",
       },
     },
-
+    {
+      $lookup: {
+        from: "repair_status_histories",
+        localField: "_id",
+        foreignField: "warranty_id",
+        as: "repair_status_history_data",
+      },
+    },
+    // Lookup users for user_id inside repair_status_history_data
+    {
+      $lookup: {
+        from: "users",
+        localField: "repair_status_history_data.user_id",
+        foreignField: "_id",
+        as: "repair_status_users",
+      },
+    },
+    // Merge repair_status_users into repair_status_history_data
+    {
+      $addFields: {
+        repair_status_history_data: {
+          $map: {
+            input: "$repair_status_history_data",
+            as: "history",
+            in: {
+              $mergeObjects: [
+                "$$history",
+                {
+                  user_data: {
+                    $arrayElemAt: [
+                      {
+                        $filter: {
+                          input: "$repair_status_users",
+                          as: "user",
+                          cond: { $eq: ["$$user._id", "$$history.user_id"] },
+                        },
+                      },
+                      0,
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+        },
+      },
+    },
     {
       $project: {
         _id: 1,
@@ -72,6 +226,21 @@ const getById = catchAsyncError(async (req, res, next) => {
         updated_at: 1,
 
         repair_data: 1,
+
+        "repair_status_history_data._id": 1,
+        "repair_status_history_data.remarks": 1,
+        "repair_status_history_data.created_by": 1,
+        "repair_status_history_data.updated_at": 1,
+        "repair_status_history_data.updated_by": 1,
+        "repair_status_history_data.user_id": 1,
+        "repair_status_history_data.repair_id": 1,
+        "repair_status_history_data.warranty_id": 1,
+        "repair_status_history_data.repair_status_name": 1,
+        "repair_status_history_data.remarks": 1,
+        "repair_status_history_data.created_at": 1,
+        "repair_status_history_data.user_data._id": 1,
+        "repair_status_history_data.user_data.name": 1,
+        "repair_status_history_data.user_data.designation": 1,
       },
     },
   ]);

@@ -4,7 +4,7 @@ const { Schema } = mongoose;
 const repairServiceHistorySchema = mongoose.Schema({
   repair_id: {
     type: Schema.Types.ObjectId,
-    ref: "repairModel",
+    ref: "repair",
     required: [true, "Please select a repairId"],
   },
 
@@ -13,7 +13,7 @@ const repairServiceHistorySchema = mongoose.Schema({
     {
       service_id: {
         type: Schema.Types.ObjectId,
-        ref: "serviceModel",
+        ref: "service",
         required: [true, "Please enter select model"],
       },
       name: {

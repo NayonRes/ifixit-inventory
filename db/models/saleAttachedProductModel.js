@@ -4,7 +4,7 @@ const { Schema } = mongoose;
 const saleAttachedProducSchema = mongoose.Schema({
   sale_id: {
     type: Schema.Types.ObjectId,
-    ref: "repairModel",
+    ref: "repair",
     required: [true, "Please select repair id"],
   },
 

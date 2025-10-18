@@ -148,14 +148,7 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
         as: "created_by_info",
       },
     },
-    {
-      $lookup: {
-        from: "repair_status_histories",
-        localField: "_id",
-        foreignField: "repair_id",
-        as: "repair_status_history_data",
-      },
-    },
+
     {
       $lookup: {
         from: "device_brands",
@@ -178,6 +171,15 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
         localField: "branch_id",
         foreignField: "_id",
         as: "branch_data",
+      },
+    },
+
+    {
+      $lookup: {
+        from: "repair_status_histories",
+        localField: "_id",
+        foreignField: "repair_id",
+        as: "repair_status_history_data",
       },
     },
     // Lookup users for user_id inside repair_status_history_data
@@ -261,6 +263,7 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
         "repair_status_history_data.updated_by": 1,
         "repair_status_history_data.user_id": 1,
         "repair_status_history_data.repair_id": 1,
+         "repair_status_history_data.warranty_id": 1,
         "repair_status_history_data.repair_status_name": 1,
         "repair_status_history_data.remarks": 1,
         "repair_status_history_data.created_at": 1,
@@ -675,6 +678,7 @@ const getById = catchAsyncError(async (req, res, next) => {
         "repair_status_history_data.updated_by": 1,
         "repair_status_history_data.user_id": 1,
         "repair_status_history_data.repair_id": 1,
+         "repair_status_history_data.warranty_id": 1,
         "repair_status_history_data.repair_status_name": 1,
         "repair_status_history_data.remarks": 1,
         "repair_status_history_data.created_at": 1,
