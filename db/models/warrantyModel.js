@@ -11,6 +11,10 @@ const stockSchema = mongoose.Schema({
     ref: "repair",
     required: [true, "Please select repair id"],
   },
+  branch_id: {
+    type: Schema.Types.ObjectId,
+    ref: "branch",
+  },
   service_charge: {
     type: Number,
     required: [true, "Please enter service charge"],

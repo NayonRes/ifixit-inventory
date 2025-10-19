@@ -19,7 +19,15 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
   if (req.query.repair_id) {
     query.repair_id = new mongoose.Types.ObjectId(req.query.repair_id);
   }
-
+  if (req.query.branch_id) {
+    query.branch_id = new mongoose.Types.ObjectId(req.query.branch_id);
+  }
+  if (req.query.warranty_id) {
+    query.warranty_id = {
+      $regex: `^${req.query.warranty_id}$`,
+      $options: "i",
+    };
+  }
   if (req.query.status) {
     query.status = req.query.status === "true";
   }
@@ -459,56 +467,7 @@ const updateData = catchAsyncError(async (req, res, next) => {
     session.endSession();
   }
 });
-const createData2 = catchAsyncError(async (req, res, next) => {
-  console.log("warranty createData ****************************");
-  // Step 0: Generate new repair_id
 
-  const { token } = req.cookies;
-  const decodedData = jwt.verify(token, process.env.JWT_SECRET);
-  const repair_id = mongoose.Types.ObjectId(req.body.repair_id);
-
-  let existingWarranty = await warrantyModel.findOne({ repair_id });
-  console.log("existingWarranty", existingWarranty);
-
-  if (!existingWarranty) {
-    const lastDoc = await warrantyModel.find().sort({ _id: -1 });
-    let newId;
-    if (lastDoc.length > 0) {
-      const serial = lastDoc[0].warranty_id.slice(0, 2);
-      const number = parseInt(lastDoc[0].warranty_id.slice(2)) + 1;
-      newId = serial.concat(number);
-    } else {
-      newId = "WN10000";
-    }
-
-    const newDocument = {
-      ...req.body,
-      warranty_id: newId,
-      created_by: decodedData?.user?.email,
-    };
-
-    let data = await warrantyModel.create(newDocument);
-    res.send({ message: "success", status: 201, data: data });
-  } else {
-    let data = await warrantyModel.findByIdAndUpdate(
-      existingWarranty._id,
-      {
-        $set: {
-          ...req.body,
-          updated_by: decodedData?.user?.email,
-          updated_at: new Date(),
-        },
-      },
-      {
-        new: true,
-        runValidators: true,
-        useFindAndModified: false, // should be useFindAndModify
-      }
-    );
-
-    res.send({ message: "success", status: 201, data: data });
-  }
-});
 // const createData = catchAsyncError(async (req, res, next) => {
 //   console.log("warranty createData ****************************");
 

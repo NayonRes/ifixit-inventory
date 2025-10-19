@@ -23,6 +23,9 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
   if (req.query.repair_id) {
     query.repair_id = new mongoose.Types.ObjectId(req.query.repair_id);
   }
+  if (req.query.warranty_id) {
+    query.warranty_id = new mongoose.Types.ObjectId(req.query.warranty_id);
+  }
 
   if (req.query.is_warranty_claimed_sku) {
     query.is_warranty_claimed_sku =
@@ -133,6 +136,7 @@ const createData = catchAsyncError(async (req, res, next) => {
   const { token } = req.cookies;
   const {
     repair_id,
+    warranty_id,
     sku_numbers,
     is_warranty_claimed_sku,
     claimed_on_sku_data,
@@ -153,6 +157,7 @@ const createData = catchAsyncError(async (req, res, next) => {
   try {
     let newAttachedCollectionData = sku_numbers.map((sku_number) => ({
       repair_id: repair_id,
+      warranty_id: warranty_id ? warranty_id : null,
       is_warranty_claimed_sku: is_warranty_claimed_sku,
 
       sku_number: sku_number,
@@ -341,8 +346,6 @@ const createData = catchAsyncError(async (req, res, next) => {
     res.status(200).json({
       success: true,
       message: "SKU returned successfully",
-
-      listOfUpdateStock: listOfUpdateStock,
     });
   } catch (error) {
     await session.abortTransaction();

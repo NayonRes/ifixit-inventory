@@ -7,6 +7,7 @@ const {
   updateData,
 } = require("../controller/warrantyController");
 const { isAuthenticatedUser, authorizeRoles } = require("../middleware/auth");
+const branchAccessMiddleware = require("../middleware/branchAccessMiddleware");
 
 var router = express.Router();
 
@@ -16,6 +17,7 @@ router
   .get(
     isAuthenticatedUser,
     authorizeRoles("update_repair"),
+    branchAccessMiddleware,
     getDataWithPagination
   );
 
