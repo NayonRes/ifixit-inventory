@@ -61,7 +61,7 @@ const getAllData = catchAsyncError(async (req, res, next) => {
     .populate({
       path: "transaction_source_id", // dynamic based on refPath
       select:
-        "name title _id repair_id warranty_id amount createdAt usedated At remarks", // optional fields
+        "name title _id repair_id warranty_id expense_id amount createdAt usedated At remarks", // optional fields
     })
 
     .sort({ createdAt: -1 }); // newest first

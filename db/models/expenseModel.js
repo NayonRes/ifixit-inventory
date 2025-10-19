@@ -1,6 +1,11 @@
 const mongoose = require("mongoose");
 
 const expenseSchema = mongoose.Schema({
+
+   expense_id: {
+    type: String,
+    required: [true, "Please enter serial"],
+  },
   // name: {
   //   type: String,
   //   required: [true, "Please enter category name"],

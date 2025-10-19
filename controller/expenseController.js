@@ -4,7 +4,10 @@ const catchAsyncError = require("../middleware/catchAsyncError");
 const jwt = require("jsonwebtoken");
 const mongoose = require("mongoose");
 const formatDate = require("../utils/formatDate");
-const { createTransaction,updateTransaction } = require("./transactionHistoryController");
+const {
+  createTransaction,
+  updateTransaction,
+} = require("./transactionHistoryController");
 const transactionHistoryModel = require("../db/models/transactionHistoryModel");
 
 const getDataWithPagination = catchAsyncError(async (req, res, next) => {
@@ -143,8 +146,20 @@ const createData = catchAsyncError(async (req, res, next) => {
   try {
     await session.withTransaction(async () => {
       // Step 1: Prepare expense data
+
+      const lastDoc = await expenseModel.find().sort({ _id: -1 });
+      let newId;
+      if (lastDoc.length > 0) {
+        const serial = lastDoc[0].expense_id.slice(0, 2);
+        const number = parseInt(lastDoc[0].expense_id.slice(2)) + 1;
+        newId = serial.concat(number);
+      } else {
+        newId = "EX10000";
+      }
+
       const newData = {
         ...req.body,
+        expense_id: newId,
         created_by: decodedData?.user?.email,
       };
 
