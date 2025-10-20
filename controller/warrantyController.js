@@ -166,6 +166,24 @@ const getById = catchAsyncError(async (req, res, next) => {
         as: "repair_data",
       },
     },
+
+    {
+      $lookup: {
+        from: "users",
+        localField: "repair_by",
+        foreignField: "_id",
+        as: "repair_by_data",
+      },
+    },
+    {
+      $lookup: {
+        from: "users",
+        localField: "created_by",
+        foreignField: "email",
+        as: "created_by_info",
+      },
+    },
+
     {
       $lookup: {
         from: "repair_status_histories",
@@ -234,7 +252,8 @@ const getById = catchAsyncError(async (req, res, next) => {
         updated_at: 1,
 
         repair_data: 1,
-
+        "repair_by_data.name": 1,
+        "repair_by_data._id": 1,
         "repair_status_history_data._id": 1,
         "repair_status_history_data.remarks": 1,
         "repair_status_history_data.created_by": 1,
