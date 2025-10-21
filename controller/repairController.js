@@ -263,7 +263,7 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
         "repair_status_history_data.updated_by": 1,
         "repair_status_history_data.user_id": 1,
         "repair_status_history_data.repair_id": 1,
-         "repair_status_history_data.warranty_id": 1,
+        "repair_status_history_data.warranty_id": 1,
         "repair_status_history_data.repair_status_name": 1,
         "repair_status_history_data.remarks": 1,
         "repair_status_history_data.created_at": 1,
@@ -339,8 +339,8 @@ const getById = catchAsyncError(async (req, res, next) => {
     {
       $lookup: {
         from: "transaction_histories",
-        localField: "transaction_source_id",
-        foreignField: "repair_id",
+        localField: "_id",
+        foreignField: "transaction_source_id",
         as: "transaction_histories_data",
         pipeline: [
           // Join created_by user
@@ -678,7 +678,7 @@ const getById = catchAsyncError(async (req, res, next) => {
         "repair_status_history_data.updated_by": 1,
         "repair_status_history_data.user_id": 1,
         "repair_status_history_data.repair_id": 1,
-         "repair_status_history_data.warranty_id": 1,
+        "repair_status_history_data.warranty_id": 1,
         "repair_status_history_data.repair_status_name": 1,
         "repair_status_history_data.remarks": 1,
         "repair_status_history_data.created_at": 1,

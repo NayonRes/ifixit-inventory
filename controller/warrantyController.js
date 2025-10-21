@@ -183,7 +183,146 @@ const getById = catchAsyncError(async (req, res, next) => {
         as: "created_by_info",
       },
     },
+    {
+      $lookup: {
+        from: "transaction_histories",
+        localField: "_id",
+        foreignField: "transaction_source_id",
+        as: "transaction_histories_data",
+        pipeline: [
+          // Join created_by user
+          {
+            $lookup: {
+              from: "users",
+              let: { createdEmail: "$created_by" },
+              pipeline: [
+                { $match: { $expr: { $eq: ["$email", "$$createdEmail"] } } },
+                { $project: { _id: 1, name: 1, email: 1 } },
+              ],
+              as: "created_user",
+            },
+          },
+          {
+            $unwind: {
+              path: "$created_user",
+              preserveNullAndEmptyArrays: true,
+            },
+          },
 
+          // Join updated_by user
+          {
+            $lookup: {
+              from: "users",
+              let: { updatedEmail: "$updated_by" },
+              pipeline: [
+                { $match: { $expr: { $eq: ["$email", "$$updatedEmail"] } } },
+                { $project: { _id: 1, name: 1, email: 1 } },
+              ],
+              as: "updated_user",
+            },
+          },
+          {
+            $unwind: {
+              path: "$updated_user",
+              preserveNullAndEmptyArrays: true,
+            },
+          },
+        ],
+      },
+    },
+    {
+      $lookup: {
+        from: "repair_attached_spareparts",
+        localField: "_id",
+        foreignField: "warranty_id",
+        as: "repair_attached_spareparts_data",
+        pipeline: [
+          // Join created_by user
+          {
+            $lookup: {
+              from: "users",
+              let: { createdEmail: "$created_by" },
+              pipeline: [
+                { $match: { $expr: { $eq: ["$email", "$$createdEmail"] } } },
+                { $project: { _id: 1, name: 1, email: 1 } },
+              ],
+              as: "created_user",
+            },
+          },
+          {
+            $unwind: {
+              path: "$created_user",
+              preserveNullAndEmptyArrays: true,
+            },
+          },
+
+          // Join updated_by user
+          {
+            $lookup: {
+              from: "users",
+              let: { updatedEmail: "$updated_by" },
+              pipeline: [
+                { $match: { $expr: { $eq: ["$email", "$$updatedEmail"] } } },
+                { $project: { _id: 1, name: 1, email: 1 } },
+              ],
+              as: "updated_user",
+            },
+          },
+          {
+            $unwind: {
+              path: "$updated_user",
+              preserveNullAndEmptyArrays: true,
+            },
+          },
+
+          // Join stocks using sku_number
+          {
+            $lookup: {
+              from: "stocks",
+              localField: "sku_number",
+              foreignField: "sku_number",
+              as: "stocks_data",
+              pipeline: [
+                // Join products by product_id
+                {
+                  $lookup: {
+                    from: "products",
+                    localField: "product_id",
+                    foreignField: "_id",
+                    as: "product_data",
+                  },
+                },
+                {
+                  $unwind: {
+                    path: "$product_data",
+                    preserveNullAndEmptyArrays: true,
+                  },
+                },
+
+                // Join product_variations by product_variation_id
+                {
+                  $lookup: {
+                    from: "product_variations",
+                    localField: "product_variation_id",
+                    foreignField: "_id",
+                    as: "product_variation_data",
+                  },
+                },
+                {
+                  $unwind: {
+                    path: "$product_variation_data",
+                    preserveNullAndEmptyArrays: true,
+                  },
+                },
+              ],
+            },
+          },
+          {
+            $unwind: { path: "$stocks_data", preserveNullAndEmptyArrays: true },
+          },
+        ],
+      },
+    },
     {
       $lookup: {
         from: "repair_status_histories",
@@ -268,6 +407,8 @@ const getById = catchAsyncError(async (req, res, next) => {
         "repair_status_history_data.user_data._id": 1,
         "repair_status_history_data.user_data.name": 1,
         "repair_status_history_data.user_data.designation": 1,
+        transaction_histories_data: 1,
+        repair_attached_spareparts_data: 1,
       },
     },
   ]);
