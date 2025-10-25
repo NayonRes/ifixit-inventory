@@ -11,6 +11,8 @@ const deviceSchema = mongoose.Schema({
     trim: true,
     unique: true,
   },
+
+
   // parent_name: {
   //   type: String,
   //   // default: 10000,

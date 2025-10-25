@@ -6,6 +6,7 @@ const modelSchema = mongoose.Schema({
     type: String,
     required: [true, "Please enter model id"],
   },
+  
   name: {
     type: String,
     required: [true, "Please enter model name"],

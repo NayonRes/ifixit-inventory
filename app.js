@@ -42,6 +42,7 @@ var transactionHistoryRouter = require("./routes/transactionHistoryRoute");
 // var purchaseReturnRouter = require("./routes/purchaseReturnRoute");
 var orderRouter = require("./routes/orderRoute");
 var permissionRouter = require("./routes/permissionRoute");
+var questionRouter = require("./routes/questionRoute");
 var warrantyRouter = require("./routes/warrantyRoute");
 
 const errorMiddleware = require("./middleware/error");
@@ -122,6 +123,7 @@ app.use("/api/v1/service", serviceRouter);
 app.use("/api/v1/transactionHistory", transactionHistoryRouter);
 app.use("/api/v1/order", orderRouter);
 app.use("/api/v1/permission", permissionRouter);
+app.use("/api/v1/question", questionRouter);
 app.use("/api/v1/warranty", warrantyRouter);
 
 // catch 404 and forward to error handler
