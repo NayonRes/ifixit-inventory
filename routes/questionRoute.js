@@ -1,16 +1,10 @@
 var express = require("express");
 const {
-  getParentDropdown,
-  getLeafDeviceList,
   getDataWithPagination,
   getById,
-  getByParent,
   createData,
   updateData,
-  deleteData,
-  getDeviceWiseFilterList,
-  getListGroupByParent,
-} = require("../controller/deviceController");
+} = require("../controller/questionController");
 const { isAuthenticatedUser, authorizeRoles } = require("../middleware/auth");
 const deviceModel = require("../db/models/deviceModel");
 
@@ -21,56 +15,11 @@ var router = express.Router();
 //   .route("/create")
 //   .post(createData);
 
-router.route("/parent-child-list").get(
-  isAuthenticatedUser,
+router.route("/").get(isAuthenticatedUser, getDataWithPagination);
 
-  getListGroupByParent
-);
-router.route("/public/list").get(getParentDropdown);
-router.route("/dropdownlist").get(
-  isAuthenticatedUser,
+router.route("/create").post(isAuthenticatedUser, createData);
 
-  getParentDropdown
-);
-
-router.route("/leaf-dropdown").get(
-  isAuthenticatedUser,
-
-  getLeafDeviceList
-);
-
-router.route("/device-filter-list").post(
-  isAuthenticatedUser,
-
-  getDeviceWiseFilterList
-);
-
-router
-  .route("/")
-  .get(
-    isAuthenticatedUser,
-    authorizeRoles("device_list"),
-    getDataWithPagination
-  );
-
-router.route("/get-by-parent").get(
-  isAuthenticatedUser,
-
-  getByParent
-);
-
-router
-  .route("/create")
-  .post(isAuthenticatedUser, authorizeRoles("add_device"), createData);
-
-router
-  .route("/update/:id")
-  .put(isAuthenticatedUser, authorizeRoles("update_device"), updateData);
-router
-  .route("/:id")
-  .get(isAuthenticatedUser, authorizeRoles("view_device_details"), getById);
-// router
-//   .route("/delete/:id")
-//   .delete(isAuthenticatedUser, authorizeRoles("dashboard"), deleteData);
+router.route("/update/:id").put(isAuthenticatedUser, updateData);
+router.route("/:id").get(isAuthenticatedUser, getById);
 
 module.exports = router;

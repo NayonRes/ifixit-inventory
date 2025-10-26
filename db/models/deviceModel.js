@@ -12,7 +12,10 @@ const deviceSchema = mongoose.Schema({
     unique: true,
   },
 
-
+  endpoint: {
+    type: String,
+    required: [true, "Please enter url endpoint"],
+  },
   // parent_name: {
   //   type: String,
   //   // default: 10000,

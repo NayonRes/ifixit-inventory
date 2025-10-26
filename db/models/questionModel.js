@@ -2,45 +2,28 @@ const mongoose = require("mongoose");
 const { Schema } = mongoose;
 
 const questionSchema = mongoose.Schema({
-  transaction_source_id: {
+  source_id: {
     type: Schema.Types.ObjectId,
-    refPath: "transaction_source_type", // dynamic reference
+    refPath: "source_type", // dynamic reference
     required: [true, "Please select a source ID"],
   },
-  transaction_name: {
+  question: {
     type: String,
     trim: true,
+    required: [true, "Please write your question"],
   },
-  transaction_info: [
-    {
-      name: {
-        type: String,
-        trim: true,
-        required: [true, "Please enter transaction account name"],
-      },
-      amount: {
-        type: Number,
-        default: 0,
-        required: [true, "Please enter amount"],
-      },
-    },
-  ],
-  transaction_source_type: {
+  answer: {
     type: String,
     trim: true,
-    enum: ["repair", "warranty", "expense"], // list allowed models expenseModel
-  },
-  transaction_type: {
-    type: String,
-    enum: ["credit", "debit"],
-    // default: "credit",
-    required: [true, "Please enter transaction type"],
+    default: null,
   },
 
-  is_collection_received: {
-    type: Boolean,
-    default: false,
+  source_type: {
+    type: String,
+    trim: true,
+    enum: ["service"], // list allowed models
   },
+
   remarks: {
     type: String,
   },

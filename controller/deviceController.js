@@ -27,6 +27,7 @@ const getListGroupByParent = catchAsyncError(async (req, res, next) => {
         _id: 0, // Exclude _id from the output
         parent_name: "$_id",
         items: 1,
+        endpoint: 1,
       },
     },
   ]);
@@ -53,6 +54,10 @@ const getParentDropdown = catchAsyncError(async (req, res, next) => {
       req.query.device_brand_id
     );
   }
+
+  if (req.query.endpoint) {
+    query.endpoint = new RegExp(`^${req.query.endpoint}$`, "i");
+  }
   // if (req.query.parent_id) {
   //   query.parent_id = new mongoose.Types.ObjectId(req.query.parent_id);
   // }
@@ -67,7 +72,13 @@ const getParentDropdown = catchAsyncError(async (req, res, next) => {
     query.status = req.query.status === "true";
   }
   const data = await deviceModel
-    .find(query, { name: 1, device_id: 1, parent_id: 1, image: 1 })
+    .find(query, {
+      name: 1,
+      endpoint: 1,
+      device_id: 1,
+      parent_id: 1,
+      image: 1,
+    })
     .sort({ order_no: 1 })
     .lean();
 
@@ -142,6 +153,7 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
         device_brand_id: 1,
         parent_id: 1,
         order_no: 1,
+        endpoint: 1,
         remarks: 1,
 
         status: 1,
@@ -399,6 +411,7 @@ const getLeafDeviceList = catchAsyncError(async (req, res, next) => {
       $project: {
         _id: 1,
         name: 1,
+        endpoint: 1,
         parent_id: 1, // Instead of `parent_name`
         device_id: 1,
         order_no: 1, // Include order_no for sorting
