@@ -42,6 +42,7 @@ var transactionHistoryRouter = require("./routes/transactionHistoryRoute");
 // var purchaseReturnRouter = require("./routes/purchaseReturnRoute");
 var orderRouter = require("./routes/orderRoute");
 var permissionRouter = require("./routes/permissionRoute");
+var publicRouter = require("./routes/publicRoute");
 var questionRouter = require("./routes/questionRoute");
 var warrantyRouter = require("./routes/warrantyRoute");
 
@@ -123,6 +124,7 @@ app.use("/api/v1/service", serviceRouter);
 app.use("/api/v1/transactionHistory", transactionHistoryRouter);
 app.use("/api/v1/order", orderRouter);
 app.use("/api/v1/permission", permissionRouter);
+app.use("/api/v1/public", publicRouter);
 app.use("/api/v1/question", questionRouter);
 app.use("/api/v1/warranty", warrantyRouter);
 
