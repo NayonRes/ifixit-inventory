@@ -11,10 +11,24 @@ const serviceSchema = mongoose.Schema({
     required: [true, "Please enter device order no"],
     // unique: true,
   },
-  endpoint: {
-    type: String,
-    required: [true, "Please enter url endpoint"],
-  },
+  // endpoint: {
+  //   type: String,
+  //   required: [true, "Please enter url endpoint"],
+  // },
+
+  endpoints: [
+    {
+      model_id: {
+        type: Schema.Types.ObjectId,
+        ref: "model",
+        required: [true, "Please select at least one model"],
+      },
+      endpoint: {
+        type: String,
+        required: [true, "Endpoint is required"],
+      },
+    },
+  ],
   image: {
     public_id: {
       type: String,

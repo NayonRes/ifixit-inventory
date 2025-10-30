@@ -6,11 +6,17 @@ const modelSchema = mongoose.Schema({
     type: String,
     required: [true, "Please enter model id"],
   },
-  
+
   name: {
     type: String,
     required: [true, "Please enter model name"],
     trim: true,
+    unique: true,
+  },
+  endpoint: {
+    type: String,
+    trim: true,
+    required: [true, "Please enter url endpoint"],
     unique: true,
   },
   order_no: {
