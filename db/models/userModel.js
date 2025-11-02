@@ -68,7 +68,7 @@ const userSchema = new mongoose.Schema({
   //   // required: [true, "Please Select A Role"],
   //   // default: "",
   // },
-
+  tokenVersion: { type: Number, default: 0 },
   remarks: {
     type: String,
   },

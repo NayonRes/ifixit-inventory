@@ -31,6 +31,11 @@ exports.isAuthenticatedUser = catchAsyncErrors(async (req, res, next) => {
     return next(new ErrorHander("Your account has been deactivated", 401));
   }
 
+  // Check tokenVersion
+  if (decodedData.user.tokenVersion !== req.user.tokenVersion) {
+    return next(new ErrorHander("Session expired due to update account", 401));
+  }
+
   next();
 });
 

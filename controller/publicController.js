@@ -39,7 +39,7 @@ const serviceModel = require("../db/models/serviceModel");
 // });
 const getModelByDeviceId = catchAsyncError(async (req, res, next) => {
   let query = {};
-
+  let device = {};
   // If status is provided
   if (req.query.status) {
     query.status = req.query.status === "true";
@@ -52,9 +52,9 @@ const getModelByDeviceId = catchAsyncError(async (req, res, next) => {
 
   // If endpoint is provided
   if (req.query.endpoint) {
-    const device = await deviceModel
+    device = await deviceModel
       .findOne({ endpoint: req.query.endpoint })
-      .select("_id");
+      .select("_id name");
     if (!device) {
       return res
         .status(404)
@@ -89,7 +89,13 @@ const getModelByDeviceId = catchAsyncError(async (req, res, next) => {
     return res.status(404).send({ message: "No data found" });
   }
 
-  res.send({ message: "success", status: 200, data, childDevice: false });
+  res.send({
+    message: "success",
+    status: 200,
+    data,
+    childDevice: false,
+    device,
+  });
 });
 
 const getServiceByModelId = catchAsyncError(async (req, res, next) => {
@@ -329,11 +335,9 @@ const getServiceByModelId = catchAsyncError(async (req, res, next) => {
     message: "successful",
     data: data,
     totalData: totalData,
-    modelId: query.model_id,
   });
 });
 const getServiceDetails = catchAsyncError(async (req, res, next) => {
-  
   const id = req.params.id;
   const data = await serviceModel.aggregate([
     {
