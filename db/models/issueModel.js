@@ -16,7 +16,7 @@ const issueSchema = mongoose.Schema({
   model_id: [
     {
       type: Schema.Types.ObjectId,
-      ref: "modelModel",
+      ref: "model",
       required: [true, "Please select at least one model"],
     },
   ],

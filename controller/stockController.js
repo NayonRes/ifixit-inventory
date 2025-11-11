@@ -1236,7 +1236,163 @@ const deleteData = catchAsyncError(async (req, res, next) => {
     data: data,
   });
 });
+const getHistory = catchAsyncError(async (req, res, next) => {
+  const page = parseInt(req.query.page) || 1;
+  console.log("===========req.query.page", req.query.page);
+  console.log("===========req.query.stock_status", req.query.stock_status);
+  const limit = parseInt(req.query.limit) || 10;
+  const startIndex = (page - 1) * limit;
+  const endIndex = page * limit;
+  var query = {};
+  // if (req.query.sku_number) {
+  //   query.sku_number = new RegExp(`^${req.query.sku_number}$`, "i");
+  // }
 
+  if (req.query.product_id) {
+    query.product_id = new mongoose.Types.ObjectId(req.query.product_id);
+  }
+  if (req.query.product_variation_id) {
+    query.product_variation_id = new mongoose.Types.ObjectId(
+      req.query.product_variation_id
+    );
+  }
+  if (req.query.branch_id) {
+    query.branch_id = new mongoose.Types.ObjectId(req.query.branch_id);
+  }
+  if (req.query.purchase_id) {
+    query.purchase_id = new mongoose.Types.ObjectId(req.query.purchase_id);
+  }
+  if (req.query.stock_status) {
+    query.stock_status = new RegExp(`^${req.query.stock_status}$`, "i");
+  }
+
+  if (req.query.sku_number && !isNaN(req.query.sku_number)) {
+    query.sku_number = Number(req.query.sku_number);
+  } else if (req.query.sku_number) {
+    return res.status(400).json({
+      success: false,
+      message: "Invalid sku number provided",
+    });
+  }
+
+  let totalData = await stockModel.countDocuments(query);
+  console.log("totalData=================================", totalData);
+  //const data = await stockModel.find(query).skip(startIndex).limit(limit);
+
+  const data = await stockModel.aggregate([
+    {
+      $match: query,
+    },
+    {
+      $lookup: {
+        from: "products",
+        localField: "product_id",
+        foreignField: "_id",
+        as: "product_data",
+      },
+    },
+    {
+      $lookup: {
+        from: "product_variations",
+        localField: "product_variation_id",
+        foreignField: "_id",
+        as: "product_variation_data",
+      },
+    },
+    {
+      $lookup: {
+        from: "repair_attached_spareparts",
+        localField: "sku_number",
+        foreignField: "sku_number",
+        as: "repair_attached_spareparts_data",
+      },
+    },
+    {
+      $lookup: {
+        from: "branches",
+        localField: "branch_id",
+        foreignField: "_id",
+        as: "branch_data",
+      },
+    },
+    {
+      $lookup: {
+        from: "branches",
+        localField: "purchase_branch_id",
+        foreignField: "_id",
+        as: "purchase_branch_data",
+      },
+    },
+    {
+      $lookup: {
+        from: "purchases",
+        localField: "purchase_id",
+        foreignField: "_id",
+        as: "purchase_data",
+      },
+    },
+
+    {
+      $lookup: {
+        from: "purchase_products",
+        let: {
+          purchase_id: "$purchase_id",
+          product_variation_id: "$product_variation_id",
+        },
+        pipeline: [
+          {
+            $match: {
+              $expr: {
+                $and: [
+                  { $eq: ["$purchase_id", "$$purchase_id"] },
+                  {
+                    $eq: ["$product_variation_id", "$$product_variation_id"],
+                  },
+                ],
+              },
+            },
+          },
+        ],
+        as: "purchase_products_data",
+      },
+    },
+    {
+      $project: {
+        _id: 1,
+        product_id: 1,
+        product_variation_id: 1,
+        branch_id: 1,
+        purchase_branch_id: 1,
+        purchase_id: 1,
+        sku_number: 1,
+        stock_status: 1,
+        product_id: 1,
+        remarks: 1,
+        status: 1,
+        created_by: 1,
+        created_at: 1,
+        updated_by: 1,
+        updated_at: 1,
+
+        "product_data.name": 1,
+        "product_data.warranty": 1,
+        "branch_data.name": 1,
+        "purchase_branch_data.name": 1,
+        "product_variation_data.name": 1,
+        "purchase_data.purchase_date": 1,
+        "purchase_data.supplier_id": 1,
+        purchase_products_data: 1,
+        repair_attached_spareparts_data: 1,
+      },
+    },
+  ]);
+  console.log("data", data);
+  res.status(200).json({
+    success: true,
+    message: "successful",
+    data: data,
+  });
+});
 module.exports = {
   getDataWithGroupByUpdateDate,
   getDataWithPagination,
@@ -1247,4 +1403,5 @@ module.exports = {
   purchaseReturn,
   stockAdjustment,
   deleteData,
+  getHistory,
 };

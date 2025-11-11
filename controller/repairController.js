@@ -148,14 +148,7 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
         as: "created_by_info",
       },
     },
-    {
-      $lookup: {
-        from: "repair_status_histories",
-        localField: "_id",
-        foreignField: "repair_id",
-        as: "repair_status_history_data",
-      },
-    },
+
     {
       $lookup: {
         from: "device_brands",
@@ -178,6 +171,15 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
         localField: "branch_id",
         foreignField: "_id",
         as: "branch_data",
+      },
+    },
+
+    {
+      $lookup: {
+        from: "repair_status_histories",
+        localField: "_id",
+        foreignField: "repair_id",
+        as: "repair_status_history_data",
       },
     },
     // Lookup users for user_id inside repair_status_history_data
@@ -261,6 +263,7 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
         "repair_status_history_data.updated_by": 1,
         "repair_status_history_data.user_id": 1,
         "repair_status_history_data.repair_id": 1,
+        "repair_status_history_data.warranty_id": 1,
         "repair_status_history_data.repair_status_name": 1,
         "repair_status_history_data.remarks": 1,
         "repair_status_history_data.created_at": 1,
@@ -336,8 +339,8 @@ const getById = catchAsyncError(async (req, res, next) => {
     {
       $lookup: {
         from: "transaction_histories",
-        localField: "transaction_source_id",
-        foreignField: "repair_id",
+        localField: "_id",
+        foreignField: "transaction_source_id",
         as: "transaction_histories_data",
         pipeline: [
           // Join created_by user
@@ -675,6 +678,7 @@ const getById = catchAsyncError(async (req, res, next) => {
         "repair_status_history_data.updated_by": 1,
         "repair_status_history_data.user_id": 1,
         "repair_status_history_data.repair_id": 1,
+        "repair_status_history_data.warranty_id": 1,
         "repair_status_history_data.repair_status_name": 1,
         "repair_status_history_data.remarks": 1,
         "repair_status_history_data.created_at": 1,
@@ -869,29 +873,6 @@ async function createServiceHistory(session, req, repairId, decodedData) {
   return serviceData[0];
 }
 
-async function createTransactionHistory(session, req, repairId, decodedData) {
-  const newTransactionData = {
-    transaction_source_id: new mongoose.Types.ObjectId(repairId),
-    transaction_info: Array.isArray(req.body?.billCollections)
-      ? req.body.billCollections
-      : [],
-
-    transaction_source_type: "repairModel",
-    transaction_type: "credit",
-    created_by: decodedData?.user?.email,
-  };
-
-  const transactionData = await transactionHistoryModel.create(
-    [newTransactionData],
-    {
-      session,
-    }
-  );
-  if (!transactionData || transactionData.length === 0) {
-    return null;
-  }
-  return transactionData[0];
-}
 async function createProductHistory(session, req, repairId, decodedData) {
   const newProductData = {
     repair_id: new mongoose.Types.ObjectId(repairId),
@@ -950,6 +931,7 @@ const createData = catchAsyncError(async (req, res, next) => {
       };
       const data = await repairModel.create([newRepairData], { session });
       const repair = data[0];
+      console.log("repair111", repair);
 
       if (!repair) {
         await session.abortTransaction();
@@ -980,9 +962,10 @@ const createData = catchAsyncError(async (req, res, next) => {
         req.body.billCollections.length > 0
       ) {
         transactionData = await createTransaction(
+          "Repair Income",
           repair._id, // transaction_source_id
           req.body.billCollections, // transaction_info
-          "repairModel", // transaction_source_type
+          "repair", // transaction_source_type
           "credit", // transaction_type
           decodedData?.user?.email, // created_by
           session // optional
@@ -1063,6 +1046,7 @@ const createData = catchAsyncError(async (req, res, next) => {
         statusData,
         serviceData,
         productData,
+        transactionData,
       });
     });
   } catch (error) {
@@ -1135,9 +1119,10 @@ const updateData = catchAsyncError(async (req, res, next) => {
         req.body.billCollections.length > 0
       ) {
         transactionData = await createTransaction(
+          "Repair Income",
           updatedRepair._id, // transaction_source_id
           req.body.billCollections, // transaction_info
-          "repairModel", // transaction_source_type
+          "repair", // transaction_source_type
           "credit", // transaction_type
           decodedData?.user?.email, // created_by
           session // optional, will be used if transaction is active
@@ -1217,6 +1202,7 @@ const updateData = catchAsyncError(async (req, res, next) => {
         statusData,
         serviceData,
         productData,
+        transactionData,
       });
     });
   } catch (error) {

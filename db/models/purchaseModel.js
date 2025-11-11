@@ -9,12 +9,12 @@ const purchaseSchema = mongoose.Schema({
   },
   supplier_id: {
     type: Schema.Types.ObjectId,
-    ref: "supplierModel", // Reference to the brandModel
+    ref: "supplier", // Reference to the brandModel
     required: [true, "Please select supplier"],
   },
   user_id: {
     type: Schema.Types.ObjectId,
-    ref: "userModel", // Reference to the brandModel
+    ref: "user", // Reference to the brandModel
     required: [true, "Please select user"],
   },
   purchase_date: {
@@ -33,7 +33,7 @@ const purchaseSchema = mongoose.Schema({
   },
   branch_id: {
     type: Schema.Types.ObjectId,
-    ref: "branchModel", // Reference to the brandModel
+    ref: "branch", // Reference to the brandModel
     required: [true, "Please enter business location"],
   },
   invoice_number: {

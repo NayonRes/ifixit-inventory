@@ -39,6 +39,7 @@ const sendToken = (user, branchInfo, statusCode, res) => {
 
     permission: user.permission || [],
     status: user.status,
+    tokenVersion: user.tokenVersion,
   };
   console.log("newUser==============", newUser);
 

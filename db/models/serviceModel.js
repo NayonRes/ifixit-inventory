@@ -11,6 +11,24 @@ const serviceSchema = mongoose.Schema({
     required: [true, "Please enter device order no"],
     // unique: true,
   },
+  // endpoint: {
+  //   type: String,
+  //   required: [true, "Please enter url endpoint"],
+  // },
+
+  endpoints: [
+    {
+      model_id: {
+        type: Schema.Types.ObjectId,
+        ref: "model",
+        required: [true, "Please select at least one model"],
+      },
+      endpoint: {
+        type: String,
+        required: [true, "Endpoint is required"],
+      },
+    },
+  ],
   image: {
     public_id: {
       type: String,
@@ -21,34 +39,34 @@ const serviceSchema = mongoose.Schema({
   },
   // model_id: {
   //   type: Schema.Types.ObjectId,
-  //   ref: "modelModel",
+  //   ref: "model",
   //   required: [true, "Please enter select model"],
   // },
   model_id: [
     {
       type: Schema.Types.ObjectId,
-      ref: "modelModel",
+      ref: "model",
       required: [true, "Please select at least one model"],
     },
   ],
   device_id: {
     type: Schema.Types.ObjectId,
-    ref: "deviceModel",
+    ref: "device",
     required: [true, "Please enter select device"],
   },
   brand_id: {
     type: Schema.Types.ObjectId,
-    ref: "brandModel",
+    ref: "brand",
   },
   branch_id: [
     {
       type: Schema.Types.ObjectId,
-      ref: "branchModel",
+      ref: "branch",
     },
   ],
   // customer_id: {
   //   type: Schema.Types.ObjectId,
-  //   ref: "customerModel",
+  //   ref: "customer",
   // },
   steps: [
     {
@@ -106,11 +124,11 @@ const serviceSchema = mongoose.Schema({
       },
       product_id: {
         type: Schema.Types.ObjectId,
-        ref: "productModel",
+        ref: "product",
       },
       product_variation_id: {
         type: Schema.Types.ObjectId,
-        ref: "productVariationModel",
+        ref: "product_variation",
       },
     },
   ],

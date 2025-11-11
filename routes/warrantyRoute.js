@@ -4,8 +4,10 @@ const {
 
   getById,
   createData,
+  updateData,
 } = require("../controller/warrantyController");
 const { isAuthenticatedUser, authorizeRoles } = require("../middleware/auth");
+const branchAccessMiddleware = require("../middleware/branchAccessMiddleware");
 
 var router = express.Router();
 
@@ -15,6 +17,7 @@ router
   .get(
     isAuthenticatedUser,
     authorizeRoles("update_repair"),
+    branchAccessMiddleware,
     getDataWithPagination
   );
 
@@ -24,5 +27,8 @@ router
 router
   .route("/create")
   .post(isAuthenticatedUser, authorizeRoles("update_repair"), createData);
+router
+  .route("/update/:id")
+  .put(isAuthenticatedUser, authorizeRoles("update_repair"), updateData);
 
 module.exports = router;

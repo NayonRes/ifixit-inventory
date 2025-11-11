@@ -9,6 +9,7 @@ const {
   purchaseReturn,
   stockAdjustment,
   deleteData,
+  getHistory,
 } = require("../controller/stockController");
 const { isAuthenticatedUser, authorizeRoles } = require("../middleware/auth");
 
@@ -27,6 +28,13 @@ router
     isAuthenticatedUser,
     authorizeRoles("stock_list"),
     getDataWithPagination
+  );
+router
+  .route("/history")
+  .get(
+    isAuthenticatedUser,
+    authorizeRoles("view_stock_details"),
+    getHistory
   );
 router
   .route("/stock-skus-details")

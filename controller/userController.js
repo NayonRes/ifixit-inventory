@@ -329,6 +329,7 @@ const updateData = catchAsyncError(async (req, res, next) => {
     // role_id: req.body.role_id,
     // status: req.body.status,
     ...req.body,
+    tokenVersion: userData.tokenVersion + 1,
     updated_by: decodedData?.user?.email,
     updated_at: new Date(),
   };

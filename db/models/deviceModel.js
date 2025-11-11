@@ -11,6 +11,13 @@ const deviceSchema = mongoose.Schema({
     trim: true,
     unique: true,
   },
+
+  endpoint: {
+    type: String,
+    trim: true,
+    required: [true, "Please enter url endpoint"],
+    unique: true,
+  },
   // parent_name: {
   //   type: String,
   //   // default: 10000,
@@ -18,7 +25,7 @@ const deviceSchema = mongoose.Schema({
   // },
   device_brand_id: {
     type: Schema.Types.ObjectId,
-    ref: "deviceBrandModel", // Reference to the brandModel
+    ref: "device_brand", // Reference to the brandModel
     default: null,
     // required: [true, "Please enter select device model"],
   },

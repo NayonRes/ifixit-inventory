@@ -24,12 +24,93 @@ const getParentDropdown = catchAsyncError(async (req, res, next) => {
     data: data,
   });
 });
+const getAllData = catchAsyncError(async (req, res, next) => {
+  const startDate = req.query.startDate;
+  const endDate = req.query.endDate;
+  const query = {};
+
+  if (req.query.name) {
+    query.name = new RegExp(`^${req.query.name}$`, "i");
+  }
+
+  if (req.query.is_collection_received) {
+    query.is_collection_received = req.query.is_collection_received === "true";
+  }
+  if (req.query.status) {
+    query.status = req.query.status === "true";
+  }
+  console.log("startDate", startDate);
+  if (startDate && endDate) {
+    query.created_at = {
+      $gte: formatDate(startDate, "start", false),
+      $lte: formatDate(endDate, "end", false),
+    };
+  } else if (startDate) {
+    query.created_at = {
+      $gte: formatDate(startDate, "start", false),
+    };
+  } else if (endDate) {
+    query.created_at = {
+      $lte: formatDate(endDate, "end", false),
+    };
+  }
+  const totalData = await transactionHistoryModel.countDocuments(query);
+
+  const data = await transactionHistoryModel
+    .find(query)
+    .populate({
+      path: "transaction_source_id", // dynamic based on refPath
+      select:
+        "name title _id repair_id warranty_id expense_id amount createdAt usedated At remarks", // optional fields
+    })
+
+    .sort({ createdAt: -1 }); // newest first
+
+  res.status(200).json({
+    success: true,
+    message: "successful",
+    totalData,
+
+    data,
+  });
+});
+
+// const getAllData = catchAsyncError(async (req, res, next) => {
+//   const page = parseInt(req.query.page) || 1;
+//   console.log("===========req.query.page", req.query.page);
+//   const limit = parseInt(req.query.limit) || 10;
+//   const startIndex = (page - 1) * limit;
+//   const endIndex = page * limit;
+//   var query = {};
+//   query.name = { ...query.name, $ne: "Primary" };
+//   if (req.query.name) {
+//     query.name = new RegExp(`^${req.query.name}$`, "i");
+//   }
+//   if (req.query.status) {
+//     query.status = req.query.status === "true";
+//   }
+
+//   let totalData = await transactionHistoryModel.countDocuments(query);
+//   console.log("totalData=================================", totalData);
+//   const data = await transactionHistoryModel.find(query);
+
+//   console.log("data", data);
+//   res.status(200).json({
+//     success: true,
+//     message: "successful",
+//     data: data,
+//     totalData: totalData,
+//   });
+// });
+
 const getDataWithPagination = catchAsyncError(async (req, res, next) => {
   const page = parseInt(req.query.page) || 1;
   console.log("===========req.query.page", req.query.page);
   const limit = parseInt(req.query.limit) || 10;
   const startIndex = (page - 1) * limit;
   const endIndex = page * limit;
+  const startDate = req.query.startDate;
+  const endDate = req.query.endDate;
   var query = {};
   query.name = { ...query.name, $ne: "Primary" };
   if (req.query.name) {
@@ -40,6 +121,22 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
   }
   if (req.query.parent_name) {
     query.parent_name = new RegExp(`^${req.query.parent_name}$`, "i");
+  }
+
+  console.log("startDate", startDate);
+  if (startDate && endDate) {
+    query.created_at = {
+      $gte: formatDate(startDate, "start", false),
+      $lte: formatDate(endDate, "end", false),
+    };
+  } else if (startDate) {
+    query.created_at = {
+      $gte: formatDate(startDate, "start", false),
+    };
+  } else if (endDate) {
+    query.created_at = {
+      $lte: formatDate(endDate, "end", false),
+    };
   }
   let totalData = await transactionHistoryModel.countDocuments(query);
   console.log("totalData=================================", totalData);
@@ -83,6 +180,7 @@ const createData = catchAsyncError(async (req, res, next) => {
 
 // using this for use inside other controller
 async function createTransaction(
+  transaction_name,
   transaction_source_id,
   transaction_info,
   transaction_source_type,
@@ -105,6 +203,7 @@ async function createTransaction(
         : transaction_source_id;
     const newTransaction = [
       {
+        transaction_name,
         transaction_source_id: sourceId,
         transaction_info: Array.isArray(transaction_info)
           ? transaction_info
@@ -126,6 +225,67 @@ async function createTransaction(
     return data;
   } catch (err) {
     console.error("Error creating transaction history:", err);
+    throw err;
+  }
+}
+
+async function updateTransaction(
+  transaction_name,
+  transaction_source_id,
+  transaction_info,
+  transaction_source_type,
+  transaction_type,
+  updated_by,
+  session = null
+) {
+  try {
+    console.log(
+      "Update params---------------------------",
+      transaction_source_id,
+      transaction_info,
+      transaction_source_type,
+      transaction_type,
+      updated_by
+    );
+
+    const sourceId =
+      typeof transaction_source_id === "string"
+        ? new mongoose.Types.ObjectId(transaction_source_id)
+        : transaction_source_id;
+
+    const options = session ? { session, new: true } : { new: true };
+
+    const data = await transactionHistoryModel.findOneAndUpdate(
+      { transaction_source_id: sourceId },
+      {
+        $set: {
+          transaction_name,
+          transaction_info: Array.isArray(transaction_info)
+            ? transaction_info
+            : [],
+          transaction_source_type,
+          transaction_type,
+          updated_by,
+          updated_at: new Date(),
+        },
+      },
+      options
+    );
+
+    if (!data) {
+      console.log(
+        `No transaction history found for source_id: ${transaction_source_id}`
+      );
+      return null;
+    }
+
+    console.log(
+      `Transaction history updated for source_id: ${transaction_source_id}`
+    );
+
+    return data;
+  } catch (err) {
+    console.error("Error updating transaction history:", err);
     throw err;
   }
 }
@@ -158,15 +318,48 @@ const updateData = catchAsyncError(async (req, res, next) => {
     }
   );
 
-  // const childrenParentUpdate = await transactionHistoryModel.updateMany(
-  //   { parent_name: oldParentName },
-  //   { $set: { parent_name: name } }
-  // );
   res.status(200).json({
     success: true,
     message: "Update successfully",
     data: data,
-    // childrenParentUpdate,
+  });
+});
+const updateCollectionStatus = catchAsyncError(async (req, res, next) => {
+  const { token } = req.cookies;
+  const updates = req.body.transaction_received_status_list; // Expecting an array of objects [{ _id, is_collection_received }]
+
+  if (!Array.isArray(updates) || updates.length === 0) {
+    return next(new ErrorHander("Invalid or empty update data", 400));
+  }
+
+  let decodedData;
+  try {
+    decodedData = jwt.verify(token, process.env.JWT_SECRET);
+  } catch (err) {
+    return next(new ErrorHander("Invalid or expired token", 401));
+  }
+
+  // Prepare bulk update operations
+  const bulkOps = updates.map((item) => ({
+    updateOne: {
+      filter: { _id: item._id },
+      update: {
+        $set: {
+          is_collection_received: item.is_collection_received,
+          updated_by: decodedData?.user?.email,
+          updated_at: new Date(),
+        },
+      },
+    },
+  }));
+
+  // Perform bulk update
+  const result = await transactionHistoryModel.bulkWrite(bulkOps);
+
+  res.status(200).json({
+    success: true,
+    message: "Collection status updated successfully",
+    result,
   });
 });
 
@@ -286,6 +479,7 @@ const getCategoryWiseFilterList = catchAsyncError(async (req, res, next) => {
   });
 });
 module.exports = {
+  getAllData,
   getParentDropdown,
   getLeafCategoryList,
   getDataWithPagination,
@@ -295,4 +489,6 @@ module.exports = {
   deleteData,
   getCategoryWiseFilterList,
   createTransaction,
+  updateTransaction,
+  updateCollectionStatus,
 };

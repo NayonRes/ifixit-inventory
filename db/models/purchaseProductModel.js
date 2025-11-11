@@ -9,18 +9,18 @@ const purchaseProductSchema = mongoose.Schema({
   // },
   product_id: {
     type: Schema.Types.ObjectId,
-    ref: "productModel",
+    ref: "product",
     required: [true, "Please enter product Id"],
   },
   product_variation_id: {
     type: Schema.Types.ObjectId,
-    ref: "productVariationModel",
+    ref: "product_variation",
     required: [true, "Please enter product Id"],
   },
 
   purchase_id: {
     type: Schema.Types.ObjectId,
-    ref: "purchaseModel",
+    ref: "purchase",
     required: [true, "Please enter purchase Id"],
   },
   quantity: {

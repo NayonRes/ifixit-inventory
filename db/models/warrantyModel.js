@@ -2,23 +2,62 @@ const mongoose = require("mongoose");
 const { Schema } = mongoose;
 
 const stockSchema = mongoose.Schema({
+  warranty_id: {
+    type: String,
+    required: [true, "Please enter serial"],
+  },
   repair_id: {
     type: Schema.Types.ObjectId,
-    ref: "repairModel",
+    ref: "repair",
     required: [true, "Please select repair id"],
+  },
+  branch_id: {
+    type: Schema.Types.ObjectId,
+    ref: "branch",
   },
   service_charge: {
     type: Number,
     required: [true, "Please enter service charge"],
   },
-  discount: {
+
+  repair_by: {
+    type: Schema.Types.ObjectId,
+    ref: "user",
+    default: null,
+    set: (v) => (v === "" ? null : v),
+    // required: [true, "Please enter select brand"],
+  },
+  repair_status: {
+    type: String,
+    // required: [true, "Please enter repair status"],
+  },
+  delivery_status: {
+    type: String,
+  },
+  due_amount: {
     type: Number,
     default: 0,
   },
-
-  warranty_service_status: {
-    type: String,
+  discount_amount: {
+    type: Number,
+    default: 0,
   },
+  // payment_status: {
+  //   type: String,
+  //   // required: [true, "Please enter payment status"],
+  // },
+
+  payment_info: [
+    {
+      name: {
+        type: String,
+      },
+      amount: {
+        type: Number,
+        default: 0,
+      },
+    },
+  ],
 
   remarks: {
     type: String,

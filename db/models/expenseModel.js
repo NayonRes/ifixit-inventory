@@ -1,6 +1,11 @@
 const mongoose = require("mongoose");
 
 const expenseSchema = mongoose.Schema({
+
+   expense_id: {
+    type: String,
+    required: [true, "Please enter serial"],
+  },
   // name: {
   //   type: String,
   //   required: [true, "Please enter category name"],
@@ -13,12 +18,12 @@ const expenseSchema = mongoose.Schema({
   },
   expense_category_id: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "expenseCategory",
+    ref: "expense_category",
     required: [true, "Please select expense category"],
   },
   branch_id: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "branchModel", // Reference to the brandModel
+    ref: "branch", // Reference to the brandModel
     required: [true, "Please enter business location"],
   },
   amount: {

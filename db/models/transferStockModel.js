@@ -4,12 +4,12 @@ const { Schema } = mongoose;
 const transferSkuSchema = mongoose.Schema({
   transfer_from: {
     type: Schema.Types.ObjectId,
-    ref: "branchModel",
+    ref: "branch",
     required: [true, "Please select branch"],
   },
   transfer_to: {
     type: Schema.Types.ObjectId,
-    ref: "branchModel",
+    ref: "branch",
     required: [true, "Please select branch"],
   },
   transfer_stocks_sku: {

@@ -4,59 +4,59 @@ const { Schema } = mongoose;
 const stockSchema = mongoose.Schema({
   product_id: {
     type: Schema.Types.ObjectId,
-    ref: "productModel",
+    ref: "product",
     required: [true, "Please select product"],
   },
   product_variation_id: {
     type: Schema.Types.ObjectId,
-    ref: "productVariationModel",
+    ref: "product_variation",
     required: [true, "Please select product variation"],
   },
   branch_id: {
     type: Schema.Types.ObjectId,
-    ref: "branchModel",
+    ref: "branch",
     required: [true, "Please select branch"],
   },
   purchase_branch_id: {
     type: Schema.Types.ObjectId,
-    ref: "branchModel",
+    ref: "branch",
     required: [true, "Please select purchase branch"],
   },
   purchase_id: {
     type: Schema.Types.ObjectId,
-    ref: "purchaseModel",
+    ref: "purchase",
     required: [true, "Please select purchase"],
   },
   purchase_product_id: {
     type: Schema.Types.ObjectId,
-    ref: "purchaseProductModel",
+    ref: "purchase_product",
     required: [true, "Please select purchase product"],
   },
 
   supplier_id: {
     type: Schema.Types.ObjectId,
-    ref: "supplierModel", // Reference to the brandModel
+    ref: "supplier", // Reference to the brandModel
     required: [true, "Please select supplier"],
   },
 
   brand_id: {
     type: Schema.Types.ObjectId,
-    ref: "brandModel", // Reference to the brandModel
+    ref: "brand", // Reference to the brandModel
     required: [true, "Please enter select brand"],
   },
   category_id: {
     type: Schema.Types.ObjectId,
-    ref: "categoryModel",
+    ref: "category",
     required: [true, "Please enter select category"],
   },
   device_id: {
     type: Schema.Types.ObjectId,
-    ref: "deviceModel",
+    ref: "device",
     required: [true, "Please enter select device"],
   },
   model_id: {
     type: Schema.Types.ObjectId,
-    ref: "modelModel",
+    ref: "model",
     required: [true, "Please enter select model"],
   },
   sku_number: {

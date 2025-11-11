@@ -4,32 +4,32 @@ const { Schema } = mongoose;
 const purchaseReturnSchema = mongoose.Schema({
   product_id: {
     type: Schema.Types.ObjectId,
-    ref: "productModel",
+    ref: "product",
     required: [true, "Please select product"],
   },
   product_variation_id: {
     type: Schema.Types.ObjectId,
-    ref: "productVariationModel",
+    ref: "product_variation",
     required: [true, "Please select product variation"],
   },
   branch_id: {
     type: Schema.Types.ObjectId,
-    ref: "branchModel",
+    ref: "branch",
     required: [true, "Please select branch"],
   },
   purchase_id: {
     type: Schema.Types.ObjectId,
-    ref: "purchaseModel",
+    ref: "purchase",
     required: [true, "Please select purchase"],
   },
   purchase_product_id: {
     type: Schema.Types.ObjectId,
-    ref: "purchaseProductModel",
+    ref: "purchase_product",
     required: [true, "Please select purchase product"],
   },
   // supplier_id: {
   //   type: Schema.Types.ObjectId,
-  //   ref: "supplierModel",
+  //   ref: "supplier",
   //   required: [true, "Please select purchase product"],
   // },
 

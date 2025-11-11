@@ -9,13 +9,13 @@ const saleSchema = mongoose.Schema({
 
   customer_id: {
     type: Schema.Types.ObjectId,
-    ref: "customerModel",
+    ref: "customer",
     required: [true, "Please enter select customer"],
   },
 
   branch_id: {
     type: Schema.Types.ObjectId,
-    ref: "branchModel",
+    ref: "branch",
   },
 
   due_amount: {
@@ -32,12 +32,12 @@ const saleSchema = mongoose.Schema({
     {
       product_id: {
         type: Schema.Types.ObjectId,
-        ref: "productModel",
+        ref: "product",
         required: [true, "Please enter product Id"],
       },
       product_variation_id: {
         type: Schema.Types.ObjectId,
-        ref: "productVariationModel",
+        ref: "product_variation",
         required: [true, "Please enter product Id"],
       },
       product_name: {

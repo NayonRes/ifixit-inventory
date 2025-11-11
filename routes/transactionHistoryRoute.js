@@ -1,5 +1,6 @@
 var express = require("express");
 const {
+  getAllData,
   getParentDropdown,
   getLeafCategoryList,
   getDataWithPagination,
@@ -8,6 +9,7 @@ const {
   updateData,
   deleteData,
   getCategoryWiseFilterList,
+  updateCollectionStatus
 } = require("../controller/transactionHistoryController");
 const { isAuthenticatedUser, authorizeRoles } = require("../middleware/auth");
 const categoryModel = require("../db/models/categoryModel");
@@ -36,8 +38,13 @@ router.route("/").get(
 
   getDataWithPagination
 );
+router.route("/all").get(
+  isAuthenticatedUser,
+  getAllData
+);
 router.route("/:id").get(isAuthenticatedUser, getById);
 router.route("/create").post(isAuthenticatedUser, createData);
+router.route("/update-transaction-received-status").put(isAuthenticatedUser, updateCollectionStatus);
 router.route("/update/:id").put(isAuthenticatedUser, updateData);
 // router
 //   .route("/delete/:id")

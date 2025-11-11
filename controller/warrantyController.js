@@ -5,6 +5,8 @@ const mongoose = require("mongoose");
 const catchAsyncError = require("../middleware/catchAsyncError");
 const jwt = require("jsonwebtoken");
 const formatDate = require("../utils/formatDate");
+const repairStatusHistoryModel = require("../db/models/repairStatusHistoryModel");
+const { createTransaction } = require("./transactionHistoryController");
 
 const getDataWithPagination = catchAsyncError(async (req, res, next) => {
   const page = parseInt(req.query.page) || 1;
@@ -13,21 +15,133 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
   const startIndex = (page - 1) * limit;
   const endIndex = page * limit;
   var query = {};
- 
+
   if (req.query.repair_id) {
     query.repair_id = new mongoose.Types.ObjectId(req.query.repair_id);
   }
-
- 
+  if (req.query.branch_id) {
+    query.branch_id = new mongoose.Types.ObjectId(req.query.branch_id);
+  }
+  if (req.query.warranty_id) {
+    query.warranty_id = {
+      $regex: `^${req.query.warranty_id}$`,
+      $options: "i",
+    };
+  }
   if (req.query.status) {
     query.status = req.query.status === "true";
   }
   let totalData = await warrantyModel.countDocuments(query);
   console.log("totalData=================================", totalData);
-  const data = await warrantyModel
-    .find(query)
-    .skip(startIndex)
-    .limit(limit);
+  // const data = await warrantyModel.find(query).skip(startIndex).limit(limit);
+
+  const data = await warrantyModel.aggregate([
+    {
+      $match: query,
+    },
+    {
+      $lookup: {
+        from: "repairs",
+        localField: "repair_id",
+        foreignField: "_id",
+        as: "repair_data",
+      },
+    },
+    {
+      $lookup: {
+        from: "repair_status_histories",
+        localField: "_id",
+        foreignField: "warranty_id",
+        as: "repair_status_history_data",
+      },
+    },
+    // Lookup users for user_id inside repair_status_history_data
+    {
+      $lookup: {
+        from: "users",
+        localField: "repair_status_history_data.user_id",
+        foreignField: "_id",
+        as: "repair_status_users",
+      },
+    },
+    // Merge repair_status_users into repair_status_history_data
+    {
+      $addFields: {
+        repair_status_history_data: {
+          $map: {
+            input: "$repair_status_history_data",
+            as: "history",
+            in: {
+              $mergeObjects: [
+                "$$history",
+                {
+                  user_data: {
+                    $arrayElemAt: [
+                      {
+                        $filter: {
+                          input: "$repair_status_users",
+                          as: "user",
+                          cond: { $eq: ["$$user._id", "$$history.user_id"] },
+                        },
+                      },
+                      0,
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+        },
+      },
+    },
+    {
+      $project: {
+        _id: 1,
+        warranty_id: 1,
+        repair_id: 1,
+        service_charge: 1,
+        repair_by: 1,
+        repair_status: 1,
+        delivery_status: 1,
+        due_amount: 1,
+        discount_amount: 1,
+        payment_info: 1,
+
+        remarks: 1,
+        status: 1,
+        created_by: 1,
+        created_at: 1,
+        updated_by: 1,
+        updated_at: 1,
+
+        repair_data: 1,
+
+        "repair_status_history_data._id": 1,
+        "repair_status_history_data.remarks": 1,
+        "repair_status_history_data.created_by": 1,
+        "repair_status_history_data.updated_at": 1,
+        "repair_status_history_data.updated_by": 1,
+        "repair_status_history_data.user_id": 1,
+        "repair_status_history_data.repair_id": 1,
+        "repair_status_history_data.warranty_id": 1,
+        "repair_status_history_data.repair_status_name": 1,
+        "repair_status_history_data.remarks": 1,
+        "repair_status_history_data.created_at": 1,
+        "repair_status_history_data.user_data._id": 1,
+        "repair_status_history_data.user_data.name": 1,
+        "repair_status_history_data.user_data.designation": 1,
+      },
+    },
+    {
+      $sort: { created_at: -1 },
+    },
+    {
+      $skip: startIndex,
+    },
+    {
+      $limit: limit,
+    },
+  ]);
   console.log("data", data);
   res.status(200).json({
     success: true,
@@ -46,55 +160,229 @@ const getById = catchAsyncError(async (req, res, next) => {
     },
     {
       $lookup: {
-        from: "products",
-        localField: "product_id",
+        from: "repairs",
+        localField: "repair_id",
         foreignField: "_id",
-        as: "product_data",
+        as: "repair_data",
+      },
+    },
+
+    {
+      $lookup: {
+        from: "users",
+        localField: "repair_by",
+        foreignField: "_id",
+        as: "repair_by_data",
       },
     },
     {
       $lookup: {
-        from: "product_variations",
-        localField: "product_variation_id",
-        foreignField: "_id",
-        as: "sparepartvariation_data",
+        from: "users",
+        localField: "created_by",
+        foreignField: "email",
+        as: "created_by_info",
       },
     },
     {
       $lookup: {
-        from: "branches",
-        localField: "branch_id",
-        foreignField: "_id",
-        as: "branch_data",
+        from: "transaction_histories",
+        localField: "_id",
+        foreignField: "transaction_source_id",
+        as: "transaction_histories_data",
+        pipeline: [
+          // Join created_by user
+          {
+            $lookup: {
+              from: "users",
+              let: { createdEmail: "$created_by" },
+              pipeline: [
+                { $match: { $expr: { $eq: ["$email", "$$createdEmail"] } } },
+                { $project: { _id: 1, name: 1, email: 1 } },
+              ],
+              as: "created_user",
+            },
+          },
+          {
+            $unwind: {
+              path: "$created_user",
+              preserveNullAndEmptyArrays: true,
+            },
+          },
+
+          // Join updated_by user
+          {
+            $lookup: {
+              from: "users",
+              let: { updatedEmail: "$updated_by" },
+              pipeline: [
+                { $match: { $expr: { $eq: ["$email", "$$updatedEmail"] } } },
+                { $project: { _id: 1, name: 1, email: 1 } },
+              ],
+              as: "updated_user",
+            },
+          },
+          {
+            $unwind: {
+              path: "$updated_user",
+              preserveNullAndEmptyArrays: true,
+            },
+          },
+        ],
       },
     },
     {
       $lookup: {
-        from: "branches",
-        localField: "purchase_branch_id",
-        foreignField: "_id",
-        as: "purchase_branch_data",
+        from: "repair_attached_spareparts",
+        localField: "_id",
+        foreignField: "warranty_id",
+        as: "repair_attached_spareparts_data",
+        pipeline: [
+          // Join created_by user
+          {
+            $lookup: {
+              from: "users",
+              let: { createdEmail: "$created_by" },
+              pipeline: [
+                { $match: { $expr: { $eq: ["$email", "$$createdEmail"] } } },
+                { $project: { _id: 1, name: 1, email: 1 } },
+              ],
+              as: "created_user",
+            },
+          },
+          {
+            $unwind: {
+              path: "$created_user",
+              preserveNullAndEmptyArrays: true,
+            },
+          },
+
+          // Join updated_by user
+          {
+            $lookup: {
+              from: "users",
+              let: { updatedEmail: "$updated_by" },
+              pipeline: [
+                { $match: { $expr: { $eq: ["$email", "$$updatedEmail"] } } },
+                { $project: { _id: 1, name: 1, email: 1 } },
+              ],
+              as: "updated_user",
+            },
+          },
+          {
+            $unwind: {
+              path: "$updated_user",
+              preserveNullAndEmptyArrays: true,
+            },
+          },
+
+          // Join stocks using sku_number
+          {
+            $lookup: {
+              from: "stocks",
+              localField: "sku_number",
+              foreignField: "sku_number",
+              as: "stocks_data",
+              pipeline: [
+                // Join products by product_id
+                {
+                  $lookup: {
+                    from: "products",
+                    localField: "product_id",
+                    foreignField: "_id",
+                    as: "product_data",
+                  },
+                },
+                {
+                  $unwind: {
+                    path: "$product_data",
+                    preserveNullAndEmptyArrays: true,
+                  },
+                },
+
+                // Join product_variations by product_variation_id
+                {
+                  $lookup: {
+                    from: "product_variations",
+                    localField: "product_variation_id",
+                    foreignField: "_id",
+                    as: "product_variation_data",
+                  },
+                },
+                {
+                  $unwind: {
+                    path: "$product_variation_data",
+                    preserveNullAndEmptyArrays: true,
+                  },
+                },
+              ],
+            },
+          },
+          {
+            $unwind: { path: "$stocks_data", preserveNullAndEmptyArrays: true },
+          },
+        ],
       },
     },
     {
       $lookup: {
-        from: "purchases",
-        localField: "purchase_id",
+        from: "repair_status_histories",
+        localField: "_id",
+        foreignField: "warranty_id",
+        as: "repair_status_history_data",
+      },
+    },
+    // Lookup users for user_id inside repair_status_history_data
+    {
+      $lookup: {
+        from: "users",
+        localField: "repair_status_history_data.user_id",
         foreignField: "_id",
-        as: "purchase_data",
+        as: "repair_status_users",
+      },
+    },
+    // Merge repair_status_users into repair_status_history_data
+    {
+      $addFields: {
+        repair_status_history_data: {
+          $map: {
+            input: "$repair_status_history_data",
+            as: "history",
+            in: {
+              $mergeObjects: [
+                "$$history",
+                {
+                  user_data: {
+                    $arrayElemAt: [
+                      {
+                        $filter: {
+                          input: "$repair_status_users",
+                          as: "user",
+                          cond: { $eq: ["$$user._id", "$$history.user_id"] },
+                        },
+                      },
+                      0,
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+        },
       },
     },
     {
       $project: {
         _id: 1,
-        product_id: 1,
-        product_variation_id: 1,
-        branch_id: 1,
-        purchase_branch_id: 1,
-        purchase_id: 1,
-        sku_number: 1,
-        stock_status: 1,
-        product_id: 1,
+        warranty_id: 1,
+        repair_id: 1,
+        service_charge: 1,
+        repair_by: 1,
+        repair_status: 1,
+        delivery_status: 1,
+        due_amount: 1,
+        discount_amount: 1,
+        payment_info: 1,
+
         remarks: 1,
         status: 1,
         created_by: 1,
@@ -102,13 +390,25 @@ const getById = catchAsyncError(async (req, res, next) => {
         updated_by: 1,
         updated_at: 1,
 
-        "product_data.name": 1,
-        "branch_data.name": 1,
-        "purchase_branch_data.name": 1,
-        "sparepartvariation_data.name": 1,
-        "purchase_data.purchase_date": 1,
-        "purchase_data.is_sku_generated": 1,
-        "purchase_data.supplier_id": 1,
+        repair_data: 1,
+        "repair_by_data.name": 1,
+        "repair_by_data._id": 1,
+        "repair_status_history_data._id": 1,
+        "repair_status_history_data.remarks": 1,
+        "repair_status_history_data.created_by": 1,
+        "repair_status_history_data.updated_at": 1,
+        "repair_status_history_data.updated_by": 1,
+        "repair_status_history_data.user_id": 1,
+        "repair_status_history_data.repair_id": 1,
+        "repair_status_history_data.warranty_id": 1,
+        "repair_status_history_data.repair_status_name": 1,
+        "repair_status_history_data.remarks": 1,
+        "repair_status_history_data.created_at": 1,
+        "repair_status_history_data.user_data._id": 1,
+        "repair_status_history_data.user_data.name": 1,
+        "repair_status_history_data.user_data.designation": 1,
+        transaction_histories_data: 1,
+        repair_attached_spareparts_data: 1,
       },
     },
   ]);
@@ -116,53 +416,262 @@ const getById = catchAsyncError(async (req, res, next) => {
   if (!data) {
     return res.send({ message: "No data found", status: 404 });
   }
-  res.send({ message: "success", status: 200, data: data });
+  res.send({ message: "success", status: 200, data: data[0] });
 });
+async function createStatusHistory(session, req, warrantyId, decodedData) {
+  console.log("req.body.repair_status:", req.body.repair_status);
+  const newStatusData = {
+    user_id: new mongoose.Types.ObjectId(req.body?.repair_by),
+    warranty_id: new mongoose.Types.ObjectId(warrantyId),
+    repair_id: new mongoose.Types.ObjectId(req.body?.repair_id),
+    repair_status_name: req.body?.repair_status,
+    remarks: req.body?.repair_status_remarks,
+    created_by: decodedData?.user?.email,
+  };
+
+  const statusData = await repairStatusHistoryModel.create([newStatusData], {
+    session,
+  });
+
+  console.log("newStatusData", newStatusData);
+  console.log("statusData", statusData);
+
+  if (!statusData || statusData.length === 0) {
+    return null;
+  }
+  return statusData[0];
+}
 
 const createData = catchAsyncError(async (req, res, next) => {
-  console.log("warranty createData ****************************");
+  // console.log("req.body.product_details:", req.body.product_details);
 
+  // Step 0: Generate new repair_id
+  const lastDoc = await warrantyModel.find().sort({ _id: -1 });
+  let newId;
+  if (lastDoc.length > 0) {
+    const serial = lastDoc[0].warranty_id.slice(0, 2);
+    const number = parseInt(lastDoc[0].warranty_id.slice(2)) + 1;
+    newId = serial.concat(number);
+  } else {
+    newId = "WN10000";
+  }
+
+  // Step 1: Decode JWT
   const { token } = req.cookies;
   const decodedData = jwt.verify(token, process.env.JWT_SECRET);
-  const repair_id = mongoose.Types.ObjectId(req.body.repair_id);
 
-  let existingWarranty = await warrantyModel.findOne({ repair_id });
-  console.log("existingWarranty", existingWarranty);
+  // Step 2: Start session
+  const session = await mongoose.startSession();
 
-  if (!existingWarranty) {
-    const newDocument = {
-      ...req.body,
-      created_by: decodedData?.user?.email,
-    };
+  try {
+    await session.withTransaction(async () => {
+      // 2a: Create warranty
+      const newWarranyData = {
+        ...req.body,
+        warranty_id: newId,
+        created_by: decodedData?.user?.email,
+      };
+      const data = await warrantyModel.create([newWarranyData], { session });
+      const warranty = data[0];
 
-    let data = await warrantyModel.create(newDocument);
-    res.send({ message: "success", status: 201, data: data });
-  } else {
-    let data = await warrantyModel.findByIdAndUpdate(
-      existingWarranty._id,
-      {
-        $set: {
-          ...req.body,
-          updated_by: decodedData?.user?.email,
-          updated_at: new Date(),
-        },
-      },
-      {
-        new: true,
-        runValidators: true,
-        useFindAndModified: false, // should be useFindAndModify
+      if (!warranty) {
+        await session.abortTransaction();
+        session.endSession();
+        return res.status(500).json({ message: "Failed to create warranty" });
       }
-    );
 
-    res.send({ message: "success", status: 201, data: data });
+      // 2b: Create status history
+      const statusData = await createStatusHistory(
+        session,
+        req,
+        warranty._id,
+        decodedData
+      );
+      if (!statusData) {
+        await session.abortTransaction();
+        session.endSession();
+        return res
+          .status(404)
+          .json({ message: "Failed to save status history" });
+      }
+      // 2c: Create transaction history (only if billCollections exist)
+
+      let transactionData = null;
+
+      if (
+        Array.isArray(req.body?.billCollections) &&
+        req.body.billCollections.length > 0
+      ) {
+        transactionData = await createTransaction(
+          "Warranty Income",
+          warranty._id, // transaction_source_id
+          req.body.billCollections, // transaction_info
+          "warranty", // transaction_source_type
+          "credit", // transaction_type
+          decodedData?.user?.email, // created_by
+          session // optional, will be used if transaction is active
+        );
+
+        if (!transactionData) {
+          await session.abortTransaction();
+          session.endSession();
+          return res
+            .status(404)
+            .json({ message: "Failed to save transaction history" });
+        }
+      }
+      // 2e: Send success response
+      return res.status(201).json({
+        message: "Success",
+        data: warranty,
+        statusData,
+        transactionData,
+      });
+    });
+  } catch (error) {
+    console.error("Transaction failed:", error);
+    next(error);
+  } finally {
+    session.endSession();
   }
 });
+const updateData = catchAsyncError(async (req, res, next) => {
+  const { token } = req.cookies;
+  const decodedData = jwt.verify(token, process.env.JWT_SECRET);
+  const existingRepair = await warrantyModel.findById(req.params.id);
+  if (!existingRepair) {
+    return next(new ErrorHander("No data found", 404));
+  }
+  // Step 2: Start session
+  const session = await mongoose.startSession();
+
+  try {
+    await session.withTransaction(async () => {
+      // 2a: Create warranty
+
+      const updatedData = {
+        ...req.body,
+        updated_by: decodedData?.user?.email,
+        updated_at: new Date(),
+      };
+
+      const warranty = await warrantyModel.findByIdAndUpdate(
+        req.params.id,
+        updatedData,
+        {
+          new: true,
+          runValidators: true,
+          useFindAndModify: false,
+          session,
+        }
+      );
+
+      if (!warranty) {
+        await session.abortTransaction();
+        session.endSession();
+        return res.status(500).json({ message: "Failed to update repair" });
+      }
+
+      // 2b: Create status history
+      const statusData = await createStatusHistory(
+        session,
+        req,
+        warranty._id,
+        decodedData
+      );
+      if (!statusData) {
+        await session.abortTransaction();
+        session.endSession();
+        return res
+          .status(404)
+          .json({ message: "Failed to save status history" });
+      }
+      // 2c: Create transaction history (only if billCollections exist)
+
+      let transactionData = null;
+
+      if (
+        Array.isArray(req.body?.billCollections) &&
+        req.body.billCollections.length > 0
+      ) {
+        transactionData = await createTransaction(
+          "Warranty Income",
+          warranty._id, // transaction_source_id
+          req.body.billCollections, // transaction_info
+          "warranty", // transaction_source_type
+          "credit", // transaction_type
+          decodedData?.user?.email, // created_by
+          session // optional, will be used if transaction is active
+        );
+
+        if (!transactionData) {
+          await session.abortTransaction();
+          session.endSession();
+          return res
+            .status(404)
+            .json({ message: "Failed to save transaction history" });
+        }
+      }
+      // 2e: Send success response
+      return res.status(201).json({
+        message: "Success",
+        data: warranty,
+        statusData,
+        transactionData,
+      });
+    });
+  } catch (error) {
+    console.error("Transaction failed:", error);
+    next(error);
+  } finally {
+    session.endSession();
+  }
+});
+
+// const createData = catchAsyncError(async (req, res, next) => {
+//   console.log("warranty createData ****************************");
+
+//   const { token } = req.cookies;
+//   const decodedData = jwt.verify(token, process.env.JWT_SECRET);
+//   const repair_id = mongoose.Types.ObjectId(req.body.repair_id);
+
+//   let existingWarranty = await warrantyModel.findOne({ repair_id });
+//   console.log("existingWarranty", existingWarranty);
+
+//   if (!existingWarranty) {
+//     const newDocument = {
+//       ...req.body,
+//       created_by: decodedData?.user?.email,
+//     };
+
+//     let data = await warrantyModel.create(newDocument);
+//     res.send({ message: "success", status: 201, data: data });
+//   } else {
+//     let data = await warrantyModel.findByIdAndUpdate(
+//       existingWarranty._id,
+//       {
+//         $set: {
+//           ...req.body,
+//           updated_by: decodedData?.user?.email,
+//           updated_at: new Date(),
+//         },
+//       },
+//       {
+//         new: true,
+//         runValidators: true,
+//         useFindAndModified: false, // should be useFindAndModify
+//       }
+//     );
+
+//     res.send({ message: "success", status: 201, data: data });
+//   }
+// });
 
 // Note : this function is for only one sku update status of repair attached spareparts inactive and adjust stock counter collection
 
 module.exports = {
   getDataWithPagination,
-
   getById,
   createData,
+  updateData,
 };

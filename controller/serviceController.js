@@ -260,7 +260,12 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
   // if (req.query.model_id) {
   //   query.model_id = new mongoose.Types.ObjectId(req.query.model_id);
   // }
-
+  if (req.query.title) {
+    query.title = new RegExp(`^${req.query.title}$`, "i");
+  }
+  if (req.query.endpoint) {
+    query.endpoint = new RegExp(`^${req.query.endpoint}$`, "i");
+  }
   if (req.query.model_id) {
     query.model_id = {
       $in: [new mongoose.Types.ObjectId(req.query.model_id)],
@@ -443,6 +448,7 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
         branch_id: 1,
         brand_id: 1,
         order_no: 1,
+        endpoints: 1,
         description: 1,
         repair_by: 1,
         steps: 1,
@@ -575,6 +581,7 @@ const getById = catchAsyncError(async (req, res, next) => {
         branch_id: 1,
         brand_id: 1,
         order_no: 1,
+        endpoints: 1,
         description: 1,
         repair_by: 1,
         steps: 1,

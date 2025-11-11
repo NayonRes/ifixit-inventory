@@ -19,22 +19,22 @@ const repairSchema = mongoose.Schema({
   // it is originally  device_id. For repair module device under primary device list is product brand list
   brand_id: {
     type: Schema.Types.ObjectId,
-    ref: "deviceModel",
+    ref: "device",
     required: [true, "Please enter select brand"],
   },
   customer_id: {
     type: Schema.Types.ObjectId,
-    ref: "customerModel",
+    ref: "customer",
     required: [true, "Please enter select customer"],
   },
 
   branch_id: {
     type: Schema.Types.ObjectId,
-    ref: "branchModel",
+    ref: "branch",
   },
   model_id: {
     type: Schema.Types.ObjectId,
-    ref: "modelModel",
+    ref: "model",
     required: [true, "Please enter select model"],
   },
   delivery_status: {
@@ -54,7 +54,7 @@ const repairSchema = mongoose.Schema({
   },
   repair_by: {
     type: Schema.Types.ObjectId,
-    ref: "userModel",
+    ref: "user",
     default: null,
     set: (v) => (v === "" ? null : v),
     // required: [true, "Please enter select brand"],
@@ -68,7 +68,7 @@ const repairSchema = mongoose.Schema({
     {
       service_id: {
         type: Schema.Types.ObjectId,
-        ref: "serviceModel",
+        ref: "service",
         required: [true, "Please enter select model"],
       },
       name: {
@@ -103,12 +103,12 @@ const repairSchema = mongoose.Schema({
     {
       product_id: {
         type: Schema.Types.ObjectId,
-        ref: "productModel",
+        ref: "product",
         required: [true, "Please enter product Id"],
       },
       product_variation_id: {
         type: Schema.Types.ObjectId,
-        ref: "productVariationModel",
+        ref: "product_variation",
         required: [true, "Please enter product Id"],
       },
       name: {
@@ -161,7 +161,7 @@ const repairSchema = mongoose.Schema({
 
       {
         name: { type: String },
-        model_id: { type: Schema.Types.ObjectId, ref: "issueModel" },
+        issue_id: { type: Schema.Types.ObjectId, ref: "issue" },
         status: { type: String },
         // required: [true, "Please select at least one issue"],
       },

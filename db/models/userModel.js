@@ -60,7 +60,7 @@ const userSchema = new mongoose.Schema({
   },
   branch_id: {
     type: Schema.Types.ObjectId,
-    ref: "branchModel", // Reference to the brandModel
+    ref: "branch", // Reference to the brandModel
     required: [true, "Please enter select branch"],
   },
   // role_id: {
@@ -68,7 +68,7 @@ const userSchema = new mongoose.Schema({
   //   // required: [true, "Please Select A Role"],
   //   // default: "",
   // },
-
+  tokenVersion: { type: Number, default: 0 },
   remarks: {
     type: String,
   },

@@ -6,10 +6,17 @@ const modelSchema = mongoose.Schema({
     type: String,
     required: [true, "Please enter model id"],
   },
+
   name: {
     type: String,
     required: [true, "Please enter model name"],
     trim: true,
+    unique: true,
+  },
+  endpoint: {
+    type: String,
+    trim: true,
+    required: [true, "Please enter url endpoint"],
     unique: true,
   },
   order_no: {
@@ -27,7 +34,7 @@ const modelSchema = mongoose.Schema({
   },
   device_id: {
     type: Schema.Types.ObjectId,
-    ref: "deviceModel",
+    ref: "device",
     required: [true, "Please enter device name"],
   },
   parent_name: {

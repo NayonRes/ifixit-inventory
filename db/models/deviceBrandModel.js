@@ -13,7 +13,7 @@ const deviceBrandSchema = mongoose.Schema({
   },
   parent_id: {
     type: Schema.Types.ObjectId,
-    ref: "deviceBrandModel", // Reference to the brandModel
+    ref: "device_brand", // Reference to the brandModel
     default: null,
   },
   image: {

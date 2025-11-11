@@ -4,17 +4,17 @@ const { Schema } = mongoose;
 const stockCounterAndLimitSchema = mongoose.Schema({
   product_id: {
     type: Schema.Types.ObjectId,
-    ref: "productModel",
+    ref: "product",
     required: [true, "Please select product"],
   },
   product_variation_id: {
     type: Schema.Types.ObjectId,
-    ref: "productVariationModel",
+    ref: "product_variation",
     required: [true, "Please select product variation"],
   },
   branch_id: {
     type: Schema.Types.ObjectId,
-    ref: "branchModel",
+    ref: "branch",
     required: [true, "Please select branch"],
   },
   total_stock: {
