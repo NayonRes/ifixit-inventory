@@ -1,5 +1,9 @@
 var express = require("express");
-const { getModelByDeviceId ,getServiceByModelId,getServiceDetails} = require("../controller/publicController");
+const {
+  getModelByDeviceId,
+  getServiceByModelId,
+  getServiceDetails,
+} = require("../controller/publicController");
 
 var router = express.Router();
 
@@ -8,5 +12,6 @@ var router = express.Router();
 router.route("/model-get-by-device").get(getModelByDeviceId);
 router.route("/service-get-by-model").get(getServiceByModelId);
 router.route("/service-details/:id").get(getServiceDetails);
+router.route("/service-details").get(getServiceDetails);
 
 module.exports = router;
