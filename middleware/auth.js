@@ -8,7 +8,7 @@ exports.isAuthenticatedUser = catchAsyncErrors(async (req, res, next) => {
   // console.log("isAuthenticatedUser Middleware executed");
 
   const { token } = req.cookies;
-  console.log("token", token);
+  console.log("token 111", token);
 
   // console.log("isAuthenticatedUser=================", token);
 
@@ -30,7 +30,7 @@ exports.isAuthenticatedUser = catchAsyncErrors(async (req, res, next) => {
   // console.log("User found:", req.user);
   if (!req.user.status) {
     // logout();
-   
+
     return next(new ErrorHander("Your account has been deactivated", 401));
   }
 

@@ -49,6 +49,8 @@ const sendToken = (user, branchInfo, statusCode, res) => {
   const token = jwt.sign({ user: newUser }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRE,
   });
+
+  console.log("token 222", token);
   res.status(statusCode).cookie("token", token, options).json({
     success: true,
     user: newUser,
