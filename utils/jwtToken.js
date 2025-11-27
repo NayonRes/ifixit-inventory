@@ -13,6 +13,11 @@ const sendToken = (user, branchInfo, statusCode, res) => {
     secure: process.env.NODE_ENV === "production" ? true : false, // Cookie sent only over HTTPS in production
     sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // 'none' for cross-site, 'lax' for same-site
     // domain: "https://ifixit-admin-panel.vercel.app", // Allow cookies to be shared across subdomains
+    path: "/", // Ensure cookie is valid for the whole domain
+    domain:
+      process.env.NODE_ENV === "production"
+        ? "ifixit-admin-panel.vercel.app"
+        : undefined, // undefined for local
   };
   console.log("----------options--------------", options);
 
@@ -51,6 +56,14 @@ const sendToken = (user, branchInfo, statusCode, res) => {
   });
 
   console.log("token 222", token);
+
+  res.clearCookie("token", {
+    path: "/",
+    domain:
+      process.env.NODE_ENV === "production"
+        ? "ifixit-admin-panel.vercel.app"
+        : undefined,
+  });
   res.status(statusCode).cookie("token", token, options).json({
     success: true,
     user: newUser,
