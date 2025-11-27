@@ -8,6 +8,7 @@ exports.isAuthenticatedUser = catchAsyncErrors(async (req, res, next) => {
   // console.log("isAuthenticatedUser Middleware executed");
 
   const { token } = req.cookies;
+  console.log("token", token);
 
   // console.log("isAuthenticatedUser=================", token);
 
