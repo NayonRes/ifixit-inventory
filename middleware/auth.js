@@ -20,6 +20,7 @@ exports.isAuthenticatedUser = catchAsyncErrors(async (req, res, next) => {
   try {
     decodedData = jwt.verify(token, process.env.JWT_SECRET);
   } catch (error) {
+    console.log("error 111", error);
     return next(new ErrorHander("Invalid or expired token", 401));
   }
   // console.log("decodedData", decodedData);
@@ -29,6 +30,7 @@ exports.isAuthenticatedUser = catchAsyncErrors(async (req, res, next) => {
   // console.log("User found:", req.user);
   if (!req.user.status) {
     // logout();
+   
     return next(new ErrorHander("Your account has been deactivated", 401));
   }
 
